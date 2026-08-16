@@ -1,0 +1,604 @@
+/* ============================================================
+   Station layout system (§4.4, §8).
+   12 columns, three anchors (CENTRE / LEFT / RIGHT), scrims as
+   translucent gradients inside each station (never opaque — §2.2).
+   Below 900px: single centred column, heavy scrim everywhere.
+   ============================================================ */
+
+.inner {
+  position: relative;
+  display: grid;
+  align-content: center;
+  min-height: inherit;
+  padding-block: var(--s-10);
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scrimHeavy { background: var(--scrim-heavy); }
+.scrimLeft { background: var(--scrim-left); }
+.scrimRight { background: var(--scrim-right); }
+
+.grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--grid-gutter);
+  row-gap: var(--s-8);
+  width: min(100% - 2 * var(--page-margin), var(--content-max));
+  margin-inline: auto;
+}
+
+/* Anchor rails */
+.railLeft { grid-column: 1 / 6; }
+.railRight { grid-column: 8 / 13; }
+.railCentre {
+  grid-column: 3 / 11;
+  text-align: center;
+  justify-items: center;
+  display: grid;
+}
+.railListRight { grid-column: 8 / 13; }
+.railListLeft { grid-column: 1 / 6; }
+.railWideRight { grid-column: 7 / 13; }
+
+@media (max-width: 1024px) {
+  .railLeft { grid-column: 1 / 7; }
+  .railRight { grid-column: 7 / 13; }
+  .railListRight { grid-column: 7 / 13; }
+  .railListLeft { grid-column: 1 / 7; }
+}
+
+@media (max-width: 900px) {
+  .railLeft,
+  .railRight,
+  .railCentre,
+  .railListRight,
+  .railListLeft,
+  .railWideRight {
+    grid-column: 1 / 13;
+  }
+  .scrimLeft,
+  .scrimRight {
+    background: var(--scrim-heavy);
+  }
+}
+
+/* ---------- shared text roles ---------- */
+
+.eyebrow {
+  composes: utility from '../styles/base.css';
+  margin-bottom: var(--s-5);
+}
+
+.index {
+  composes: utility from '../styles/base.css';
+  display: block;
+  color: var(--ember);
+  margin-bottom: var(--s-2);
+}
+
+.h1 {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--tr-h1);
+  margin-bottom: var(--s-6);
+  text-wrap: balance;
+}
+
+.h1 span {
+  display: block;
+}
+
+.body {
+  max-width: var(--measure);
+  margin-bottom: var(--s-5);
+}
+
+.body:last-child {
+  margin-bottom: 0;
+}
+
+.listLabel {
+  composes: utility from '../styles/base.css';
+  display: block;
+  margin-bottom: var(--s-6);
+}
+
+/* ============================================================
+   Station 1 · ENTRANCE (CENTRE)
+   ============================================================ */
+
+.hero {
+  composes: display from '../styles/base.css';
+  /* --t-hero overflows with the 30 character third hero line; scoped clamp
+     keeps each authored line a single rendered line at >=900px (flagged). */
+  font-size: clamp(2.6rem, 6.3vw, 7.5rem);
+  line-height: var(--lh-hero);
+  letter-spacing: var(--tr-hero);
+  margin-block: var(--s-6);
+  text-wrap: balance;
+}
+
+/* Station 8 hero keeps the full spec token — its copy fits. */
+.heroClose {
+  font-size: var(--t-hero);
+}
+
+.heroWrap {
+  grid-column: 1 / 13;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.hero span {
+  display: block;
+}
+
+.lead {
+  font-size: var(--t-lead);
+  line-height: var(--lh-lead);
+  color: var(--bone);
+  max-width: 44ch;
+  margin-bottom: var(--s-8);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-7);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ctaPrimary {
+  position: relative;
+  display: inline-block;
+  padding: var(--s-4) var(--s-7);
+  border: 1px solid var(--ember);
+  color: var(--bone);
+  font-size: var(--t-small);
+  overflow: hidden;
+  text-shadow: none;
+  transition: color var(--d-hover) var(--e-out);
+}
+
+.ctaPrimary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ember);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--d-hover) var(--e-out);
+  z-index: -1;
+}
+
+.ctaPrimary:hover {
+  color: var(--ink);
+}
+
+.ctaPrimary:hover::before {
+  transform: scaleX(1);
+}
+
+.ctaSecondary {
+  position: relative;
+  color: var(--bone);
+  font-size: var(--t-small);
+  padding-bottom: 2px;
+}
+
+.ctaSecondary::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--stone);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--d-hover) var(--e-out);
+}
+
+.ctaSecondary:hover::after {
+  transform: scaleX(1);
+}
+
+.scrollCue {
+  position: absolute;
+  left: 50%;
+  bottom: var(--s-7);
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: var(--s-3);
+}
+
+.scrollCueRule {
+  position: relative;
+  width: 1px;
+  height: 48px;
+  background: var(--stone);
+}
+
+.scrollCueDot {
+  position: absolute;
+  left: -1px;
+  top: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--ember);
+}
+
+/* ============================================================
+   Station 2 · THE PROBLEM (LEFT) — pain list right
+   ============================================================ */
+
+.painList {
+  display: grid;
+}
+
+.painRow {
+  position: relative;
+  padding-block: var(--s-5);
+}
+
+.painRow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--stone);
+  opacity: 0.55;
+}
+
+/* ============================================================
+   Station 3 · THE POSITIONING (RIGHT)
+   ============================================================ */
+
+.quoteWrap {
+  position: relative;
+}
+
+.quoteGlyph {
+  composes: display from '../styles/base.css';
+  position: absolute;
+  left: -0.65em;
+  top: -0.08em;
+  font-size: 5.5rem;
+  color: var(--ember);
+  opacity: 0.5;
+  line-height: 1;
+}
+
+.quote {
+  composes: display from '../styles/base.css';
+  font-weight: 400;
+  font-size: var(--t-h2);
+  line-height: var(--lh-h2);
+  margin-bottom: var(--s-8);
+  text-wrap: balance;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  gap: var(--s-7);
+  margin-bottom: var(--s-7);
+}
+
+.stat {
+  position: relative;
+  padding-right: var(--s-7);
+}
+
+.stat:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 10%;
+  height: 80%;
+  width: 1px;
+  background: var(--stone);
+  opacity: 0.6;
+}
+
+.statValue {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h2);
+  line-height: 1.1;
+}
+
+.statValue[data-placeholder] {
+  font-size: var(--t-h3);
+  color: var(--stone);
+}
+
+.statLabel {
+  composes: utility from '../styles/base.css';
+  margin-top: var(--s-2);
+}
+
+.foot {
+  color: var(--stone);
+  font-size: var(--t-small);
+}
+
+@media (max-width: 720px) {
+  .stats {
+    grid-template-columns: 1fr;
+    gap: var(--s-5);
+  }
+  .stat {
+    padding-right: 0;
+    padding-bottom: var(--s-5);
+  }
+  .stat:not(:last-child)::after {
+    top: auto;
+    bottom: 0;
+    height: 1px;
+    width: 48px;
+  }
+}
+
+/* ============================================================
+   Station 4 · THE PROTOCOL (CENTRE, pinned in Phase 7)
+   ============================================================ */
+
+.protocolInner {
+  align-content: start;
+  padding-block: var(--s-11) var(--s-10);
+}
+
+.protocolHead {
+  grid-column: 3 / 11;
+  text-align: center;
+  justify-items: center;
+  display: grid;
+  margin-bottom: var(--s-10);
+}
+
+.protocolLead {
+  font-size: var(--t-lead);
+  line-height: var(--lh-lead);
+  color: var(--stone);
+  max-width: 40ch;
+}
+
+.steps {
+  grid-column: 2 / 12;
+  display: grid;
+  row-gap: var(--s-9);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: minmax(6rem, 1fr) minmax(0, var(--measure));
+  column-gap: var(--s-8);
+  align-items: start;
+}
+
+.stepNumeral {
+  composes: display from '../styles/base.css';
+  font-size: clamp(4rem, 8vw, 7rem);
+  line-height: 1;
+  color: var(--ember);
+  opacity: 0.14;
+  text-align: right;
+}
+
+.stepTitle {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h2);
+  line-height: var(--lh-h2);
+  margin-bottom: var(--s-4);
+}
+
+.stepBody {
+  color: var(--bone);
+  opacity: 0.88;
+}
+
+@media (max-width: 900px) {
+  .protocolHead,
+  .steps {
+    grid-column: 1 / 13;
+  }
+  .step {
+    grid-template-columns: 1fr;
+    row-gap: var(--s-2);
+  }
+  .stepNumeral {
+    text-align: left;
+    opacity: 0.08;
+  }
+}
+
+/* ============================================================
+   Station 5 · THE TABLE (LEFT) — myths right
+   ============================================================ */
+
+.myths {
+  display: grid;
+  row-gap: var(--s-8);
+}
+
+.mythStrike {
+  composes: display from '../styles/base.css';
+  display: inline;
+  font-weight: 400;
+  font-size: var(--t-h3);
+  line-height: var(--lh-h2);
+  color: var(--stone);
+  margin-bottom: var(--s-3);
+  /* correct on wrapped lines; Phase 6 replaces with a drawn per-line rule */
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--stone);
+}
+
+.mythPair {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.mythTruth {
+  color: var(--bone);
+  max-width: var(--measure);
+}
+
+/* ============================================================
+   Station 6 · WHO THIS IS FOR (RIGHT)
+   ============================================================ */
+
+.aspirations {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-6) var(--s-7);
+}
+
+.aspiration {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  column-gap: var(--s-4);
+  align-items: baseline;
+}
+
+.aspiration::before {
+  content: '';
+  height: 1px;
+  width: 24px;
+  background: var(--ember);
+  align-self: center;
+}
+
+@media (max-width: 720px) {
+  .aspirations {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   Station 7 · THE PROOF (LEFT rail copy, cards below)
+   ============================================================ */
+
+.cards {
+  grid-column: 1 / 13;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-6);
+}
+
+.card {
+  background: rgba(28, 25, 23, 0.7); /* --ash at 70%, the only L2 surface (§8) */
+  border: 1px solid rgba(140, 129, 119, 0.3);
+  padding: var(--s-7);
+  display: grid;
+  align-content: start;
+  gap: var(--s-5);
+}
+
+.cardQuote {
+  composes: display from '../styles/base.css';
+  font-weight: 400;
+  font-size: var(--t-h3);
+  line-height: var(--lh-h2);
+}
+
+.cardQuote[data-placeholder] {
+  color: var(--stone);
+}
+
+.cardRule {
+  width: 32px;
+  height: 1px;
+  background: var(--stone);
+}
+
+.cardAttribution {
+  composes: utility from '../styles/base.css';
+}
+
+@media (max-width: 1024px) {
+  .cards {
+    grid-template-columns: 1fr;
+    max-width: 560px;
+  }
+}
+
+/* ============================================================
+   Station 8 · THE CLOSE (CENTRE) + footer
+   ============================================================ */
+
+.closeCta {
+  display: inline-block;
+  padding: var(--s-5) var(--s-9);
+  background: var(--ember);
+  color: var(--ink);
+  font-size: var(--t-body);
+  font-weight: 500;
+  text-shadow: none;
+  box-shadow: 0 8px 32px rgba(var(--ink-rgb), 0.5);
+  transition:
+    transform var(--d-hover) var(--e-out),
+    box-shadow var(--d-hover) var(--e-out);
+}
+
+.closeCta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 44px rgba(var(--ink-rgb), 0.65);
+}
+
+.closeNote {
+  composes: utility from '../styles/base.css';
+  margin-top: var(--s-5);
+}
+
+.footer {
+  grid-column: 1 / 13;
+  margin-top: var(--s-11);
+  display: grid;
+  gap: var(--s-6);
+}
+
+.footerRule {
+  width: 100%;
+  height: 1px;
+  background: var(--stone);
+  opacity: 0.2;
+}
+
+.footerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-5);
+}
+
+.footerName {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h3);
+}
+
+.footerMeta {
+  composes: utility from '../styles/base.css';
+}
+
+.footerContacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-6);
+}
