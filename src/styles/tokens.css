@@ -1,0 +1,91 @@
+:root {
+  /* ---------- COLOUR ---------- */
+  --ink:   #100E0D;   /* warm near black, the dominant field */
+  --bone:  #F0EBE3;   /* warm bone, primary type on ink */
+  --ember: #D2521C;   /* deep ember, the only accent */
+  --stone: #8C8177;   /* muted stone, secondary type, rules, meta */
+  --ash:   #1C1917;   /* one step off ink, card surfaces only */
+
+  --ink-rgb: 16, 14, 13;
+  --bone-rgb: 240, 235, 227;
+  --ember-rgb: 210, 82, 28;
+
+  /* ---------- SCRIMS, L1 ONLY ---------- */
+  --scrim-soft: linear-gradient(
+    180deg,
+    rgba(var(--ink-rgb), 0) 0%,
+    rgba(var(--ink-rgb), .42) 38%,
+    rgba(var(--ink-rgb), .42) 62%,
+    rgba(var(--ink-rgb), 0) 100%
+  );
+  --scrim-heavy: radial-gradient(
+    130% 85% at 50% 50%,
+    rgba(var(--ink-rgb), .90) 0%,
+    rgba(var(--ink-rgb), .66) 52%,
+    rgba(var(--ink-rgb), .28) 100%
+  );
+  --scrim-left: linear-gradient(
+    90deg,
+    rgba(var(--ink-rgb), .92) 0%,
+    rgba(var(--ink-rgb), .74) 38%,
+    rgba(var(--ink-rgb), .10) 72%,
+    rgba(var(--ink-rgb), 0) 100%
+  );
+  --scrim-right: linear-gradient(
+    270deg,
+    rgba(var(--ink-rgb), .92) 0%,
+    rgba(var(--ink-rgb), .74) 38%,
+    rgba(var(--ink-rgb), .10) 72%,
+    rgba(var(--ink-rgb), 0) 100%
+  );
+  --scrim-edge: linear-gradient(
+    180deg,
+    rgba(var(--ink-rgb), .94) 0%,
+    rgba(var(--ink-rgb), 0) 20%,
+    rgba(var(--ink-rgb), 0) 80%,
+    rgba(var(--ink-rgb), .94) 100%
+  );
+
+  /* ---------- TYPE ---------- */
+  --font-display: 'Bodoni Moda', 'Bodoni MT', Didot, Georgia, serif;
+  --font-body: 'Archivo', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --t-hero:  clamp(3.4rem, 9.5vw, 11rem);
+  --t-h1:    clamp(2.6rem, 5.6vw, 5.6rem);
+  --t-h2:    clamp(1.9rem, 3.2vw, 3rem);
+  --t-h3:    clamp(1.35rem, 2vw, 1.75rem);
+  --t-lead:  clamp(1.15rem, 1.5vw, 1.5rem);
+  --t-body:  clamp(1rem, 1.05vw, 1.125rem);
+  --t-small: .9375rem;
+  --t-meta:  .75rem;
+
+  --lh-hero: .92;
+  --lh-h1:   1.02;
+  --lh-h2:   1.12;
+  --lh-body: 1.68;
+  --lh-lead: 1.55;
+
+  --tr-hero: -.032em;
+  --tr-h1:   -.024em;
+  --tr-meta: .14em;
+
+  /* ---------- SPACE, 4px base ---------- */
+  --s-1: .25rem;  --s-2: .5rem;   --s-3: .75rem;  --s-4: 1rem;
+  --s-5: 1.5rem;  --s-6: 2rem;    --s-7: 3rem;    --s-8: 4rem;
+  --s-9: 6rem;    --s-10: 8rem;   --s-11: 12rem;
+
+  /* ---------- LAYOUT ---------- */
+  --page-margin: clamp(1.25rem, 5vw, 6rem);
+  --content-max: 1240px;
+  --measure: 62ch;
+  --grid-gutter: 1.5rem;
+
+  /* ---------- MOTION ---------- */
+  --e-out: cubic-bezier(.22, 1, .36, 1);
+  --e-in-out: cubic-bezier(.65, 0, .35, 1);
+  --d-hover: 180ms;
+  --d-reveal: 780ms;
+
+  /* ---------- Z ---------- */
+  --z-film: 0;  --z-atmos: 10;  --z-content: 20;  --z-chrome: 40;
+}

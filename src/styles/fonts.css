@@ -1,0 +1,39 @@
+/* Self hosted variable fonts, latin subset, §4.2. Preloaded from index.html. */
+
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/bodoni-moda-var-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('/fonts/archivo-var-latin.woff2') format('woff2');
+}
+
+/* size-adjust fallbacks so the swap causes no layout shift (CLS 0 gate).
+   Metrics approximate the variable fonts against locally available faces. */
+
+@font-face {
+  font-family: 'Bodoni Moda Fallback';
+  src: local('Georgia');
+  size-adjust: 94.2%;
+  ascent-override: 96%;
+  descent-override: 26%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Archivo Fallback';
+  src: local('Arial');
+  size-adjust: 99%;
+  ascent-override: 90%;
+  descent-override: 21%;
+  line-gap-override: 0%;
+}

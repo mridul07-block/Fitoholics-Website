@@ -1,0 +1,59 @@
+html {
+  background: var(--ink);
+}
+
+body {
+  font-family: 'Archivo', 'Archivo Fallback', ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  color: var(--bone);
+  background: var(--ink);
+  overflow-x: hidden;
+}
+
+/* Focus: 2px ember outline, 3px offset, everywhere (§12). Never removed without replacement. */
+:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: rgba(var(--ember-rgb), 0.55);
+  color: var(--bone);
+}
+
+/* Type over the film gets exactly this shadow, nothing heavier (§4.3). */
+.overFilm {
+  text-shadow:
+    0 1px 40px rgba(var(--ink-rgb), 0.92),
+    0 1px 3px rgba(var(--ink-rgb), 0.7);
+}
+
+/* Utility type register (§4.3): Archivo 500, uppercase, tracked, stone. */
+.utility {
+  font-family: 'Archivo', 'Archivo Fallback', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  font-size: var(--t-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: var(--stone);
+}
+
+/* Display register: Bodoni Moda, headlines and numerals only (§4.3). */
+.display {
+  font-family: 'Bodoni Moda', 'Bodoni Moda Fallback', 'Bodoni MT', Didot, Georgia, serif;
+  font-weight: 500;
+  color: var(--bone);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

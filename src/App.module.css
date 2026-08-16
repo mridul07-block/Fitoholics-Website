@@ -1,0 +1,75 @@
+/* Layer model (§2.1). The film host is fixed and never unmounts. */
+
+.film {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-film);
+  background-color: var(--ink);
+  background-size: cover;
+  background-position: center;
+}
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-atmos);
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: var(--z-content);
+}
+
+.chrome {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-chrome);
+  pointer-events: none;
+}
+
+.skipLink {
+  position: fixed;
+  top: var(--s-4);
+  left: var(--s-4);
+  z-index: var(--z-chrome);
+  padding: var(--s-3) var(--s-5);
+  background: var(--ink);
+  border: 1px solid var(--ember);
+  color: var(--bone);
+  transform: translateY(-200%);
+  pointer-events: auto;
+}
+
+.skipLink:focus-visible {
+  transform: translateY(0);
+}
+
+/* Station shells (§8 heights). 100svh units so mobile address bar
+   collapse causes no jump (§10). */
+
+.station {
+  position: relative;
+  width: 100%;
+}
+
+.s1 { min-height: 100svh; }
+.s2 { min-height: 110svh; }
+.s3 { min-height: 100svh; }
+.s4 { min-height: 240svh; }
+.s5 { min-height: 120svh; }
+.s6 { min-height: 100svh; }
+.s7 { min-height: 110svh; }
+.s8 { min-height: 100svh; }
+
+/* §10: 375 tier reduces station heights by 20% so the page is not exhausting. */
+@media (max-width: 480px) {
+  .s1 { min-height: 80svh; }
+  .s2 { min-height: 88svh; }
+  .s3 { min-height: 80svh; }
+  .s4 { min-height: 192svh; }
+  .s5 { min-height: 96svh; }
+  .s6 { min-height: 80svh; }
+  .s7 { min-height: 88svh; }
+  .s8 { min-height: 80svh; }
+}
