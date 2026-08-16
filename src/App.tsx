@@ -1,6 +1,8 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from './content/copy'
 import { FILM } from './film/manifest'
+import { initSpine } from './film/useMasterProgress'
 import { Entrance, Problem, Positioning, Protocol, TableStation, Fit, Proof, Close } from './components/stations'
 import s from './App.module.css'
 
@@ -36,6 +38,14 @@ const stationIds: readonly (string | undefined)[] = [
 ]
 
 export function App() {
+  useEffect(() => {
+    // Idempotent singleton — StrictMode double-invocation cannot create a
+    // second loop (§7.1). Refresh after React has laid the page out so the
+    // master trigger's 'max' matches the real document height.
+    initSpine()
+    ScrollTrigger.refresh()
+  }, [])
+
   return (
     <>
       <a href="#booking" className={s.skipLink}>
