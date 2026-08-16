@@ -9,6 +9,7 @@
 import { useEffect, useRef } from 'react'
 import { FILM, selectTier } from './manifest'
 import { washAtProgress } from './beats'
+import { Atmosphere, publishAct } from './atmosphere'
 import { entranceDone, filmEntrance } from '../motion/choreography'
 import { FrameLoader, budgetForTier } from './FrameLoader'
 import { Canvas2DRenderer } from './Canvas2DRenderer'
@@ -117,7 +118,21 @@ export function FilmLayer() {
     loader.start(reduced ? FILM.heroFrames : undefined)
 
     // ---- per tick: note the playhead, pin the drawn window, render ----
-    const renderState = { index: 0, blend: 0, velocity: 0, wash: 1, soften: 0, time: 0 }
+    const atmos = new Atmosphere(publishAct)
+    publishAct(0)
+    const renderState = {
+      index: 0,
+      blend: 0,
+      velocity: 0,
+      wash: 1,
+      soften: 0,
+      time: 0,
+      atmTop: atmos.state.top,
+      atmBottom: atmos.state.bottom,
+      glow: 0,
+      grade: 0.34,
+      cut: 0,
+    }
     const pinScratch: number[] = []
     const offTick = spine.clock.onTick((c, deltaMs) => {
       loader.note(c.index, c.velocity)
@@ -126,21 +141,26 @@ export function FilmLayer() {
       pinScratch.push(c.index, Math.min(c.index + 1, FILM.count - 1))
       if (renderer.lastIndex >= 0) pinScratch.push(renderer.lastIndex)
       loader.pin(pinScratch)
+      atmos.step(c.index, deltaMs)
+      renderState.glow = atmos.state.glow
+      renderState.grade = atmos.state.grade
       if (reduced) {
-        // film locks to one keyframe per beat, swapped at boundaries (§9 law 7)
-        renderState.index = c.beat.heroFrame
+        // film locks to one keyframe per act, swapped at boundaries (§9 law 7)
+        renderState.index = c.act.heroFrame
         renderState.blend = 0
         renderState.velocity = 0
         renderState.soften = 0
+        renderState.cut = 0
         renderState.wash = washAtProgress(c.raw)
       } else {
         renderState.index = c.index
         renderState.blend = c.blend
         renderState.velocity = c.velocity
+        renderState.cut = atmos.state.cut
         renderState.wash = washAtProgress(c.smoothed) * filmEntrance.wash
-        // ghosting mitigation: high motion beats soften with velocity (§7.5 audit)
+        // ghosting mitigation: high motion acts soften with velocity (§7.5 audit)
         const v = Math.min(Math.abs(c.velocity) / 18, 1)
-        renderState.soften = 0.35 * c.beat.ghostRisk * v
+        renderState.soften = 0.35 * c.act.ghostRisk * v
       }
       renderState.time += deltaMs / 1000
       renderer.render(renderState)

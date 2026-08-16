@@ -85,6 +85,50 @@ export function initChoreography(): void {
   }
 
   // ---------------------------------------------------------------
+  // The cut rule. When the footage hard cuts between camera setups, a line of
+  // ramp light crosses the top of the viewport. The page cuts when the film
+  // cuts — the one moment where the chrome is allowed to be loud.
+  // ---------------------------------------------------------------
+  const cutRule = q('[data-cut-rule]')
+  if (cutRule) {
+    gsap.set(cutRule, { scaleX: 0, transformOrigin: 'left center', autoAlpha: 0 })
+    let first = true
+    window.addEventListener('film:act', () => {
+      // act one is published at boot, not at a cut
+      if (first) {
+        first = false
+        return
+      }
+      gsap
+        .timeline()
+        .set(cutRule, { transformOrigin: 'left center', autoAlpha: 1 })
+        .fromTo(cutRule, { scaleX: 0 }, { scaleX: 1, duration: 0.34, ease: 'power2.out' })
+        .set(cutRule, { transformOrigin: 'right center' })
+        .to(cutRule, { scaleX: 0, duration: 0.3, ease: 'power2.in' })
+        .set(cutRule, { autoAlpha: 0 })
+    })
+  }
+
+  // ---------------------------------------------------------------
+  // Magnetic calls to action: the button leans toward the cursor by a few
+  // pixels and springs back. Small enough to feel like weight, not a toy.
+  // ---------------------------------------------------------------
+  for (const btn of qa('[data-magnetic]')) {
+    const strength = 0.22
+    const quickX = gsap.quickTo(btn, 'x', { duration: 0.4, ease: 'power3.out' })
+    const quickY = gsap.quickTo(btn, 'y', { duration: 0.4, ease: 'power3.out' })
+    btn.addEventListener('pointermove', (e) => {
+      const r = btn.getBoundingClientRect()
+      quickX((e.clientX - (r.left + r.width / 2)) * strength)
+      quickY((e.clientY - (r.top + r.height / 2)) * strength)
+    })
+    btn.addEventListener('pointerleave', () => {
+      quickX(0)
+      quickY(0)
+    })
+  }
+
+  // ---------------------------------------------------------------
   // Z travel (§7.7) — panels move through a real perspective context.
   // Enter from depth, rest >= 45% of range, exit TOWARD the camera.
   // Station 1 (entrance owns it) and station 4 (pinned) are excluded.
@@ -94,11 +138,15 @@ export function initChoreography(): void {
     const section = q(`[data-station="${n}"]`)
     const panel = section?.querySelector<HTMLElement>('[data-panel]')
     if (!section || !panel) continue
+    // The travel window is deliberately narrower than the section: with
+    // 'top bottom' to 'bottom top' a panel is partly visible for its whole
+    // height plus a viewport, so two neighbouring panels are both half faded
+    // on screen at once and the copy reads as mush.
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
-        start: 'top bottom',
-        end: 'bottom top',
+        start: 'top 72%',
+        end: 'bottom 28%',
         scrub: true,
         onToggle: (self) => {
           panel.style.willChange = self.isActive ? 'transform, opacity' : 'auto'
@@ -109,15 +157,15 @@ export function initChoreography(): void {
     tl.fromTo(
       panel,
       { z: -620, rotationX: 7, autoAlpha: 0, ...(blurOk ? { filter: 'blur(8px)' } : {}) },
-      { z: 0, rotationX: 0, autoAlpha: 1, ...(blurOk ? { filter: 'blur(0px)' } : {}), duration: 0.275 },
+      { z: 0, rotationX: 0, autoAlpha: 1, ...(blurOk ? { filter: 'blur(0px)' } : {}), duration: 0.22 },
     )
-      .to(panel, { z: 0, duration: 0.45 })
+      .to(panel, { z: 0, duration: 0.55 })
       .to(panel, {
         z: 340,
         rotationX: -5,
         autoAlpha: 0,
         ...(blurOk ? { filter: 'blur(6px)' } : {}),
-        duration: 0.275,
+        duration: 0.23,
       })
   }
 
@@ -149,9 +197,11 @@ export function initChoreography(): void {
     const el = q(sel)
     if (!el) continue
     const split = SplitText.create(el, { type: 'lines', mask: 'lines' })
-    reveal(el, (tl) =>
-      tl.fromTo(split.lines, { yPercent: 110 }, { yPercent: 0, duration: 0.9, stagger: 0.09 }),
-    )
+    reveal(el, (tl) => {
+      tl.fromTo(split.lines, { yPercent: 110 }, { yPercent: 0, duration: 0.9, stagger: 0.09 })
+      // a band of the room's light crosses the headline as it lands
+      tl.fromTo(el, { '--sweep': -1 }, { '--sweep': 1, duration: 1.05, ease: 'power2.inOut' } as gsap.TweenVars, 0.12)
+    })
   }
 
   // station 2: pain list rules draw, text follows (§8 S2)
@@ -192,7 +242,7 @@ export function initChoreography(): void {
     const truths = qa('[data-station="5"] [data-myth-truth]')
     // the strike line arrives after the words: text-decoration-color is
     // animatable and stays correct on wrapped lines
-    gsap.set(strikes, { autoAlpha: 0, y: 10, textDecorationColor: 'rgba(154, 150, 143, 0)' })
+    gsap.set(strikes, { autoAlpha: 0, y: 10, textDecorationColor: 'rgba(255, 94, 26, 0)' })
     gsap.set(truths, { autoAlpha: 0, y: 8 })
     reveal(myths[0]!, (tl) => {
       myths.forEach((pair, i) => {
@@ -203,7 +253,7 @@ export function initChoreography(): void {
           tl.to(strike, { autoAlpha: 1, y: 0, duration: 0.4 }, at)
           tl.to(
             strike,
-            { textDecorationColor: 'rgba(154, 150, 143, 1)', duration: 0.5, ease: 'power2.inOut' },
+            { textDecorationColor: 'rgba(255, 94, 26, .9)', duration: 0.5, ease: 'power2.inOut' },
             at + 0.35,
           )
         }

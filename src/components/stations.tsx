@@ -16,6 +16,9 @@ gsap.registerPlugin(ScrollTrigger)
 
 const over = 'overFilm' // global class from base.css (§4.3 text shadow)
 
+/** must match .protoNumeral opacity in stations.module.css */
+const NUMERAL_REST_OPACITY = 0.16
+
 export function Entrance() {
   const c = COPY.entrance
   return (
@@ -35,7 +38,7 @@ export function Entrance() {
             {c.lead}
           </p>
           <div className={s.actions} data-s1-actions="">
-            <a className={s.ctaPrimary} href="#booking">
+            <a className={s.ctaPrimary} href="#booking" data-magnetic="">
               {c.cta1}
             </a>
             <a className={s.ctaSecondary} href="#protocol">
@@ -165,16 +168,18 @@ export function Protocol() {
       if (instant) {
         numeral.textContent = step.n
       } else {
+        // opacity, not autoAlpha: the numeral rests at the low opacity set in
+        // CSS, and autoAlpha would drive it to a solid 1 and never restore it
         gsap
           .timeline()
-          .to(numeral, { autoAlpha: 0, y: -22, duration: 0.175, ease: 'power2.inOut' })
+          .to(numeral, { opacity: 0, y: -22, duration: 0.175, ease: 'power2.inOut' })
           .add(() => {
             numeral.textContent = step.n
           })
           .fromTo(
             numeral,
-            { autoAlpha: 0, y: 22 },
-            { autoAlpha: 1, y: 0, duration: 0.175, ease: 'power2.out' },
+            { opacity: 0, y: 22 },
+            { opacity: NUMERAL_REST_OPACITY, y: 0, duration: 0.175, ease: 'power2.out' },
           )
       }
       // masked wipe, clip travelling bottom to top over 0.44s (§8 S4)
@@ -419,7 +424,7 @@ export function Close() {
           <p className={s.eyebrow}>{c.eyebrow}</p>
           <h2 className={clsx(s.hero, s.heroClose)}>{c.hero}</h2>
           <p className={s.lead}>{c.lead}</p>
-          <a className={s.closeCta} href="#booking" id="booking-action">
+          <a className={s.closeCta} href="#booking" id="booking-action" data-magnetic="">
             {c.cta}
           </a>
           <p className={s.closeNote}>{c.note}</p>

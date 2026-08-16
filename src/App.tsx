@@ -61,8 +61,12 @@ export function App() {
       {/* L0 · FILM — LQIP of beat one grounds the viewport until frame zero decodes. */}
       <FilmLayer />
 
-      {/* L1 · ATMOSPHERE — edge gradient; per station scrims live inside stations. */}
+      {/* L1 · ATMOSPHERE — the act's gradient over the film; per station scrims
+          live inside stations. Colours are written per act by atmosphere.ts. */}
       <div className={s.atmosphere} aria-hidden="true" data-atmosphere />
+
+      {/* fires on every hard cut in the footage */}
+      <div className={s.cutRule} aria-hidden="true" data-cut-rule />
 
       {/* L2 · CONTENT */}
       <main className={s.content}>

@@ -22,7 +22,7 @@ export const FILM = {
   ext: FILM_GEN.ext,
   startIndex: 0,
   tiers: FILM_GEN.tiers as readonly TierSpec[],
-  sourceMap: FILM_GEN.sourceMap as readonly number[],
+  cuts: FILM_GEN.cuts as readonly number[],
   heroFrames: FILM_GEN.heroFrames as readonly number[],
   lqip: FILM_GEN.lqip as readonly string[],
   aspect: FILM_GEN.tiers[0].width / FILM_GEN.tiers[0].height,

@@ -1,7 +1,8 @@
-encode-frames report · 2026-08-16T17:17:03.608Z
-frames: 299 (full sequence, no decimation)
-crop: 2406x1354 from 2560x1440 (Veo watermark removed)
-tier xl 1920x1080: total 17.83 MB, avg 61.1 KB/frame (target ~6 MB)
-tier lg 1280x720: total 11.30 MB, avg 38.7 KB/frame
-tier sm 854x480: total 7.10 MB, avg 24.3 KB/frame (target ~1.8 MB)
-elapsed: 77.1s
+encode-frames report · 2026-08-16T19:26:59.955Z
+source: 1920x1080, 300 frames, no decimation
+watermark: diffusion inpaint r58 at 1740,900 (sparkle bbox 1704..1775 x 864..935)
+cuts: 55, 99, 140, 195, 240
+tier xl 1920x1080: total 12.93 MB, avg 44.1 KB/frame
+tier lg 1280x720: total 8.48 MB, avg 29.0 KB/frame
+tier sm 854x480: total 5.06 MB, avg 17.3 KB/frame
+elapsed: 60.2s

@@ -13,10 +13,16 @@
   padding-block: var(--s-10);
 }
 
+/* Each station owns a scrim sized to its own box, so where two stations meet
+   the two gradients do not agree and the seam reads as a hard horizontal edge
+   across the film. Feathering the top and bottom of every scrim makes
+   neighbours cross fade into each other instead. */
 .scrim {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
 }
 
 .scrimHeavy { background: var(--scrim-heavy); }
@@ -77,20 +83,51 @@
   margin-bottom: var(--s-5);
 }
 
+/* The ramp, clipped to text. Used only where a number or a mark is doing
+   structural work, never on running copy. */
+.ramped {
+  background: var(--ramp-h);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+}
+
 .index {
   composes: utility from '../styles/base.css';
+  composes: ramped;
   display: block;
-  color: var(--ember);
   margin-bottom: var(--s-2);
 }
 
 .h1 {
   composes: display from '../styles/base.css';
+  position: relative;
   font-size: var(--t-h1);
   line-height: var(--lh-h1);
   letter-spacing: var(--tr-h1);
   margin-bottom: var(--s-6);
   text-wrap: balance;
+}
+
+/* A band of the room's light crossing the headline as it lands. --sweep is
+   driven -1 -> 1 by the reveal timeline; at rest the band sits off the type.
+   No mix-blend-mode: an ancestor filter during the Z travel isolates the
+   group, and the band then composites against nothing and shows as a box. */
+.h1::after,
+.hero::after,
+.quote::after {
+  content: '';
+  position: absolute;
+  inset: -0.1em -20% -0.1em -20%;
+  background: linear-gradient(
+    100deg,
+    transparent 42%,
+    rgba(var(--flare-rgb), .3) 50%,
+    transparent 58%
+  );
+  transform: translateX(calc(var(--sweep, -1.6) * 100%));
+  pointer-events: none;
 }
 
 .h1 span {
@@ -118,6 +155,7 @@
 
 .hero {
   composes: display from '../styles/base.css';
+  position: relative;
   /* --t-hero overflows with the 30 character third hero line; scoped clamp
      keeps each authored line a single rendered line at >=900px (flagged). */
   font-size: clamp(2.6rem, 6.3vw, 7.5rem);
@@ -159,23 +197,31 @@
   justify-content: center;
 }
 
+/* Gradient border without a wrapper element: the ramp is the background and a
+   matching inset holds the ground, so the border itself carries the ramp. */
 .ctaPrimary {
   position: relative;
   display: inline-block;
   padding: var(--s-4) var(--s-7);
-  border: 1px solid var(--ember);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--atm-bottom), var(--atm-bottom)) padding-box,
+    var(--ramp) border-box;
   color: var(--bone);
   font-size: var(--t-small);
   overflow: hidden;
   text-shadow: none;
-  transition: color var(--d-hover) var(--e-out);
+  isolation: isolate;
+  transition:
+    color var(--d-hover) var(--e-out),
+    box-shadow var(--d-hover) var(--e-out);
 }
 
 .ctaPrimary::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--ember);
+  background: var(--ramp);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform var(--d-hover) var(--e-out);
@@ -183,7 +229,8 @@
 }
 
 .ctaPrimary:hover {
-  color: var(--ink);
+  color: var(--void);
+  box-shadow: 0 6px 30px rgba(var(--ember-rgb), .3);
 }
 
 .ctaPrimary:hover::before {
@@ -228,17 +275,18 @@
   position: relative;
   width: 1px;
   height: 48px;
-  background: var(--stone);
+  background: linear-gradient(180deg, rgba(var(--bone-rgb), .05), rgba(var(--bone-rgb), .38));
 }
 
 .scrollCueDot {
   position: absolute;
-  left: -1px;
+  left: -2px;
   top: 0;
-  width: 3px;
-  height: 3px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--ember);
+  box-shadow: 0 0 12px rgba(var(--ember-rgb), .8);
 }
 
 /* the dot travels the rule on a 2.4s loop once the entrance completes (§8 S1) */
@@ -289,8 +337,7 @@
   left: 0;
   width: 100%;
   height: 1px;
-  background: var(--stone);
-  opacity: 0.55;
+  background: linear-gradient(90deg, rgba(var(--ember-rgb), .7), rgba(var(--bone-rgb), .18) 60%, transparent);
   transform: scaleX(var(--ruleScale, 1));
   transform-origin: left;
 }
@@ -305,17 +352,18 @@
 
 .quoteGlyph {
   composes: display from '../styles/base.css';
+  composes: ramped;
   position: absolute;
   left: -0.65em;
   top: -0.08em;
   font-size: 5.5rem;
-  color: var(--ember);
-  opacity: 0.5;
+  opacity: 0.55;
   line-height: 1;
 }
 
 .quote {
   composes: display from '../styles/base.css';
+  position: relative;
   font-weight: 400;
   font-size: var(--t-h2);
   line-height: var(--lh-h2);
@@ -349,12 +397,14 @@
 
 .statValue {
   composes: display from '../styles/base.css';
+  composes: ramped;
   font-size: var(--t-h2);
   line-height: 1.1;
 }
 
 .statValue[data-placeholder] {
   font-size: var(--t-h3);
+  background: none;
   color: var(--stone);
 }
 
@@ -424,10 +474,10 @@
 
 .stepNumeral {
   composes: display from '../styles/base.css';
+  composes: ramped;
   font-size: clamp(4rem, 8vw, 7rem);
   line-height: 1;
-  color: var(--ember);
-  opacity: 0.14;
+  opacity: 0.16;
   text-align: right;
 }
 
@@ -501,10 +551,10 @@
 
 .protoNumeral {
   composes: display from '../styles/base.css';
-  font-size: clamp(8rem, 22vw, 20rem);
+  composes: ramped;
+  font-size: clamp(6rem, 15vw, 14rem);
   line-height: 1;
-  color: var(--ember);
-  opacity: 0.14;
+  opacity: 0.16;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -514,12 +564,19 @@
   min-height: 16rem;
 }
 
+/* Top anchored, with the title's space reserved for two lines. Centring here
+   would re-centre the block every time a step swapped in text of a different
+   length, moving the body copy and registering as layout shift. */
 .protoLayer {
   position: absolute;
   inset: 0;
   display: grid;
-  align-content: center;
+  align-content: start;
   max-width: var(--measure);
+}
+
+.protoLayer .stepTitle {
+  min-height: calc(var(--lh-h2) * 2em);
 }
 
 .protoRail {
@@ -540,7 +597,7 @@
 .protoSegmentFill {
   position: absolute;
   inset: 0;
-  background: var(--ember);
+  background: var(--ramp-v);
   transform: scaleY(var(--fill, 0));
   transform-origin: top;
 }
@@ -595,10 +652,11 @@
   line-height: var(--lh-h2);
   color: var(--stone);
   margin-bottom: var(--s-3);
-  /* correct on wrapped lines; Phase 6 replaces with a drawn per-line rule */
+  /* line-through, not a positioned rule: correct on wrapped lines. The colour
+     is animated from transparent so the strike draws in on reveal. */
   text-decoration: line-through;
   text-decoration-thickness: 1px;
-  text-decoration-color: var(--stone);
+  text-decoration-color: rgba(var(--ember-rgb), 0);
 }
 
 .mythPair {
@@ -632,7 +690,7 @@
   content: '';
   height: 1px;
   width: var(--ruleW, 24px);
-  background: var(--ember);
+  background: var(--ramp-h);
   align-self: center;
 }
 
@@ -654,12 +712,32 @@
 }
 
 .card {
-  background: rgba(28, 25, 23, 0.7); /* --ash at 70%, the only L2 surface (§8) */
-  border: 1px solid rgba(140, 129, 119, 0.3);
+  position: relative;
+  background: rgba(var(--char-rgb), .62); /* the only L2 surface (§8) */
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(var(--bone-rgb), .1);
   padding: var(--s-7);
   display: grid;
   align-content: start;
   gap: var(--s-5);
+  transition:
+    transform var(--d-hover) var(--e-out),
+    border-color var(--d-hover) var(--e-out);
+}
+
+/* a ramp hairline along the top edge, the card's only colour */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: -1px -1px auto;
+  height: 1px;
+  background: var(--ramp-h);
+  opacity: .55;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(var(--ember-rgb), .3);
 }
 
 .cardQuote {
@@ -695,22 +773,42 @@
    ============================================================ */
 
 .closeCta {
+  position: relative;
   display: inline-block;
   padding: var(--s-5) var(--s-9);
-  background: var(--ember);
-  color: var(--ink);
+  background: var(--ramp-wide);
+  background-size: 220% 100%;
+  background-position: 18% 50%;
+  color: var(--void);
   font-size: var(--t-body);
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: .01em;
   text-shadow: none;
-  box-shadow: 0 8px 32px rgba(var(--ink-rgb), 0.5);
+  box-shadow:
+    0 8px 32px rgba(var(--void-rgb), .5),
+    0 0 0 rgba(var(--ember-rgb), 0);
   transition:
     transform var(--d-hover) var(--e-out),
-    box-shadow var(--d-hover) var(--e-out);
+    box-shadow var(--d-hover) var(--e-out),
+    background-position 520ms var(--e-out);
+}
+
+/* a hairline of light along the top edge, so the block reads as lit rather
+   than filled */
+.closeCta::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: rgba(var(--bone-rgb), .45);
 }
 
 .closeCta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 44px rgba(var(--ink-rgb), 0.65);
+  background-position: 82% 50%;
+  box-shadow:
+    0 14px 44px rgba(var(--void-rgb), .65),
+    0 0 38px rgba(var(--ember-rgb), .34);
 }
 
 .closeNote {
@@ -728,8 +826,7 @@
 .footerRule {
   width: 100%;
   height: 1px;
-  background: var(--stone);
-  opacity: 0.2;
+  background: linear-gradient(90deg, rgba(var(--ember-rgb), .5), rgba(var(--bone-rgb), .12) 45%, transparent);
 }
 
 .footerRow {

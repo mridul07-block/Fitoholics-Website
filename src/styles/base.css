@@ -22,11 +22,14 @@ body {
   color: var(--bone);
 }
 
-/* Type over the film gets exactly this shadow, nothing heavier (§4.3). */
+/* Type over the film (§4.3). Three stops rather than two: a wide halo to sink
+   the plate, a mid halo for shapes, and a tight one for edge definition. This
+   is what lets the scrims stay light enough to keep the footage visible. */
 .overFilm {
   text-shadow:
-    0 1px 40px rgba(var(--ink-rgb), 0.92),
-    0 1px 3px rgba(var(--ink-rgb), 0.7);
+    0 1px 44px rgba(var(--void-rgb), 0.94),
+    0 0 14px rgba(var(--void-rgb), 0.82),
+    0 1px 3px rgba(var(--void-rgb), 0.75);
 }
 
 /* Utility type register (§4.3): Archivo 500, uppercase, tracked, stone. */

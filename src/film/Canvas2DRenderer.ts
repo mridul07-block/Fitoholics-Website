@@ -16,12 +16,26 @@ const DPR_CAP = 1.5
 const GRAIN_TILES = 4
 const GRAIN_SIZE = 256
 
+export type Rgb = readonly [number, number, number]
+
 export interface FilmRenderState {
   index: number
   blend: number
   velocity: number
   wash: number
+  /** act atmosphere, crossfaded by the clock; 0..1 rgb */
+  atmTop: Rgb
+  atmBottom: Rgb
+  /** ember bloom strength for the act, 0..1 */
+  glow: number
+  /** how far the plate is pulled toward the ramp, 0..1 */
+  grade: number
+  /** 0..1 impulse fired on a hard cut in the footage */
+  cut: number
 }
+
+export const css = (c: Rgb, a = 1): string =>
+  `rgba(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)},${a})`
 
 export class Canvas2DRenderer {
   readonly kind = 'canvas2d' as const
@@ -33,7 +47,11 @@ export class Canvas2DRenderer {
   private lastDrawnIndex = -1
   private lastBlend = -1
   private lastWash = -1
+  private lastCut = 0
   private drawCount = 0
+  /** cached atmosphere gradient, rebuilt only when the act colours move */
+  private atmGrad: CanvasGradient | null = null
+  private atmKey = ''
 
   constructor(host: HTMLElement, source: FrameSource) {
     this.source = source
@@ -42,8 +60,9 @@ export class Canvas2DRenderer {
     this.canvas.style.inset = '0'
     this.canvas.style.width = '100%'
     this.canvas.style.height = '100%'
-    // grade into the palette, compositor side (§7.4)
-    this.canvas.style.filter = 'saturate(0.94) contrast(1.05) brightness(0.97)'
+    // grade toward the ramp, compositor side (§7.4). sepia carries the plate
+    // into the warm end, the hue rotation lands it on ember rather than tan.
+    this.canvas.style.filter = 'sepia(0.26) hue-rotate(-14deg) saturate(1.22) contrast(1.06) brightness(0.98)'
     const ctx = this.canvas.getContext('2d', { alpha: false })
     if (!ctx) throw new Error('2d context unavailable')
     this.ctx = ctx
@@ -69,7 +88,8 @@ export class Canvas2DRenderer {
     const unchanged =
       s.index === this.lastDrawnIndex &&
       Math.abs(s.blend - this.lastBlend) < 1 / 512 &&
-      Math.abs(s.wash - this.lastWash) < 1e-3
+      Math.abs(s.wash - this.lastWash) < 1e-3 &&
+      Math.abs(s.cut - this.lastCut) < 1e-3
     if (unchanged) return false
 
     const a = this.source.get(s.index)
@@ -110,17 +130,55 @@ export class Canvas2DRenderer {
       ctx.globalCompositeOperation = 'source-over'
     }
 
-    // wash toward ink (uWash equivalent: 1 = full film, 0 = ink)
+    // atmosphere: the act's gradient added over the plate, so the film and the
+    // page share one colour field (the shader does the same with uAtmTop/Bottom)
+    const key = `${s.atmTop.join()}|${s.atmBottom.join()}|${ch}`
+    if (key !== this.atmKey) {
+      const g = ctx.createLinearGradient(0, 0, 0, ch)
+      g.addColorStop(0, css(s.atmTop))
+      g.addColorStop(1, css(s.atmBottom))
+      this.atmGrad = g
+      this.atmKey = key
+    }
+    ctx.globalCompositeOperation = 'lighter'
+    ctx.fillStyle = this.atmGrad!
+    ctx.fillRect(0, 0, cw, ch)
+
+    // ember bloom off the lower edge, strongest in the late acts
+    if (s.glow > 0.01) {
+      const bg = ctx.createLinearGradient(0, ch, 0, ch * 0.1)
+      bg.addColorStop(0, `rgba(255,94,26,${(s.glow * 0.16).toFixed(3)})`)
+      bg.addColorStop(1, 'rgba(255,94,26,0)')
+      ctx.fillStyle = bg
+      ctx.fillRect(0, 0, cw, ch)
+    }
+    ctx.globalCompositeOperation = 'source-over'
+
+    // wash toward the act ground, never to a neutral black
     if (s.wash < 1) {
       ctx.globalAlpha = 1 - s.wash
-      ctx.fillStyle = '#0C0D10'
+      ctx.fillStyle = css(s.atmBottom)
       ctx.fillRect(0, 0, cw, ch)
       ctx.globalAlpha = 1
+    }
+
+    // cut flare: a fast wipe of light when the footage hard cuts
+    if (s.cut > 0.001) {
+      const x = (1 - s.cut) * cw * 1.2 + cw * 0.05
+      const fg = ctx.createLinearGradient(x - cw * 0.24, 0, x + cw * 0.24, 0)
+      fg.addColorStop(0, 'rgba(255,162,58,0)')
+      fg.addColorStop(0.5, `rgba(255,162,58,${(s.cut * 0.3).toFixed(3)})`)
+      fg.addColorStop(1, 'rgba(255,162,58,0)')
+      ctx.globalCompositeOperation = 'lighter'
+      ctx.fillStyle = fg
+      ctx.fillRect(0, 0, cw, ch)
+      ctx.globalCompositeOperation = 'source-over'
     }
 
     this.lastDrawnIndex = s.index
     this.lastBlend = s.blend
     this.lastWash = s.wash
+    this.lastCut = s.cut
     this.drawCount++
     return true
   }

@@ -1,17 +1,21 @@
+/* Fixed width, and every child fills it. The labels change length as the film
+   moves between acts; if the boxes were sized to their content the right
+   aligned text would move its own start corner and register as layout shift. */
 .timeline {
   position: fixed;
   top: var(--s-6);
   right: var(--page-margin);
   z-index: var(--z-chrome);
   display: grid;
-  justify-items: end;
-  gap: var(--s-1);
+  width: 26rem;
+  justify-items: stretch;
+  gap: 6px;
   pointer-events: none;
   opacity: 0;
   transition: opacity 600ms var(--e-out);
   text-shadow:
-    0 1px 40px rgba(var(--ink-rgb), 0.92),
-    0 1px 3px rgba(var(--ink-rgb), 0.7);
+    0 1px 40px rgba(var(--void-rgb), .92),
+    0 1px 3px rgba(var(--void-rgb), .7);
 }
 
 /* fixed boxes + right alignment: label swaps never move layout (CLS 0) */
@@ -19,24 +23,78 @@
   composes: utility from '../styles/base.css';
   color: var(--bone);
   font-variant-numeric: tabular-nums;
-  width: 18ch;
+  width: 100%;
   text-align: right;
 }
 
-.beat {
+.act {
   composes: utility from '../styles/base.css';
-  width: 18ch;
+  width: 100%;
+  white-space: nowrap;
   text-align: right;
+  background: var(--ramp-h);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* deliberately NOT composing .utility: this line is sentence case, and
+   composed classes can win the cascade on text-transform depending on
+   stylesheet order */
+.note {
+  font-family: 'Archivo', 'Archivo Fallback', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  width: 100%;
+  white-space: nowrap;
+  text-align: right;
+  color: var(--stone);
+  font-size: 11px;
+  letter-spacing: .06em;
+  opacity: .78;
+}
+
+/* ---- the reel: one segment per camera setup, down the left edge ---- */
+.reel {
+  position: fixed;
+  left: calc(var(--page-margin) * .42);
+  top: 22vh;
+  bottom: 22vh;
+  width: 2px;
+  z-index: var(--z-chrome);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 600ms var(--e-out);
+}
+
+.seg {
+  position: relative;
+  flex-basis: 0;
+  background: rgba(var(--bone-rgb), .14);
+  overflow: hidden;
+}
+
+.seg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ramp-v);
+  transform: scaleY(var(--fill, 0));
+  transform-origin: top;
+  will-change: transform;
+}
+
+@media (max-width: 1100px) {
+  .reel { display: none; }
 }
 
 @media (max-width: 767px) {
-  .timeline {
-    display: none;
-  }
+  .timeline { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .timeline {
-    display: none;
-  }
+  .timeline,
+  .reel { display: none; }
 }

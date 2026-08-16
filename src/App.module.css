@@ -4,12 +4,12 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-film);
-  background-color: var(--ink);
+  background-color: var(--void);
   background-size: cover;
   background-position: center;
 }
 
-/* 1px ember loading rule across the bottom of the viewport (§7.3).
+/* 1px loading rule across the bottom of the viewport (§7.3).
    scaleX driven from loader phase; transform only, never width (CLS 0). */
 .loadingRule {
   position: absolute;
@@ -17,7 +17,7 @@
   bottom: 0;
   width: 100%;
   height: 1px;
-  background: var(--ember);
+  background: var(--ramp-h);
   transform: scaleX(0);
   transform-origin: 0 50%;
   transition:
@@ -25,11 +25,24 @@
     opacity 600ms var(--e-out);
 }
 
+/* L1 · the DOM half of the atmosphere. The shader tints the film itself; this
+   carries the same act colours over the top so type sits in the same air.
+   --atm-top / --atm-bottom / --atm-glow are written per act by atmosphere.ts. */
 .atmosphere {
   position: fixed;
   inset: 0;
   z-index: var(--z-atmos);
   pointer-events: none;
+  background:
+    radial-gradient(
+      120% 60% at 50% 108%,
+      rgba(var(--ember-rgb), calc(var(--atm-glow) * 0.22)) 0%,
+      rgba(var(--ember-rgb), 0) 70%
+    ),
+    linear-gradient(180deg, var(--atm-top) 0%, rgba(0, 0, 0, 0) 26%),
+    linear-gradient(0deg, var(--atm-bottom) 0%, rgba(0, 0, 0, 0) 30%);
+  transition:
+    background 900ms var(--e-out);
 }
 
 .content {
@@ -45,20 +58,13 @@
   transform-style: preserve-3d;
 }
 
-.chrome {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-chrome);
-  pointer-events: none;
-}
-
 .skipLink {
   position: fixed;
   top: var(--s-4);
   left: var(--s-4);
   z-index: var(--z-chrome);
   padding: var(--s-3) var(--s-5);
-  background: var(--ink);
+  background: var(--void);
   border: 1px solid var(--ember);
   color: var(--bone);
   transform: translateY(-200%);
@@ -69,31 +75,55 @@
   transform: translateY(0);
 }
 
-/* Station shells (§8 heights). 100svh units so mobile address bar
-   collapse causes no jump (§10). */
+/* Fires when the footage hard cuts between camera setups. */
+.cutRule {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  z-index: var(--z-chrome);
+  background: var(--ramp-wide);
+  box-shadow: 0 0 26px rgba(var(--ember-rgb), .55);
+  transform: scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cutRule { display: none; }
+}
+
+/* Station shells. Heights are the scroll geometry that anchors copy to the
+   film: they mirror SECTIONS in src/film/beats.ts, which asserts in DEV that
+   the film's hard cuts land on these boundaries. Changing one without the
+   other breaks the anchoring, so the assertion fails loudly.
+   100svh units so mobile address bar collapse causes no jump (§10). */
 
 .station {
   position: relative;
   width: 100%;
 }
 
-.s1 { min-height: 100svh; }
+.s1 { min-height: 110svh; }
 .s2 { min-height: 110svh; }
-.s3 { min-height: 100svh; }
-.s4 { min-height: 240svh; }
-.s5 { min-height: 120svh; }
-.s6 { min-height: 100svh; }
-.s7 { min-height: 110svh; }
-.s8 { min-height: 100svh; }
+.s3 { min-height: 176svh; }
+.s4 { min-height: 284svh; }
+.s5 { min-height: 100svh; }
+.s6 { min-height: 180svh; }
+.s7 { min-height: 118svh; }
+.s8 { min-height: 122svh; }
 
-/* §10: 375 tier reduces station heights by 20% so the page is not exhausting. */
+/* §10: the 375 tier scales every section by the same factor, so the progress
+   ratios — and therefore the cut anchoring — are unchanged. */
 @media (max-width: 480px) {
-  .s1 { min-height: 80svh; }
+  .s1 { min-height: 88svh; }
   .s2 { min-height: 88svh; }
-  .s3 { min-height: 80svh; }
-  .s4 { min-height: 192svh; }
-  .s5 { min-height: 96svh; }
-  .s6 { min-height: 80svh; }
-  .s7 { min-height: 88svh; }
-  .s8 { min-height: 80svh; }
+  .s3 { min-height: 141svh; }
+  .s4 { min-height: 227svh; }
+  .s5 { min-height: 80svh; }
+  .s6 { min-height: 144svh; }
+  .s7 { min-height: 94svh; }
+  .s8 { min-height: 98svh; }
 }

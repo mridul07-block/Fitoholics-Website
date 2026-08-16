@@ -1,52 +1,103 @@
 :root {
   /* ---------- COLOUR ----------
-     Repalette, client directed 2026-08-16: cool graphite field so the warm
-     footage pops by contrast, paper lifted, accent moved from deep ember to
-     a vivid flare orange. Scrims lightened so the film stays visible. */
-  --ink:   #0C0D10;   /* cool graphite near black, the dominant field */
-  --bone:  #F3EFE7;   /* warm paper, primary type on ink */
-  --ember: #FF7420;   /* flare orange, the only accent */
-  --stone: #9A968F;   /* muted stone, secondary type, rules, meta */
-  --ash:   #15161A;   /* one step off ink, card surfaces only */
+     The gym footage is lit by tungsten: amber pendants, wall washers, morning
+     curtain light. The palette grades toward that light rather than imposing a
+     colour on it, so the accent reads as the room, not as a brand sticker.
 
-  --ink-rgb: 12, 13, 16;
-  --bone-rgb: 243, 239, 231;
-  --ember-rgb: 255, 116, 32;
+     Three families, not seven flat swatches:
+       ground  void -> char   the field the page sits on
+       ramp    rust -> ember -> flare   one gradient, used as one thing
+       type    bone / stone */
+  --void:  #08060A;   /* violet black, the cold end of the story */
+  --char:  #14100E;   /* warm charcoal, surfaces and cards */
+  --rust:  #6E2A0C;   /* burnt orange, the shadow end of the ramp */
+  --ember: #FF5E1A;   /* the accent, mid ramp */
+  --flare: #FFA23A;   /* amber, the light end of the ramp */
+  --bone:  #F7F1E9;   /* warm paper, primary type */
+  --stone: #A79A90;   /* warm grey, secondary type, rules, meta */
 
-  /* ---------- SCRIMS, L1 ONLY (lightened for film visibility) ---------- */
+  --void-rgb:  8, 6, 10;
+  --char-rgb:  20, 16, 14;
+  --rust-rgb:  110, 42, 12;
+  --ember-rgb: 255, 94, 26;
+  --flare-rgb: 255, 162, 58;
+  --bone-rgb:  247, 241, 233;
+
+  /* legacy aliases so nothing referencing the old names silently loses colour */
+  --ink: var(--void);
+  --ink-rgb: var(--void-rgb);
+  --ash: var(--char);
+
+  /* ---------- THE RAMP ----------
+     One gradient object. Text clips it, rails fill with it, the cut flare
+     sweeps it. Repeating it everywhere is what makes it read as a system. */
+  --ramp: linear-gradient(104deg, var(--rust) 0%, var(--ember) 46%, var(--flare) 100%);
+  --ramp-h: linear-gradient(90deg, var(--rust) 0%, var(--ember) 50%, var(--flare) 100%);
+  --ramp-v: linear-gradient(180deg, var(--flare) 0%, var(--ember) 55%, var(--rust) 100%);
+  --ramp-wide: linear-gradient(
+    104deg,
+    var(--rust) 0%,
+    var(--ember) 30%,
+    var(--flare) 50%,
+    var(--ember) 70%,
+    var(--rust) 100%
+  );
+
+  /* ---------- ATMOSPHERE ----------
+     Written per act by the film clock (see atmosphere.ts). The film sits under
+     this layer, so these are the colours the footage is actually seen through.
+     Defaults are act one: cold, sunless. */
+  --atm-top: #0a0710;
+  --atm-bottom: #171016;
+  --atm-glow: 0;
+
+  /* ---------- SCRIMS, L1 ONLY ----------
+     Transparent through the middle so the film stays legible under type. The
+     warm stop at the far edge keeps scrims inside the palette instead of
+     dropping a grey veil over a warm plate. */
   --scrim-soft: linear-gradient(
     180deg,
-    rgba(var(--ink-rgb), 0) 0%,
-    rgba(var(--ink-rgb), .32) 38%,
-    rgba(var(--ink-rgb), .32) 62%,
-    rgba(var(--ink-rgb), 0) 100%
+    rgba(var(--void-rgb), 0) 0%,
+    rgba(var(--void-rgb), .3) 38%,
+    rgba(var(--void-rgb), .3) 62%,
+    rgba(var(--void-rgb), 0) 100%
   );
   --scrim-heavy: radial-gradient(
     130% 85% at 50% 50%,
-    rgba(var(--ink-rgb), .72) 0%,
-    rgba(var(--ink-rgb), .48) 52%,
-    rgba(var(--ink-rgb), .16) 100%
+    rgba(var(--void-rgb), .74) 0%,
+    rgba(var(--void-rgb), .46) 52%,
+    rgba(var(--void-rgb), .12) 100%
   );
+  /* Anchored side is nearly opaque so type is always safe; the far 40% is
+     untouched so the footage reads at full strength across most of the frame. */
   --scrim-left: linear-gradient(
     90deg,
-    rgba(var(--ink-rgb), .80) 0%,
-    rgba(var(--ink-rgb), .56) 38%,
-    rgba(var(--ink-rgb), .05) 72%,
-    rgba(var(--ink-rgb), 0) 100%
+    rgba(var(--void-rgb), .92) 0%,
+    rgba(var(--void-rgb), .78) 26%,
+    rgba(var(--rust-rgb), .26) 48%,
+    rgba(var(--void-rgb), .04) 74%,
+    rgba(var(--void-rgb), 0) 100%
   );
   --scrim-right: linear-gradient(
     270deg,
-    rgba(var(--ink-rgb), .80) 0%,
-    rgba(var(--ink-rgb), .56) 38%,
-    rgba(var(--ink-rgb), .05) 72%,
-    rgba(var(--ink-rgb), 0) 100%
+    rgba(var(--void-rgb), .92) 0%,
+    rgba(var(--void-rgb), .78) 26%,
+    rgba(var(--rust-rgb), .26) 48%,
+    rgba(var(--void-rgb), .04) 74%,
+    rgba(var(--void-rgb), 0) 100%
   );
   --scrim-edge: linear-gradient(
     180deg,
-    rgba(var(--ink-rgb), .85) 0%,
-    rgba(var(--ink-rgb), 0) 20%,
-    rgba(var(--ink-rgb), 0) 80%,
-    rgba(var(--ink-rgb), .85) 100%
+    rgba(var(--void-rgb), .88) 0%,
+    rgba(var(--void-rgb), 0) 22%,
+    rgba(var(--void-rgb), 0) 78%,
+    rgba(var(--void-rgb), .88) 100%
+  );
+  --scrim-bottom: linear-gradient(
+    0deg,
+    rgba(var(--void-rgb), .9) 0%,
+    rgba(var(--rust-rgb), .22) 42%,
+    rgba(var(--void-rgb), 0) 100%
   );
 
   /* ---------- TYPE ---------- */
@@ -61,6 +112,7 @@
   --t-body:  clamp(1rem, 1.05vw, 1.125rem);
   --t-small: .9375rem;
   --t-meta:  .75rem;
+  --t-act:   clamp(4rem, 15vw, 15rem);
 
   --lh-hero: .92;
   --lh-h1:   1.02;

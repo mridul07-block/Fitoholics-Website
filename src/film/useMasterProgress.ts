@@ -13,14 +13,14 @@ import Lenis from 'lenis'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { FILM } from './manifest'
-import { BEATS, beatAtFrame, type Beat } from './beats'
+import { ACTS, actAtFrame, type Act } from './beats'
 
 gsap.registerPlugin(ScrollTrigger)
 
 export interface FilmClockState {
   /** raw master progress 0..1 straight from the ScrollTrigger */
   raw: number
-  /** frame-rate normalised smoothed progress 0..1 */
+  /** spring smoothed progress 0..1 */
   smoothed: number
   /** signed velocity in frames/sec (approx) */
   velocity: number
@@ -28,15 +28,25 @@ export interface FilmClockState {
   index: number
   /** fractional part, quantised to 1/512 — sub frame blend */
   blend: number
-  /** current beat (derived from index) */
-  beat: Beat
+  /** current act (derived from index) */
+  act: Act
   /** monotonically increasing tick counter */
   tick: number
 }
 
 type TickListener = (state: FilmClockState, deltaMs: number) => void
 
-const SMOOTH_BASE = 0.14
+/**
+ * Critically damped spring, not a lerp.
+ *
+ * A lerp chained behind Lenis' own lerp stacks two exponential lags, which is
+ * what reads as rubber banding: the film keeps sliding after the wheel stops.
+ * A critically damped spring (zeta = 1) has no overshoot and settles in finite
+ * perceptual time, so the film tracks the hand and then stops dead.
+ *
+ * omega is in rad/s; 15 puts the settle at roughly 250ms.
+ */
+const SPRING_OMEGA = 15
 const BLEND_QUANTUM = 1 / 512
 
 class FilmClock {
@@ -46,12 +56,14 @@ class FilmClock {
     velocity: 0,
     index: 0,
     blend: 0,
-    beat: BEATS[0]!,
+    act: ACTS[0]!,
     tick: 0,
   }
 
   private listeners = new Set<TickListener>()
   private lastSmoothed = 0
+  /** spring velocity, in progress units per second */
+  private springVel = 0
   /** dirty flags consumers can poll; renderer resets via consumeDirty() */
   private dirty = true
 
@@ -72,15 +84,27 @@ class FilmClock {
 
   step(deltaMs: number): void {
     const s = this.state
-    const dt = Math.min(deltaMs, 50)
-    // frame-rate normalised lerp: same film weight at 60Hz, 120Hz and under throttle
-    const k = 1 - Math.pow(1 - SMOOTH_BASE, dt / 16.6667)
-    s.smoothed += (s.raw - s.smoothed) * k
-    if (Math.abs(s.raw - s.smoothed) < 1e-5) s.smoothed = s.raw
+    const dtMs = Math.min(deltaMs, 50)
+    const dt = dtMs / 1000
+
+    // semi implicit Euler on a critically damped spring. Sub stepping keeps it
+    // stable if a frame runs long (a 50ms tick at omega 15 is otherwise close
+    // to the explicit stability limit).
+    const steps = dt > 1 / 45 ? 2 : 1
+    const h = dt / steps
+    for (let i = 0; i < steps; i++) {
+      const accel = SPRING_OMEGA * SPRING_OMEGA * (s.raw - s.smoothed) - 2 * SPRING_OMEGA * this.springVel
+      this.springVel += accel * h
+      s.smoothed += this.springVel * h
+    }
+    if (Math.abs(s.raw - s.smoothed) < 1e-5 && Math.abs(this.springVel) < 1e-4) {
+      s.smoothed = s.raw
+      this.springVel = 0
+    }
 
     // velocity in frames/sec, derived from smoothed motion
     const framesMoved = (s.smoothed - this.lastSmoothed) * (FILM.count - 1)
-    s.velocity = dt > 0 ? framesMoved / (dt / 1000) : 0
+    s.velocity = dt > 0 ? framesMoved / dt : 0
     this.lastSmoothed = s.smoothed
 
     const exact = s.smoothed * (FILM.count - 1)
@@ -90,7 +114,7 @@ class FilmClock {
     if (index !== s.index || Math.abs(blend - s.blend) >= BLEND_QUANTUM) {
       s.index = index
       s.blend = blend
-      s.beat = beatAtFrame(index)
+      s.act = actAtFrame(index)
       this.dirty = true
     }
     s.tick++
@@ -124,7 +148,10 @@ export function initSpine(): Spine {
   const clock = new FilmClock()
 
   const lenis = new Lenis({
-    lerp: 0.1,
+    // paired with the film spring downstream: Lenis carries the document, the
+    // spring carries the film. Two heavy lags in series read as rubber banding,
+    // so this stays a touch tighter than the Lenis default.
+    lerp: 0.105,
     wheelMultiplier: 1,
     smoothWheel: !reduced,
     syncTouch: false, // native momentum on touch, do not fight it (§10)

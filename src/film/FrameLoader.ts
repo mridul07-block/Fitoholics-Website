@@ -35,12 +35,15 @@ export interface FrameSource {
   note(index: number, velocity: number): void
 }
 
-const CONCURRENCY = 6
+const CONCURRENCY = 8
 const P3_BATCH = 12
 const BLOCKING_BUDGET_BYTES = 250 * 1024
-const JUMP_WINDOW_BEFORE = 4
-const JUMP_WINDOW_AFTER = 11
+const JUMP_WINDOW_BEFORE = 6
+const JUMP_WINDOW_AFTER = 16
 const JUMP_DELTA = 8
+/** resident window maintained around the playhead, in frames */
+const LOOKAHEAD_BASE = 14
+const LOOKBEHIND = 5
 
 export class FrameLoader implements FrameSource {
   private tier: TierSpec
@@ -58,6 +61,8 @@ export class FrameLoader implements FrameSource {
   private budgetBytes: number
   private currentIndex = 0
   private lastNotedIndex = 0
+  /** last known travel direction, +1 forward */
+  private direction: 1 | -1 = 1
   private pinned = new Set<number>()
   private phase: LoaderPhase = {
     stage: 'idle',
@@ -99,8 +104,9 @@ export class FrameLoader implements FrameSource {
     return index >= 0 && index < FILM.count && this.readyMask[index] === 1
   }
 
-  note(index: number, _velocity: number): void {
+  note(index: number, velocity: number): void {
     this.currentIndex = index
+    if (velocity !== 0) this.direction = velocity > 0 ? 1 : -1
     if (this.subsetMode) return
     const jumped =
       Math.abs(index - this.lastNotedIndex) > JUMP_DELTA ||
@@ -110,11 +116,20 @@ export class FrameLoader implements FrameSource {
       this.requestWindow(index)
       return
     }
-    // maintain a lookahead window so evicted frames re-decode before the
-    // playhead reaches them (evictions do not requeue themselves)
+    // Maintain a lookahead window so evicted frames re-decode before the
+    // playhead reaches them (evictions do not requeue themselves). The window
+    // is asymmetric in the direction of travel and widens with speed, so a fast
+    // scroll fetches further ahead instead of chasing the playhead.
+    const speed = Math.min(Math.abs(velocity), 90)
+    // never ask for more than the cache can actually hold, or the window fights
+    // the evictor and every frame is fetched twice
+    const maxWindow = Math.max(6, Math.floor(this.budgetBytes / this.bytesPerFrame) - LOOKBEHIND - 4)
+    const ahead = Math.min(Math.round(LOOKAHEAD_BASE + speed * 0.28), maxWindow)
+    const behind = LOOKBEHIND
+    const lo = this.direction > 0 ? index - behind : index - ahead
+    const hi = this.direction > 0 ? index + ahead : index + behind
     let queued = false
-    const to = Math.min(FILM.count - 1, index + JUMP_WINDOW_AFTER)
-    for (let i = Math.max(0, index - 2); i <= to; i++) {
+    for (let i = Math.max(0, lo); i <= Math.min(FILM.count - 1, hi); i++) {
       if (this.readyMask[i] === 0 && this.slotState[i] === SlotState.Queued) {
         this.p2.push(i)
         queued = true
@@ -288,26 +303,32 @@ export class FrameLoader implements FrameSource {
 
   private evictOverBudget(): void {
     if (this.decodedBytes <= this.budgetBytes) return
-    // evict farthest-from-playhead first
-    let farthest = -1
-    let farthestDist = -1
+    // Evict what the playhead is moving away from. Plain distance would throw
+    // away frames just ahead of a fast scroll as readily as ones already passed.
+    let victim = -1
+    let worst = -1
     for (let i = 0; i < FILM.count; i++) {
       if (this.readyMask[i] === 0 || this.pinned.has(i)) continue
-      const d = Math.abs(i - this.currentIndex)
-      if (d > farthestDist) {
-        farthestDist = d
-        farthest = i
+      const signed = (i - this.currentIndex) * this.direction
+      const cost = signed < 0 ? -signed * 2.2 : signed
+      if (cost > worst) {
+        worst = cost
+        victim = i
       }
     }
-    if (farthest >= 0 && farthestDist > 2) this.evict(farthest)
+    if (victim >= 0 && Math.abs(victim - this.currentIndex) > 2) this.evict(victim)
   }
 }
 
-/** byte budget per tier (§7.3 amendment: bytes, not frame counts) */
+/**
+ * Byte budget per tier (§7.3 amendment: bytes, not frame counts).
+ * Sized so the resident window can always cover the lookahead, otherwise the
+ * evictor and the prefetcher chase each other and every frame decodes twice.
+ */
 export function budgetForTier(tier: TierSpec): number {
   const frameBytes = tier.width * tier.height * 4
-  if (tier.id === 'sm') return 34 * frameBytes // ~56 MB
-  if (tier.id === 'lg') return 32 * frameBytes // ~118 MB
-  // xl: hold everything decoded would be 1.24 GB; 24 frames ≈ 200 MB
-  return 24 * frameBytes
+  if (tier.id === 'sm') return 44 * frameBytes // ~72 MB
+  if (tier.id === 'lg') return 40 * frameBytes // ~147 MB
+  // xl: holding all 300 decoded would be 2.5 GB; 30 frames ≈ 249 MB
+  return 30 * frameBytes
 }
