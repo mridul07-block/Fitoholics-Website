@@ -72,6 +72,8 @@ export class FrameLoader implements FrameSource {
   private readyResolve: (() => void) | null = null
   private readyPromise: Promise<void>
   private bytesPerFrame: number
+  private subsetMode = false
+  private completeTarget: number = FILM.count
 
   constructor(tier: TierSpec, budgetBytes: number) {
     this.tier = tier
@@ -99,6 +101,7 @@ export class FrameLoader implements FrameSource {
 
   note(index: number, _velocity: number): void {
     this.currentIndex = index
+    if (this.subsetMode) return
     const jumped =
       Math.abs(index - this.lastNotedIndex) > JUMP_DELTA ||
       (!this.isReady(index) && !this.isReady(index + 1) && this.slotState[index] !== SlotState.InFlight)
@@ -122,10 +125,27 @@ export class FrameLoader implements FrameSource {
 
   // ---------- lifecycle ----------
 
-  start(): void {
+  /**
+   * With no argument: full sequential load. With a subset (reduced motion,
+   * §9 law 7): only those frames are fetched — nine hero keyframes instead
+   * of the whole film — and the jump machinery stays quiet.
+   */
+  start(subset?: readonly number[]): void {
     this.worker = new FrameWorker()
     this.worker.onmessage = (e: MessageEvent) => this.onWorkerMessage(e.data)
     this.setPhase({ stage: 'first' })
+
+    if (subset && subset.length) {
+      this.subsetMode = true
+      this.completeTarget = subset.length
+      this.p0.push(subset[0]!)
+      for (let i = 1; i < subset.length; i++) {
+        this.p1.push(subset[i]!)
+        this.blockingSet.add(subset[i]!)
+      }
+      this.pump()
+      return
+    }
 
     this.p0.push(0)
     // blocking batch: byte budgeted from index 1 ascending (§7.3 amendment)
@@ -246,7 +266,7 @@ export class FrameLoader implements FrameSource {
         this.readyResolve?.()
       }
     }
-    if (this.phase.loadedCount >= FILM.count) {
+    if (this.phase.loadedCount >= this.completeTarget) {
       this.setPhase({ stage: 'complete' })
     } else {
       this.setPhase({})

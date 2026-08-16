@@ -113,7 +113,7 @@ export class Canvas2DRenderer {
     // wash toward ink (uWash equivalent: 1 = full film, 0 = ink)
     if (s.wash < 1) {
       ctx.globalAlpha = 1 - s.wash
-      ctx.fillStyle = '#100E0D'
+      ctx.fillStyle = '#0C0D10'
       ctx.fillRect(0, 0, cw, ch)
       ctx.globalAlpha = 1
     }

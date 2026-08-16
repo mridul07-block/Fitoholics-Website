@@ -23,7 +23,7 @@ const SRC_DIR = path.join(ROOT, 'video frames')
 const OUT_DIR = path.join(ROOT, 'public', 'film')
 
 const CROP = { left: 0, top: 0, width: 2406, height: 1354 } // 2560x1440 minus ~6% right+bottom
-const COUNT = 150
+const COUNT = 299 // full sequence, no decimation (client request 2026-08-16: smoother scrub)
 const PAD = 3
 const PATTERN = 'f_%03d.webp'
 const TIERS = [
@@ -31,11 +31,11 @@ const TIERS = [
   { id: 'lg', dir: '1280', width: 1280, height: 720, quality: 50 },
   { id: 'sm', dir: '854', width: 854, height: 480, quality: 55 },
 ]
-// 150-space hero frames, one per narrative beat (see src/film/beats.ts)
+// 299-space hero frames, one per narrative beat (see src/film/beats.ts)
 // B1 mirror · B2 threshold · B3 welcome · B4 assessment · B5 tools · B6 work · B7 table · B8 rhythm · B9 proof
-const HERO_FRAMES = [7, 20, 30, 46, 62, 75, 97, 113, 140]
+const HERO_FRAMES = [14, 40, 60, 92, 124, 150, 194, 226, 280]
 
-const srcIndex = (n) => 1 + n * 2 // new index n (0..149) -> source frame 1,3,...,299
+const srcIndex = (n) => 1 + n // full sequence: index n (0..298) -> source frame n+1
 const srcPath = (i) => path.join(SRC_DIR, `ezgif-frame-${String(i).padStart(3, '0')}.jpg`)
 const outName = (n) => `f_${String(n).padStart(PAD, '0')}.webp`
 
@@ -106,8 +106,9 @@ async function main() {
     lqip.push(`data:image/webp;base64,${b.toString('base64')}`)
   }
 
-  // contact sheet: 10 x 15 grid of 240x135 thumbs, from the sm tier
+  // contact sheet: 10 wide grid of 240x135 thumbs, from the sm tier
   const CW = 240, CH = 135
+  const ROWS = Math.ceil(COUNT / 10)
   const composites = []
   for (let n = 0; n < COUNT; n++) {
     composites.push({
@@ -116,7 +117,7 @@ async function main() {
       top: Math.floor(n / 10) * CH,
     })
   }
-  await sharp({ create: { width: CW * 10, height: CH * 15, channels: 3, background: '#100E0D' } })
+  await sharp({ create: { width: CW * 10, height: CH * ROWS, channels: 3, background: '#0C0D10' } })
     .composite(composites)
     .webp({ quality: 72 })
     .toFile(path.join(OUT_DIR, 'contact-sheet.webp'))
@@ -148,7 +149,7 @@ async function main() {
   const kb = (b) => (b / 1024).toFixed(1)
   const report = [
     `encode-frames report · ${new Date().toISOString()}`,
-    `frames: ${COUNT} (decimated from 299, odd source indices)`,
+    `frames: ${COUNT} (full sequence, no decimation)`,
     `crop: ${CROP.width}x${CROP.height} from 2560x1440 (Veo watermark removed)`,
     ...tiers.map(
       (t) =>

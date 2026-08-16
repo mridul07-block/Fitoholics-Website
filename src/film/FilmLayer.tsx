@@ -9,6 +9,7 @@
 import { useEffect, useRef } from 'react'
 import { FILM, selectTier } from './manifest'
 import { washAtProgress } from './beats'
+import { entranceDone, filmEntrance } from '../motion/choreography'
 import { FrameLoader, budgetForTier } from './FrameLoader'
 import { Canvas2DRenderer } from './Canvas2DRenderer'
 import { WebGLFilmRenderer } from './WebGLRenderer'
@@ -86,7 +87,9 @@ export function FilmLayer() {
     if (!reduced) {
       spine.lenis.stop()
       const timer = window.setTimeout(release, SCROLL_LOCK_RELEASE_MS)
-      void loader.ready().then(() => {
+      // both the blocking batch AND the entrance must finish (§8 S1) —
+      // capped by the hard release, and a user scroll attempt always wins
+      void Promise.all([loader.ready(), entranceDone]).then(() => {
         window.clearTimeout(timer)
         release()
       })
@@ -110,7 +113,8 @@ export function FilmLayer() {
       }
     })
 
-    loader.start()
+    // reduced motion: fetch only the nine hero keyframes (§9 law 7)
+    loader.start(reduced ? FILM.heroFrames : undefined)
 
     // ---- per tick: note the playhead, pin the drawn window, render ----
     const renderState = { index: 0, blend: 0, velocity: 0, wash: 1, soften: 0, time: 0 }
@@ -122,13 +126,22 @@ export function FilmLayer() {
       pinScratch.push(c.index, Math.min(c.index + 1, FILM.count - 1))
       if (renderer.lastIndex >= 0) pinScratch.push(renderer.lastIndex)
       loader.pin(pinScratch)
-      renderState.index = c.index
-      renderState.blend = c.blend
-      renderState.velocity = c.velocity
-      renderState.wash = washAtProgress(c.smoothed)
-      // ghosting mitigation: high motion beats soften with velocity (§7.5 audit)
-      const v = Math.min(Math.abs(c.velocity) / 18, 1)
-      renderState.soften = 0.35 * c.beat.ghostRisk * v
+      if (reduced) {
+        // film locks to one keyframe per beat, swapped at boundaries (§9 law 7)
+        renderState.index = c.beat.heroFrame
+        renderState.blend = 0
+        renderState.velocity = 0
+        renderState.soften = 0
+        renderState.wash = washAtProgress(c.raw)
+      } else {
+        renderState.index = c.index
+        renderState.blend = c.blend
+        renderState.velocity = c.velocity
+        renderState.wash = washAtProgress(c.smoothed) * filmEntrance.wash
+        // ghosting mitigation: high motion beats soften with velocity (§7.5 audit)
+        const v = Math.min(Math.abs(c.velocity) / 18, 1)
+        renderState.soften = 0.35 * c.beat.ghostRisk * v
+      }
       renderState.time += deltaMs / 1000
       renderer.render(renderState)
       if (import.meta.env.DEV && window.__filmStats) window.__filmStats.draws = renderer.draws

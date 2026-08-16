@@ -35,6 +35,14 @@
 .content {
   position: relative;
   z-index: var(--z-content);
+  /* the real perspective context panels travel through (§7.7) */
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+}
+
+.station,
+.station > div {
+  transform-style: preserve-3d;
 }
 
 .chrome {

@@ -1,49 +1,52 @@
 :root {
-  /* ---------- COLOUR ---------- */
-  --ink:   #100E0D;   /* warm near black, the dominant field */
-  --bone:  #F0EBE3;   /* warm bone, primary type on ink */
-  --ember: #D2521C;   /* deep ember, the only accent */
-  --stone: #8C8177;   /* muted stone, secondary type, rules, meta */
-  --ash:   #1C1917;   /* one step off ink, card surfaces only */
+  /* ---------- COLOUR ----------
+     Repalette, client directed 2026-08-16: cool graphite field so the warm
+     footage pops by contrast, paper lifted, accent moved from deep ember to
+     a vivid flare orange. Scrims lightened so the film stays visible. */
+  --ink:   #0C0D10;   /* cool graphite near black, the dominant field */
+  --bone:  #F3EFE7;   /* warm paper, primary type on ink */
+  --ember: #FF7420;   /* flare orange, the only accent */
+  --stone: #9A968F;   /* muted stone, secondary type, rules, meta */
+  --ash:   #15161A;   /* one step off ink, card surfaces only */
 
-  --ink-rgb: 16, 14, 13;
-  --bone-rgb: 240, 235, 227;
-  --ember-rgb: 210, 82, 28;
+  --ink-rgb: 12, 13, 16;
+  --bone-rgb: 243, 239, 231;
+  --ember-rgb: 255, 116, 32;
 
-  /* ---------- SCRIMS, L1 ONLY ---------- */
+  /* ---------- SCRIMS, L1 ONLY (lightened for film visibility) ---------- */
   --scrim-soft: linear-gradient(
     180deg,
     rgba(var(--ink-rgb), 0) 0%,
-    rgba(var(--ink-rgb), .42) 38%,
-    rgba(var(--ink-rgb), .42) 62%,
+    rgba(var(--ink-rgb), .32) 38%,
+    rgba(var(--ink-rgb), .32) 62%,
     rgba(var(--ink-rgb), 0) 100%
   );
   --scrim-heavy: radial-gradient(
     130% 85% at 50% 50%,
-    rgba(var(--ink-rgb), .90) 0%,
-    rgba(var(--ink-rgb), .66) 52%,
-    rgba(var(--ink-rgb), .28) 100%
+    rgba(var(--ink-rgb), .72) 0%,
+    rgba(var(--ink-rgb), .48) 52%,
+    rgba(var(--ink-rgb), .16) 100%
   );
   --scrim-left: linear-gradient(
     90deg,
-    rgba(var(--ink-rgb), .92) 0%,
-    rgba(var(--ink-rgb), .74) 38%,
-    rgba(var(--ink-rgb), .10) 72%,
+    rgba(var(--ink-rgb), .80) 0%,
+    rgba(var(--ink-rgb), .56) 38%,
+    rgba(var(--ink-rgb), .05) 72%,
     rgba(var(--ink-rgb), 0) 100%
   );
   --scrim-right: linear-gradient(
     270deg,
-    rgba(var(--ink-rgb), .92) 0%,
-    rgba(var(--ink-rgb), .74) 38%,
-    rgba(var(--ink-rgb), .10) 72%,
+    rgba(var(--ink-rgb), .80) 0%,
+    rgba(var(--ink-rgb), .56) 38%,
+    rgba(var(--ink-rgb), .05) 72%,
     rgba(var(--ink-rgb), 0) 100%
   );
   --scrim-edge: linear-gradient(
     180deg,
-    rgba(var(--ink-rgb), .94) 0%,
+    rgba(var(--ink-rgb), .85) 0%,
     rgba(var(--ink-rgb), 0) 20%,
     rgba(var(--ink-rgb), 0) 80%,
-    rgba(var(--ink-rgb), .94) 100%
+    rgba(var(--ink-rgb), .85) 100%
   );
 
   /* ---------- TYPE ---------- */

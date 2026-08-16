@@ -18,9 +18,9 @@ uniform float uTime;
 in vec2 vUv;
 out vec4 outColor;
 
-const vec3 INK = vec3(0.0627, 0.0549, 0.0510);
-const vec3 BONE = vec3(0.9412, 0.9216, 0.8902);
-const vec3 EMBER = vec3(0.8235, 0.3216, 0.1098);
+const vec3 INK = vec3(0.0471, 0.0510, 0.0627);
+const vec3 BONE = vec3(0.9529, 0.9373, 0.9059);
+const vec3 EMBER = vec3(1.0, 0.4549, 0.1255);
 
 float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 

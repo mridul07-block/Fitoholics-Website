@@ -14,14 +14,19 @@
     0 1px 3px rgba(var(--ink-rgb), 0.7);
 }
 
+/* fixed boxes + right alignment: label swaps never move layout (CLS 0) */
 .frame {
   composes: utility from '../styles/base.css';
   color: var(--bone);
   font-variant-numeric: tabular-nums;
+  width: 18ch;
+  text-align: right;
 }
 
 .beat {
   composes: utility from '../styles/base.css';
+  width: 18ch;
+  text-align: right;
 }
 
 @media (max-width: 767px) {

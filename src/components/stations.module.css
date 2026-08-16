@@ -31,6 +31,8 @@
   row-gap: var(--s-8);
   width: min(100% - 2 * var(--page-margin), var(--content-max));
   margin-inline: auto;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
 }
 
 /* Anchor rails */
@@ -239,6 +241,34 @@
   background: var(--ember);
 }
 
+/* the dot travels the rule on a 2.4s loop once the entrance completes (§8 S1) */
+:global(.cueRunning) .scrollCueDot {
+  animation: cueTravel 2.4s var(--e-in-out) infinite;
+}
+
+@keyframes cueTravel {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(45px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.cueRunning) .scrollCueDot {
+    animation: none;
+  }
+}
+
 /* ============================================================
    Station 2 · THE PROBLEM (LEFT) — pain list right
    ============================================================ */
@@ -261,6 +291,8 @@
   height: 1px;
   background: var(--stone);
   opacity: 0.55;
+  transform: scaleX(var(--ruleScale, 1));
+  transform-origin: left;
 }
 
 /* ============================================================
@@ -426,6 +458,126 @@
   }
 }
 
+/* ---------- pinned protocol stage (Phase 7) ---------- */
+
+.protoTrack {
+  position: relative;
+  min-height: inherit;
+}
+
+.protoSticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  align-content: center;
+  row-gap: var(--s-8);
+  overflow: hidden;
+}
+
+.protoHead {
+  grid-column: 3 / 11;
+  text-align: center;
+  justify-items: center;
+  display: grid;
+}
+
+/* inside the 100svh pin the title steps down so head + stage always fit */
+.protoTitle {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--tr-h1);
+  margin-bottom: var(--s-4);
+  text-wrap: balance;
+}
+
+.protoBody {
+  grid-template-columns: minmax(8rem, 3fr) 7fr minmax(24px, auto);
+  align-items: center;
+  column-gap: var(--s-8);
+  min-height: 38svh;
+}
+
+.protoNumeral {
+  composes: display from '../styles/base.css';
+  font-size: clamp(8rem, 22vw, 20rem);
+  line-height: 1;
+  color: var(--ember);
+  opacity: 0.14;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.protoStage {
+  position: relative;
+  min-height: 16rem;
+}
+
+.protoLayer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  max-width: var(--measure);
+}
+
+.protoRail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: min(46svh, 420px);
+  width: 3px;
+  justify-self: end;
+}
+
+.protoSegment {
+  position: relative;
+  width: 100%;
+  background: rgba(var(--bone-rgb), 0.14);
+}
+
+.protoSegmentFill {
+  position: absolute;
+  inset: 0;
+  background: var(--ember);
+  transform: scaleY(var(--fill, 0));
+  transform-origin: top;
+}
+
+@media (max-width: 900px) {
+  .protoHead {
+    grid-column: 1 / 13;
+  }
+  .protoBody {
+    grid-template-columns: 1fr;
+    position: relative;
+  }
+  .protoNumeral {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: center;
+    text-align: center;
+    opacity: 0.08;
+    pointer-events: none;
+  }
+  .protoStage {
+    min-height: 20rem;
+  }
+  /* rail goes horizontal under the header (§8 S4 mobile) */
+  .protoRail {
+    flex-direction: row;
+    width: 100%;
+    height: 3px;
+    order: -1;
+  }
+  .protoSegmentFill {
+    transform: scaleX(var(--fill, 0));
+    transform-origin: left;
+  }
+}
+
 /* ============================================================
    Station 5 · THE TABLE (LEFT) — myths right
    ============================================================ */
@@ -479,7 +631,7 @@
 .aspiration::before {
   content: '';
   height: 1px;
-  width: 24px;
+  width: var(--ruleW, 24px);
   background: var(--ember);
   align-self: center;
 }

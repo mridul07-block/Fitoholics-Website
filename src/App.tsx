@@ -1,6 +1,8 @@
 import { useEffect, type ReactNode } from 'react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from './content/copy'
+import { initChoreography } from './motion/choreography'
+import { initA11yNav } from './motion/a11y'
 import { initSpine } from './film/useMasterProgress'
 import { FilmLayer } from './film/FilmLayer'
 import { Timeline } from './components/Timeline'
@@ -45,6 +47,9 @@ export function App() {
     // master trigger's 'max' matches the real document height.
     initSpine()
     ScrollTrigger.refresh()
+    initA11yNav()
+    // choreography splits lines, so it waits for the fonts (no reflow splits)
+    void document.fonts.ready.then(() => initChoreography())
   }, [])
 
   return (

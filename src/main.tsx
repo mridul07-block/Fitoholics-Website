@@ -1,5 +1,7 @@
 import { installRafAudit } from './dev/rafAudit'
+import { installPerfTrace } from './dev/perfTrace'
 installRafAudit()
+installPerfTrace()
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'

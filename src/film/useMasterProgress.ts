@@ -109,7 +109,8 @@ interface Spine {
 let spine: Spine | null = null
 
 export const prefersReducedMotion = (): boolean =>
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+  (import.meta.env.DEV && new URLSearchParams(location.search).get('motion') === 'reduce')
 
 /**
  * Idempotent bootstrap. Safe under StrictMode. Returns the singleton.

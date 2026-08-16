@@ -4,9 +4,15 @@
  * Anchor rotation: CENTRE, LEFT, RIGHT, CENTRE, LEFT, RIGHT, LEFT, CENTRE.
  * Motion, pinning and the film arrive in later phases.
  */
+import { useEffect, useRef } from 'react'
 import clsx from 'clsx'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from '../content/copy'
+import { prefersReducedMotion } from '../film/useMasterProgress'
 import s from './stations.module.css'
+
+gsap.registerPlugin(ScrollTrigger)
 
 const over = 'overFilm' // global class from base.css (§4.3 text shadow)
 
@@ -17,14 +23,18 @@ export function Entrance() {
       <div className={clsx(s.scrim, s.scrimHeavy)} aria-hidden="true" />
       <div className={s.grid}>
         <div className={clsx(s.heroWrap, over)}>
-          <p className={s.eyebrow}>{c.eyebrow}</p>
+          <p className={s.eyebrow} data-s1-eyebrow="">
+            {c.eyebrow}
+          </p>
           <h1 className={s.hero}>
             {c.heroLines.map((line) => (
               <span key={line}>{line}</span>
             ))}
           </h1>
-          <p className={s.lead}>{c.lead}</p>
-          <div className={s.actions}>
+          <p className={s.lead} data-s1-lead="">
+            {c.lead}
+          </p>
+          <div className={s.actions} data-s1-actions="">
             <a className={s.ctaPrimary} href="#booking">
               {c.cta1}
             </a>
@@ -49,7 +59,7 @@ export function Problem() {
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimLeft)} aria-hidden="true" />
-      <div className={s.grid}>
+      <div className={s.grid} data-panel="">
         <div className={clsx(s.railLeft, over)}>
           <span className={s.index}>{c.index}</span>
           <p className={s.eyebrow}>{c.eyebrow}</p>
@@ -65,7 +75,7 @@ export function Problem() {
           <span className={s.listLabel}>{c.listLabel}</span>
           <ul className={s.painList}>
             {c.list.map((item) => (
-              <li key={item} className={s.painRow}>
+              <li key={item} className={s.painRow} data-pain-row="">
                 {item}
               </li>
             ))}
@@ -81,7 +91,7 @@ export function Positioning() {
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimRight)} aria-hidden="true" />
-      <div className={s.grid}>
+      <div className={s.grid} data-panel="">
         <div className={clsx(s.railRight, over)}>
           <span className={s.index}>{c.index}</span>
           <p className={s.eyebrow}>{c.eyebrow}</p>
@@ -94,7 +104,12 @@ export function Positioning() {
           <div className={s.stats}>
             {c.stats.map((stat) => (
               <div key={stat.label} className={s.stat}>
-                <div className={s.statValue} data-placeholder={stat.countTo === null ? '' : undefined}>
+                <div
+                  className={s.statValue}
+                  data-placeholder={stat.countTo === null ? '' : undefined}
+                  data-count-to={stat.countTo ?? undefined}
+                  data-count-suffix={stat.countTo !== null ? stat.suffix : undefined}
+                >
                   {stat.value}
                 </div>
                 <div className={s.statLabel}>{stat.label}</div>
@@ -108,28 +123,183 @@ export function Positioning() {
   )
 }
 
+/**
+ * Station 4 · The Total Transformation Protocol (§8 S4, Phase 7).
+ * The 240svh section holds a 100svh sticky stage: an ember numeral
+ * crossfading 01–08, the step text swapping through a bottom-to-top masked
+ * wipe, and an honest rail whose segment heights are proportional to each
+ * description's length. The film keeps advancing behind it — the sticky pin
+ * never changes document geometry, so master progress stays exact.
+ * Reduced motion renders the full static list instead.
+ */
 export function Protocol() {
   const c = COPY.protocol
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const numeralRef = useRef<HTMLDivElement>(null)
+  const layerARef = useRef<HTMLDivElement>(null)
+  const layerBRef = useRef<HTMLDivElement>(null)
+  const railRef = useRef<HTMLDivElement>(null)
+  const reduced = prefersReducedMotion()
+
+  useEffect(() => {
+    if (reduced) return
+    const root = sectionRef.current
+    const numeral = numeralRef.current
+    const layers = [layerARef.current, layerBRef.current]
+    const rail = railRef.current
+    if (!root || !numeral || !layers[0] || !layers[1] || !rail) return
+
+    const fills = Array.from(rail.querySelectorAll<HTMLElement>('[data-rail-fill]'))
+    let current = -1
+    let front = 0
+
+    const writeLayer = (el: HTMLElement, i: number) => {
+      const step = c.steps[i]!
+      el.querySelector('[data-step-title]')!.textContent = step.title
+      el.querySelector('[data-step-body]')!.textContent = step.body
+    }
+
+    const swap = (next: number, instant: boolean) => {
+      const step = c.steps[next]!
+      // numeral crossfade: 0.35s opacity swap with a 22px Y drift (§8 S4)
+      if (instant) {
+        numeral.textContent = step.n
+      } else {
+        gsap
+          .timeline()
+          .to(numeral, { autoAlpha: 0, y: -22, duration: 0.175, ease: 'power2.inOut' })
+          .add(() => {
+            numeral.textContent = step.n
+          })
+          .fromTo(
+            numeral,
+            { autoAlpha: 0, y: 22 },
+            { autoAlpha: 1, y: 0, duration: 0.175, ease: 'power2.out' },
+          )
+      }
+      // masked wipe, clip travelling bottom to top over 0.44s (§8 S4)
+      const incoming = layers[1 - front]!
+      const outgoing = layers[front]!
+      writeLayer(incoming, next)
+      if (instant) {
+        gsap.set(incoming, { clipPath: 'inset(0% 0% 0% 0%)', zIndex: 2 })
+        gsap.set(outgoing, { zIndex: 1, autoAlpha: 0 })
+      } else {
+        gsap.set(incoming, { clipPath: 'inset(100% 0% 0% 0%)', autoAlpha: 1, zIndex: 2 })
+        gsap.set(outgoing, { zIndex: 1 })
+        gsap.to(incoming, {
+          clipPath: 'inset(0% 0% 0% 0%)',
+          duration: 0.44,
+          ease: 'power2.inOut',
+          onComplete: () => gsap.set(outgoing, { autoAlpha: 0 }),
+        })
+      }
+      gsap.set(incoming, { autoAlpha: 1 })
+      front = 1 - front
+      // rail fills with ember as each step activates (CSS var: axis-agnostic,
+      // the rail is vertical on desktop and horizontal below 900px)
+      fills.forEach((f, i) => {
+        gsap.to(f, { '--fill': i <= next ? 1 : 0, duration: 0.3, ease: 'power2.out' } as gsap.TweenVars)
+      })
+    }
+
+    const st = ScrollTrigger.create({
+      trigger: root,
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: (self) => {
+        const step = Math.min(c.steps.length - 1, Math.floor(self.progress * c.steps.length))
+        if (step !== current) {
+          const instant = current < 0
+          current = step
+          swap(step, instant)
+        }
+      },
+    })
+    swap(0, true)
+    current = 0
+    return () => st.kill()
+  }, [reduced, c.steps])
+
+  // total characters, for proportional (honest) rail segment heights
+  const totalLen = c.steps.reduce((sum, st) => sum + st.body.length, 0)
+
+  if (reduced) {
+    return (
+      <div className={clsx(s.inner, s.protocolInner)}>
+        <div className={clsx(s.scrim, s.scrimHeavy)} aria-hidden="true" />
+        <div className={s.grid}>
+          <header className={clsx(s.protocolHead, over)}>
+            <span className={s.index}>{c.index}</span>
+            <p className={s.eyebrow}>{c.eyebrow}</p>
+            <h2 className={s.h1}>{c.h1}</h2>
+            <p className={s.protocolLead}>{c.lead}</p>
+          </header>
+          <ol className={clsx(s.steps, over)}>
+            {c.steps.map((step) => (
+              <li key={step.n} className={s.step}>
+                <span className={s.stepNumeral} aria-hidden="true">
+                  {step.n}
+                </span>
+                <div>
+                  <h3 className={s.stepTitle}>{step.title}</h3>
+                  <p className={s.stepBody}>{step.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className={clsx(s.inner, s.protocolInner)}>
+    <div ref={sectionRef} className={s.protoTrack}>
       <div className={clsx(s.scrim, s.scrimHeavy)} aria-hidden="true" />
-      <div className={s.grid}>
-        <header className={clsx(s.protocolHead, over)}>
-          <span className={s.index}>{c.index}</span>
-          <p className={s.eyebrow}>{c.eyebrow}</p>
-          <h2 className={s.h1}>{c.h1}</h2>
-          <p className={s.protocolLead}>{c.lead}</p>
-        </header>
-        <ol className={clsx(s.steps, over)}>
-          {c.steps.map((step) => (
-            <li key={step.n} className={s.step}>
-              <span className={s.stepNumeral} aria-hidden="true">
-                {step.n}
-              </span>
-              <div>
-                <h3 className={s.stepTitle}>{step.title}</h3>
-                <p className={s.stepBody}>{step.body}</p>
+      <div className={s.protoSticky}>
+        <div className={s.grid}>
+          <header className={clsx(s.protoHead, over)}>
+            <span className={s.index}>{c.index}</span>
+            <p className={s.eyebrow}>{c.eyebrow}</p>
+            <h2 className={s.protoTitle}>{c.h1}</h2>
+            <p className={s.protocolLead}>{c.lead}</p>
+          </header>
+        </div>
+        <div className={clsx(s.grid, s.protoBody)}>
+          <div ref={numeralRef} className={s.protoNumeral} aria-hidden="true">
+            01
+          </div>
+          <div className={clsx(s.protoStage, over)} aria-hidden="true">
+            <div ref={layerARef} className={s.protoLayer}>
+              <h3 className={s.stepTitle} data-step-title="">
+                {c.steps[0]!.title}
+              </h3>
+              <p className={s.stepBody} data-step-body="">
+                {c.steps[0]!.body}
+              </p>
+            </div>
+            <div ref={layerBRef} className={s.protoLayer}>
+              <h3 className={s.stepTitle} data-step-title="" />
+              <p className={s.stepBody} data-step-body="" />
+            </div>
+          </div>
+          <div ref={railRef} className={s.protoRail} aria-hidden="true">
+            {c.steps.map((step) => (
+              <div
+                key={step.n}
+                className={s.protoSegment}
+                style={{ flexGrow: step.body.length / totalLen }}
+              >
+                <div className={s.protoSegmentFill} data-rail-fill="" />
               </div>
+            ))}
+          </div>
+        </div>
+        {/* the full sequence stays available to assistive tech and search */}
+        <ol className="visuallyHidden">
+          {c.steps.map((step) => (
+            <li key={step.n}>
+              {step.title}. {step.body}
             </li>
           ))}
         </ol>
@@ -143,7 +313,7 @@ export function TableStation() {
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimLeft)} aria-hidden="true" />
-      <div className={s.grid}>
+      <div className={s.grid} data-panel="">
         <div className={clsx(s.railLeft, over)}>
           <span className={s.index}>{c.index}</span>
           <p className={s.eyebrow}>{c.eyebrow}</p>
@@ -158,11 +328,15 @@ export function TableStation() {
           <span className={s.listLabel}>{c.mythsLabel}</span>
           <div className={s.myths}>
             {c.myths.map((myth) => (
-              <div key={myth.strike} className={s.mythPair}>
+              <div key={myth.strike} className={s.mythPair} data-myth-pair="">
                 <p>
-                  <span className={s.mythStrike}>{myth.strike}</span>
+                  <span className={s.mythStrike} data-myth-strike="">
+                    {myth.strike}
+                  </span>
                 </p>
-                <p className={s.mythTruth}>{myth.truth}</p>
+                <p className={s.mythTruth} data-myth-truth="">
+                  {myth.truth}
+                </p>
               </div>
             ))}
           </div>
@@ -177,7 +351,7 @@ export function Fit() {
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimRight)} aria-hidden="true" />
-      <div className={s.grid}>
+      <div className={s.grid} data-panel="">
         <div className={clsx(s.railRight, over)}>
           <span className={s.index}>{c.index}</span>
           <p className={s.eyebrow}>{c.eyebrow}</p>
@@ -190,7 +364,7 @@ export function Fit() {
           <span className={s.listLabel}>{c.aspirationsLabel}</span>
           <ul className={s.aspirations}>
             {c.aspirations.map((item) => (
-              <li key={item} className={s.aspiration}>
+              <li key={item} className={s.aspiration} data-aspiration="">
                 {item}
               </li>
             ))}
@@ -206,7 +380,7 @@ export function Proof() {
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimLeft)} aria-hidden="true" />
-      <div className={s.grid}>
+      <div className={s.grid} data-panel="">
         <div className={clsx(s.railLeft, over)}>
           <span className={s.index}>{c.index}</span>
           <p className={s.eyebrow}>{c.eyebrow}</p>
@@ -218,7 +392,7 @@ export function Proof() {
         </div>
         <div className={s.cards}>
           {c.testimonials.map((t) => (
-            <figure key={t.name} className={s.card}>
+            <figure key={t.name} className={s.card} data-card="">
               <blockquote className={s.cardQuote} data-placeholder="">
                 {t.quote}
               </blockquote>
@@ -240,7 +414,7 @@ export function Close() {
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimHeavy)} aria-hidden="true" />
-      <div className={s.grid}>
+      <div className={s.grid} data-panel="">
         <div className={clsx(s.railCentre, over)}>
           <p className={s.eyebrow}>{c.eyebrow}</p>
           <h2 className={clsx(s.hero, s.heroClose)}>{c.hero}</h2>

@@ -18,15 +18,16 @@ export interface Beat {
 }
 
 export const BEATS: readonly Beat[] = [
-  { id: 'mirror', label: 'THE MIRROR', n0: 0, n1: 13, heroFrame: 7, ghostRisk: 0 },
-  { id: 'threshold', label: 'THE THRESHOLD', n0: 14, n1: 25, heroFrame: 20, ghostRisk: 1 },
-  { id: 'welcome', label: 'THE WELCOME', n0: 26, n1: 33, heroFrame: 30, ghostRisk: 1 },
-  { id: 'assessment', label: 'THE ASSESSMENT', n0: 34, n1: 59, heroFrame: 46, ghostRisk: 0 },
-  { id: 'tools', label: 'THE TOOLS', n0: 60, n1: 64, heroFrame: 62, ghostRisk: 1 },
-  { id: 'work', label: 'THE WORK', n0: 65, n1: 86, heroFrame: 75, ghostRisk: 2 },
-  { id: 'table', label: 'THE TABLE', n0: 87, n1: 106, heroFrame: 97, ghostRisk: 0 },
-  { id: 'rhythm', label: 'THE RHYTHM', n0: 107, n1: 125, heroFrame: 113, ghostRisk: 2 },
-  { id: 'proof', label: 'THE PROOF', n0: 126, n1: 149, heroFrame: 140, ghostRisk: 0 },
+  // 299-space (full sequence, no decimation — client request 2026-08-16)
+  { id: 'mirror', label: 'THE MIRROR', n0: 0, n1: 27, heroFrame: 14, ghostRisk: 0 },
+  { id: 'threshold', label: 'THE THRESHOLD', n0: 28, n1: 51, heroFrame: 40, ghostRisk: 1 },
+  { id: 'welcome', label: 'THE WELCOME', n0: 52, n1: 67, heroFrame: 60, ghostRisk: 1 },
+  { id: 'assessment', label: 'THE ASSESSMENT', n0: 68, n1: 119, heroFrame: 92, ghostRisk: 0 },
+  { id: 'tools', label: 'THE TOOLS', n0: 120, n1: 129, heroFrame: 124, ghostRisk: 1 },
+  { id: 'work', label: 'THE WORK', n0: 130, n1: 173, heroFrame: 150, ghostRisk: 2 },
+  { id: 'table', label: 'THE TABLE', n0: 174, n1: 213, heroFrame: 194, ghostRisk: 0 },
+  { id: 'rhythm', label: 'THE RHYTHM', n0: 214, n1: 251, heroFrame: 226, ghostRisk: 2 },
+  { id: 'proof', label: 'THE PROOF', n0: 252, n1: 298, heroFrame: 280, ghostRisk: 0 },
 ] as const
 
 /** Beat for a frame index. Linear scan; nine entries, branch predicted. */
@@ -48,14 +49,15 @@ export function beatAtProgress(p: number): Beat {
  * across the inter-station gaps. 1 = full film, 0 = ink.
  */
 const WASH_STOPS: readonly (readonly [number, number, number])[] = [
-  [0.0, 0.09, 0.42],
-  [0.096, 0.185, 0.68],
-  [0.19, 0.29, 0.55],
-  [0.308, 0.552, 0.6],
-  [0.604, 0.712, 0.74],
-  [0.719, 0.812, 0.6],
-  [0.819, 0.905, 0.5],
-  [0.912, 1.0, 0.3],
+  // lifted across the board (client directed): the film stays clearly visible
+  [0.0, 0.09, 0.58],
+  [0.096, 0.185, 0.8],
+  [0.19, 0.29, 0.7],
+  [0.308, 0.552, 0.74],
+  [0.604, 0.712, 0.88],
+  [0.719, 0.812, 0.76],
+  [0.819, 0.905, 0.68],
+  [0.912, 1.0, 0.5],
 ]
 
 export function washAtProgress(p: number): number {
