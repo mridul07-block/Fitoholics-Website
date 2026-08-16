@@ -97,6 +97,10 @@ size on disk, and the pixel dimensions of frame one. Do not guess any of these.
 AUDITED 2026-08-16: `video frames/ezgif-frame-%03d.jpg`, indices 001–299 contiguous, 2560x1440,
 26.46 MB total, avg 92.8 KB/frame. JPEG. AI generated (Google Veo); "Veo" watermark bottom right on
 every frame. Client approved: crop ~6% off bottom+right, decimate 299→150, WebP at 3 tiers.
+AMENDED same day at client direction: decimation removed — the FULL 299 frame sequence ships for
+scrub smoothness (tiers 17.83 / 11.30 / 7.10 MB; exceeds the §3.3 10 MB aspiration knowingly; the
+byte budgeted streaming loader keeps first paint and memory unaffected). Beat map below is stated
+in 150 space; beats.ts carries the authoritative 299 space ranges (double + 1).
 
 ### 3.2 · Manifest contract
 
@@ -148,6 +152,12 @@ of someone flexing. Verify visually with screenshots at every station boundary i
 
 The client identity is already locked from prior work on this brand. Use it exactly. Do not
 reinterpret, do not add, do not soften.
+
+AMENDED 2026-08-16 at client direction (supersedes the token values below): palette moved to a
+cool graphite field so the warm footage pops — ink #0C0D10, bone #F3EFE7, accent #FF7420 (flare
+orange, still the only accent), stone #9A968F, ash #15161A. Scrim alphas lightened and station
+washes lifted so the film stays clearly visible at every station. src/styles/tokens.css is the
+source of truth; the five colour discipline is unchanged.
 
 ### 4.1 · Complete token file
 
