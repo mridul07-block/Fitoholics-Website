@@ -11,8 +11,30 @@ import { FILM, selectTier } from './manifest'
 import { washAtProgress } from './beats'
 import { FrameLoader, budgetForTier } from './FrameLoader'
 import { Canvas2DRenderer } from './Canvas2DRenderer'
+import { WebGLFilmRenderer } from './WebGLRenderer'
 import { initSpine, prefersReducedMotion } from './useMasterProgress'
 import s from '../App.module.css'
+
+type AnyRenderer = Canvas2DRenderer | WebGLFilmRenderer
+
+/**
+ * Renderer probe (§7.4/§7.5): WebGL2 unless it fails, reports a software
+ * renderer, or the page runs under reduced motion / an explicit ?film=2d
+ * override. Canvas 2D is a full quality path, not a degraded one.
+ */
+function pickRenderer(host: HTMLElement, loader: FrameLoader, tier: ReturnType<typeof selectTier>): AnyRenderer {
+  const filmParam = new URLSearchParams(location.search).get('film')
+  if (filmParam === '2d' || prefersReducedMotion()) return new Canvas2DRenderer(host, loader)
+  const allowSoftware = import.meta.env.DEV && filmParam === 'gl-force'
+  try {
+    const nav = navigator as Navigator & { deviceMemory?: number }
+    const quality = tier.id === 'sm' || (nav.deviceMemory ?? 8) <= 4 ? 'low' : 'high'
+    return new WebGLFilmRenderer(host, loader, tier, quality, allowSoftware)
+  } catch (err) {
+    if (import.meta.env.DEV) console.warn('webgl unavailable, canvas 2d path:', err)
+    return new Canvas2DRenderer(host, loader)
+  }
+}
 
 const SCROLL_LOCK_RELEASE_MS = 3500
 
@@ -39,7 +61,14 @@ export function FilmLayer() {
 
     const tier = selectTier()
     const loader = new FrameLoader(tier, budgetForTier(tier))
-    const renderer = new Canvas2DRenderer(host, loader)
+    let renderer: AnyRenderer = pickRenderer(host, loader, tier)
+    if (renderer.kind === 'webgl') {
+      // context lost -> swap to the 2D path without losing the playhead (§7.5)
+      renderer.onContextLost = () => {
+        renderer.dispose()
+        renderer = new Canvas2DRenderer(host, loader)
+      }
+    }
     const spine = initSpine()
     const reduced = prefersReducedMotion()
 
@@ -84,18 +113,23 @@ export function FilmLayer() {
     loader.start()
 
     // ---- per tick: note the playhead, pin the drawn window, render ----
-    const renderState = { index: 0, blend: 0, velocity: 0, wash: 1 }
-    const pinScratch: number[] = [0, 0, 0]
-    const offTick = spine.clock.onTick((c) => {
+    const renderState = { index: 0, blend: 0, velocity: 0, wash: 1, soften: 0, time: 0 }
+    const pinScratch: number[] = []
+    const offTick = spine.clock.onTick((c, deltaMs) => {
       loader.note(c.index, c.velocity)
-      pinScratch[0] = c.index
-      pinScratch[1] = Math.min(c.index + 1, FILM.count - 1)
-      pinScratch[2] = renderer.lastIndex < 0 ? c.index : renderer.lastIndex
+      pinScratch.length = 0
+      if (renderer.kind === 'webgl') renderer.residentFrames(pinScratch)
+      pinScratch.push(c.index, Math.min(c.index + 1, FILM.count - 1))
+      if (renderer.lastIndex >= 0) pinScratch.push(renderer.lastIndex)
       loader.pin(pinScratch)
       renderState.index = c.index
       renderState.blend = c.blend
       renderState.velocity = c.velocity
       renderState.wash = washAtProgress(c.smoothed)
+      // ghosting mitigation: high motion beats soften with velocity (§7.5 audit)
+      const v = Math.min(Math.abs(c.velocity) / 18, 1)
+      renderState.soften = 0.35 * c.beat.ghostRisk * v
+      renderState.time += deltaMs / 1000
       renderer.render(renderState)
       if (import.meta.env.DEV && window.__filmStats) window.__filmStats.draws = renderer.draws
     })
