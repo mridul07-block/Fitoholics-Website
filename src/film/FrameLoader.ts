@@ -153,7 +153,7 @@ export class FrameLoader implements FrameSource {
     if (subset && subset.length) {
       this.subsetMode = true
       this.completeTarget = subset.length
-      this.p0.push(subset[0]!)
+      void this.primeFirstFrame(subset[0]!)
       for (let i = 1; i < subset.length; i++) {
         this.p1.push(subset[i]!)
         this.blockingSet.add(subset[i]!)
@@ -162,7 +162,7 @@ export class FrameLoader implements FrameSource {
       return
     }
 
-    this.p0.push(0)
+    void this.primeFirstFrame(0)
     // blocking batch: byte budgeted from index 1 ascending (§7.3 amendment)
     const blockingCount = Math.max(
       3,
@@ -177,6 +177,38 @@ export class FrameLoader implements FrameSource {
       for (let j = i; j < Math.min(i + P3_BATCH, FILM.count); j++) this.p3.push(j)
     }
     this.pump()
+  }
+
+  /**
+   * The first frame is fetched here on the main thread, not in the worker.
+   *
+   * index.html preloads it during HTML parse, before any script runs, which is
+   * what buys the sub second first paint. Preloads are document scoped, so the
+   * worker's fetch could never consume one — frame zero was downloaded twice.
+   * Loading it through an Image here matches the as="image" preload, which is
+   * the one preload flavour browsers reuse dependably.
+   */
+  private async primeFirstFrame(index: number): Promise<void> {
+    this.slotState[index] = SlotState.InFlight
+    try {
+      const img = new Image()
+      img.decoding = 'async'
+      img.fetchPriority = 'high'
+      img.src = framePath(this.tier, index)
+      await img.decode()
+      const bitmap = await createImageBitmap(img, {
+        imageOrientation: 'none',
+        premultiplyAlpha: 'none',
+        colorSpaceConversion: 'none',
+      })
+      this.acceptFrame(index, bitmap)
+    } catch (err) {
+      // fall back to the normal path rather than losing the first frame
+      if (import.meta.env.DEV) console.warn(`frame ${index} prime failed, requeued: ${String(err)}`)
+      this.slotState[index] = SlotState.Queued
+      this.p0.push(index)
+      this.pump()
+    }
   }
 
   /** resolves when the blocking batch lands — the caller adds the 3.5s hard release */
@@ -260,20 +292,25 @@ export class FrameLoader implements FrameSource {
       return
     }
 
-    this.bitmaps[msg.index] = msg.bitmap
-    this.slotState[msg.index] = SlotState.Decoded
-    this.readyMask[msg.index] = 1
+    this.acceptFrame(msg.index, msg.bitmap)
+  }
+
+  /** shared completion path for both the worker and the primed first frame */
+  private acceptFrame(index: number, bitmap: ImageBitmap): void {
+    this.bitmaps[index] = bitmap
+    this.slotState[index] = SlotState.Decoded
+    this.readyMask[index] = 1
     this.decodedBytes += this.bytesPerFrame
-    if (this.loadedEver[msg.index] === 0) {
-      this.loadedEver[msg.index] = 1
+    if (this.loadedEver[index] === 0) {
+      this.loadedEver[index] = 1
       this.phase.loadedCount++
     }
     this.evictOverBudget()
 
-    if (msg.index === 0 && !this.phase.firstReady) {
+    if (!this.phase.firstReady) {
       this.setPhase({ firstReady: true, stage: 'blocking' })
     }
-    if (this.blockingSet.has(msg.index)) {
+    if (this.blockingSet.has(index)) {
       this.blockingLoaded++
       this.setPhase({ blockingProgress: this.blockingLoaded / this.blockingSet.size })
       if (this.blockingLoaded >= this.blockingSet.size) {

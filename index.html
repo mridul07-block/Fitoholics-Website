@@ -14,14 +14,22 @@
     <link rel="preload" href="/fonts/bodoni-moda-var-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/archivo-var-latin.woff2" as="font" type="font/woff2" crossorigin />
 
-    <!-- Frame zero starts fetching during HTML parse, before any JS executes (§7.3). -->
+    <!-- Frame zero starts fetching during HTML parse, before any JS executes (§7.3).
+         as="image", matched by an Image() in FrameLoader.primeFirstFrame: image
+         preloads match the real request reliably, where an as="fetch" preload
+         did not (Chrome rejected it on credentials mode) and a worker fetch
+         cannot consume a preload at all, since preloads are document scoped.
+         media picks a single tier, mirroring the width thresholds in
+         selectTier(), so exactly one file is ever fetched. -->
+    <link rel="preload" as="image" fetchpriority="high" href="/film/854/f_000.webp" media="(max-width: 999px)" />
     <link
       rel="preload"
       as="image"
       fetchpriority="high"
-      imagesrcset="/film/854/f_000.webp 854w, /film/1280/f_000.webp 1280w, /film/1920/f_000.webp 1920w"
-      imagesizes="100vw"
+      href="/film/1280/f_000.webp"
+      media="(min-width: 1000px) and (max-width: 1599px)"
     />
+    <link rel="preload" as="image" fetchpriority="high" href="/film/1920/f_000.webp" media="(min-width: 1600px)" />
 
     <style>
       /* Pre-hydration ground: the page is ink from the first byte, CLS 0. */

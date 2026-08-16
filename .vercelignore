@@ -1,0 +1,13 @@
+# The source plate. 15 MB of JPEGs that only tools/encode-frames.mjs ever reads,
+# and it is never run during a deploy — the encoded tiers in public/film are the
+# build output. Uploading these to every deploy is pure cost.
+video frame/
+
+# build-time only tooling deps (sharp and its native binaries)
+tools/node_modules/
+
+# local build output; Vercel builds its own
+dist/
+
+docs/
+.gstack/
