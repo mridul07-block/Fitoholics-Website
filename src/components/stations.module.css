@@ -361,11 +361,13 @@
   line-height: 1;
 }
 
+/* A step under --t-h2: at the full h2 size this runs to ten lines in its column
+   and the first line collides with the fixed timeline chrome. */
 .quote {
   composes: display from '../styles/base.css';
   position: relative;
   font-weight: 400;
-  font-size: var(--t-h2);
+  font-size: clamp(1.55rem, 2.35vw, 2.2rem);
   line-height: var(--lh-h2);
   margin-bottom: var(--s-8);
   text-wrap: balance;
@@ -711,10 +713,12 @@
   gap: var(--s-6);
 }
 
+/* No backdrop-filter. Blurring a live backdrop over a scrubbing film canvas
+   measured at roughly half the whole frame budget; a slightly denser surface
+   is indistinguishable over dark footage and costs nothing per frame. */
 .card {
   position: relative;
-  background: rgba(var(--char-rgb), .62); /* the only L2 surface (§8) */
-  backdrop-filter: blur(6px);
+  background: rgba(var(--char-rgb), .84); /* the only L2 surface (§8) */
   border: 1px solid rgba(var(--bone-rgb), .1);
   padding: var(--s-7);
   display: grid;

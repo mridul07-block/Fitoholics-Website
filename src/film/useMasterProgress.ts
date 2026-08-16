@@ -44,9 +44,14 @@ type TickListener = (state: FilmClockState, deltaMs: number) => void
  * A critically damped spring (zeta = 1) has no overshoot and settles in finite
  * perceptual time, so the film tracks the hand and then stops dead.
  *
- * omega is in rad/s; 15 puts the settle at roughly 250ms.
+ * omega is in rad/s. It is deliberately stiff: the input this spring receives
+ * has ALREADY been smoothed by Lenis (lerp .105, roughly a 150ms constant), so
+ * its job is only to take the quantisation off ScrollTrigger's progress, not to
+ * smooth the scroll a second time. A soft spring here simply adds its lag to
+ * Lenis' and the film visibly trails the hand. 26 settles in about 135ms, and
+ * sub frame blending means a stiff spring cannot reintroduce frame stepping.
  */
-const SPRING_OMEGA = 15
+const SPRING_OMEGA = 26
 const BLEND_QUANTUM = 1 / 512
 
 class FilmClock {
@@ -87,10 +92,11 @@ class FilmClock {
     const dtMs = Math.min(deltaMs, 50)
     const dt = dtMs / 1000
 
-    // semi implicit Euler on a critically damped spring. Sub stepping keeps it
-    // stable if a frame runs long (a 50ms tick at omega 15 is otherwise close
-    // to the explicit stability limit).
-    const steps = dt > 1 / 45 ? 2 : 1
+    // Semi implicit Euler on a critically damped spring. Sub stepping keeps it
+    // stable when a frame runs long: at omega 26 the explicit stability limit
+    // is around a 38ms step, which a single dropped frame already exceeds, so
+    // the step count is derived from dt rather than fixed.
+    const steps = Math.min(6, Math.max(1, Math.ceil(dt / 0.012)))
     const h = dt / steps
     for (let i = 0; i < steps; i++) {
       const accel = SPRING_OMEGA * SPRING_OMEGA * (s.raw - s.smoothed) - 2 * SPRING_OMEGA * this.springVel

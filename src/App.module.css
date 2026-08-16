@@ -41,8 +41,10 @@
     ),
     linear-gradient(180deg, var(--atm-top) 0%, rgba(0, 0, 0, 0) 26%),
     linear-gradient(0deg, var(--atm-bottom) 0%, rgba(0, 0, 0, 0) 30%);
-  transition:
-    background 900ms var(--e-out);
+  /* No transition. `background` is not a compositable property, so animating
+     it repainted this full viewport fixed layer on every frame for 900ms after
+     each act change. The switch is instant instead, and lands inside the cut
+     flare that fires at the same moment, which is where a cut belongs anyway. */
 }
 
 .content {

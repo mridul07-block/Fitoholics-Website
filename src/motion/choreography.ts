@@ -133,20 +133,25 @@ export function initChoreography(): void {
   // Enter from depth, rest >= 45% of range, exit TOWARD the camera.
   // Station 1 (entrance owns it) and station 4 (pinned) are excluded.
   // ---------------------------------------------------------------
-  const blurOk = window.matchMedia('(min-width: 900px)').matches
+  // No filter: blur() on the travelling panels. Animating a blur re-rasterises
+  // the whole panel every frame while the film is also being drawn, and it
+  // measured at about half the frame budget. Depth is already carried by the
+  // perspective translate, the rotation and opacity, and the film behind has
+  // its own defocus in the shader — the blur was the accessory to remove.
   for (const n of [2, 3, 5, 6, 7, 8]) {
     const section = q(`[data-station="${n}"]`)
     const panel = section?.querySelector<HTMLElement>('[data-panel]')
     if (!section || !panel) continue
-    // The travel window is deliberately narrower than the section: with
-    // 'top bottom' to 'bottom top' a panel is partly visible for its whole
-    // height plus a viewport, so two neighbouring panels are both half faded
-    // on screen at once and the copy reads as mush.
+    // Measured at the viewport midline, so the window length is the section's
+    // own height and adjacent windows abut instead of overlapping. With the
+    // default 'top bottom' to 'bottom top' a panel is partly visible for its
+    // height PLUS a full viewport, which put two and sometimes three headlines
+    // on screen at once, each half faded — the copy read as mush.
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
-        start: 'top 72%',
-        end: 'bottom 28%',
+        start: 'top 55%',
+        end: 'bottom 45%',
         scrub: true,
         onToggle: (self) => {
           panel.style.willChange = self.isActive ? 'transform, opacity' : 'auto'
@@ -156,27 +161,33 @@ export function initChoreography(): void {
     })
     tl.fromTo(
       panel,
-      { z: -620, rotationX: 7, autoAlpha: 0, ...(blurOk ? { filter: 'blur(8px)' } : {}) },
-      { z: 0, rotationX: 0, autoAlpha: 1, ...(blurOk ? { filter: 'blur(0px)' } : {}), duration: 0.22 },
+      { z: -620, rotationX: 7, autoAlpha: 0 },
+      { z: 0, rotationX: 0, autoAlpha: 1, duration: 0.22 },
     )
       .to(panel, { z: 0, duration: 0.55 })
-      .to(panel, {
-        z: 340,
-        rotationX: -5,
-        autoAlpha: 0,
-        ...(blurOk ? { filter: 'blur(6px)' } : {}),
-        duration: 0.23,
-      })
+      .to(panel, { z: 340, rotationX: -5, autoAlpha: 0, duration: 0.23 })
   }
 
   // ---------------------------------------------------------------
   // One shot reveals, latched, fired as each station reaches 75% vh.
   // ---------------------------------------------------------------
+  /**
+   * The trigger is resolved to the enclosing section, never the element itself.
+   *
+   * Every revealed element lives inside a panel that is being moved through a
+   * perspective context, so its getBoundingClientRect is a moving target.
+   * ScrollTrigger caches start positions from that rect at refresh time, and
+   * with the panel parked at translateZ(-620) the cached start can sit at a
+   * scroll position the element never actually reaches — the reveal then never
+   * fires and the copy stays hidden inside its line mask. Sections are not
+   * transformed, so their geometry is stable.
+   */
   const reveal = (
-    trigger: Element,
+    el: Element,
     build: (tl: gsap.core.Timeline) => void,
-    start = 'top 72%',
+    start = 'top 55%',
   ) => {
+    const trigger = el.closest('[data-station]') ?? el
     const tl = gsap.timeline({
       scrollTrigger: { trigger, start, once: true },
       defaults: { ease: 'power2.out' },

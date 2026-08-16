@@ -8,7 +8,7 @@ import vertSrc from './film.vert.glsl?raw'
 import fragSrc from './film.frag.glsl?raw'
 import { FILM, type TierSpec } from './manifest'
 import type { FrameSource } from './FrameLoader'
-import type { FilmRenderState } from './Canvas2DRenderer'
+import { scrubDiag, type FilmRenderState } from './Canvas2DRenderer'
 
 const UPLOAD_BUDGET_MS = 6
 
@@ -53,21 +53,29 @@ export class WebGLFilmRenderer {
     this.canvas.style.width = '100%'
     this.canvas.style.height = '100%'
 
-    const gl = this.canvas.getContext('webgl2', {
+    // failIfMajorPerformanceCaveat is a blunt instrument: it also rejects
+    // perfectly capable integrated GPUs on some drivers, and any browser in a
+    // power saving mode. Dropping to Canvas 2D costs far more than a caveated
+    // GPU context does, so try the strict context first and fall back to a
+    // permissive one, rejecting only if the driver actually names itself as a
+    // software rasteriser.
+    const attrs: WebGLContextAttributes = {
       alpha: false,
       depth: false,
       stencil: false,
       antialias: false,
       powerPreference: 'high-performance',
-      failIfMajorPerformanceCaveat: !allowSoftware,
-    })
-    if (!gl) throw new Error('webgl2 unavailable or software rendered')
+    }
+    const gl =
+      this.canvas.getContext('webgl2', { ...attrs, failIfMajorPerformanceCaveat: true }) ??
+      this.canvas.getContext('webgl2', attrs)
+    if (!gl) throw new Error('webgl2 unavailable')
     this.gl = gl
 
     const dbg = gl.getExtension('WEBGL_debug_renderer_info')
     if (dbg && !allowSoftware) {
       const renderer = String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL))
-      if (/SwiftShader|llvmpipe|Software/i.test(renderer)) {
+      if (/SwiftShader|llvmpipe|Software|Microsoft Basic Render/i.test(renderer)) {
         throw new Error(`software renderer: ${renderer}`)
       }
     }
@@ -143,6 +151,7 @@ export class WebGLFilmRenderer {
       if (bmp) {
         slotA = this.upload(s.index, bmp) // bypasses budget: alternative is a visible stall
       } else {
+        scrubDiag.stalls++
         return false // hold last frame (§7.3)
       }
     }
@@ -151,6 +160,7 @@ export class WebGLFilmRenderer {
     let slotB = this.frameToSlot[s.index + 1] ?? -1
     if (slotB < 0) {
       // next frame not resident: draw current sharp (fast scroll policy)
+      if (s.blend > 1 / 512) scrubDiag.blendMisses++
       slotB = slotA
       blend = 0
     }
@@ -258,9 +268,12 @@ export class WebGLFilmRenderer {
     const old = this.ringFrame[slot]!
     if (old >= 0) this.frameToSlot[old] = -1
 
+    const tu = performance.now()
     gl.activeTexture(gl.TEXTURE2) // scratch unit; avoids disturbing bound draw units
     gl.bindTexture(gl.TEXTURE_2D, this.ringTex[slot]!)
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, bmp)
+    scrubDiag.uploads++
+    scrubDiag.uploadMs += performance.now() - tu
     this.ringFrame[slot] = index
     this.frameToSlot[index] = slot
     return slot

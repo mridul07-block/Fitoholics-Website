@@ -73,6 +73,7 @@ export function FilmLayer() {
     }
     const spine = initSpine()
     const reduced = prefersReducedMotion()
+    if (import.meta.env.DEV) window.__filmRenderer = renderer.kind
 
     // ---- scroll lock during the blocking batch, never a trap (§7.3) ----
     let released = false
