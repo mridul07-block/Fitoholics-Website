@@ -1,0 +1,7 @@
+encode-frames report · 2026-08-16T16:30:59.243Z
+frames: 150 (decimated from 299, odd source indices)
+crop: 2406x1354 from 2560x1440 (Veo watermark removed)
+tier xl 1920x1080: total 9.00 MB, avg 61.5 KB/frame (target ~6 MB)
+tier lg 1280x720: total 5.71 MB, avg 39.0 KB/frame
+tier sm 854x480: total 3.58 MB, avg 24.4 KB/frame (target ~1.8 MB)
+elapsed: 29.2s

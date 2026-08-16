@@ -1,0 +1,9 @@
+{
+  "name": "ikram-web-tools",
+  "private": true,
+  "description": "Build-time tooling only. Nothing here ships or enters the app dependency graph.",
+  "type": "module",
+  "dependencies": {
+    "sharp": "0.33.5"
+  }
+}
