@@ -43,6 +43,35 @@ export function beatAtProgress(p: number): Beat {
   return beatAtFrame(Math.round(p * (FILM.count - 1)))
 }
 
+/**
+ * Station wash ranges (§8): film strength per station, linearly crossfaded
+ * across the inter-station gaps. 1 = full film, 0 = ink.
+ */
+const WASH_STOPS: readonly (readonly [number, number, number])[] = [
+  [0.0, 0.09, 0.42],
+  [0.096, 0.185, 0.68],
+  [0.19, 0.29, 0.55],
+  [0.308, 0.552, 0.6],
+  [0.604, 0.712, 0.74],
+  [0.719, 0.812, 0.6],
+  [0.819, 0.905, 0.5],
+  [0.912, 1.0, 0.3],
+]
+
+export function washAtProgress(p: number): number {
+  for (let i = 0; i < WASH_STOPS.length; i++) {
+    const [a, b, w] = WASH_STOPS[i]!
+    if (p <= b) {
+      if (p >= a) return w
+      // in the gap before this station: crossfade from the previous wash
+      const prev = i > 0 ? WASH_STOPS[i - 1]! : WASH_STOPS[0]!
+      const t = (p - prev[1]) / (a - prev[1])
+      return prev[2] + (w - prev[2]) * Math.min(Math.max(t, 0), 1)
+    }
+  }
+  return WASH_STOPS[WASH_STOPS.length - 1]![2]
+}
+
 /** Boot-time invariants, DEV only. Throws on gaps, overlaps or hero mismatches. */
 export function assertBeatCoverage(): void {
   let expected = 0

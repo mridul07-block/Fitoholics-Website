@@ -1,0 +1,37 @@
+.timeline {
+  position: fixed;
+  top: var(--s-6);
+  right: var(--page-margin);
+  z-index: var(--z-chrome);
+  display: grid;
+  justify-items: end;
+  gap: var(--s-1);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 600ms var(--e-out);
+  text-shadow:
+    0 1px 40px rgba(var(--ink-rgb), 0.92),
+    0 1px 3px rgba(var(--ink-rgb), 0.7);
+}
+
+.frame {
+  composes: utility from '../styles/base.css';
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+}
+
+.beat {
+  composes: utility from '../styles/base.css';
+}
+
+@media (max-width: 767px) {
+  .timeline {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline {
+    display: none;
+  }
+}

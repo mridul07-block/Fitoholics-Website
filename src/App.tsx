@@ -1,8 +1,9 @@
 import { useEffect, type ReactNode } from 'react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from './content/copy'
-import { FILM } from './film/manifest'
 import { initSpine } from './film/useMasterProgress'
+import { FilmLayer } from './film/FilmLayer'
+import { Timeline } from './components/Timeline'
 import { Entrance, Problem, Positioning, Protocol, TableStation, Fit, Proof, Close } from './components/stations'
 import s from './App.module.css'
 
@@ -53,14 +54,9 @@ export function App() {
       </a>
 
       {/* L0 · FILM — LQIP of beat one grounds the viewport until frame zero decodes. */}
-      <div
-        className={s.film}
-        aria-hidden="true"
-        data-film-host
-        style={{ backgroundImage: `url("${FILM.lqip[0]}")` }}
-      />
+      <FilmLayer />
 
-      {/* L1 · ATMOSPHERE — per station scrims arrive in Phase 2. */}
+      {/* L1 · ATMOSPHERE — edge gradient; per station scrims live inside stations. */}
       <div className={s.atmosphere} aria-hidden="true" data-atmosphere />
 
       {/* L2 · CONTENT */}
@@ -81,8 +77,8 @@ export function App() {
         })}
       </main>
 
-      {/* L3 · CHROME — timeline arrives with the film engine in Phase 4. */}
-      <div className={s.chrome} aria-hidden="true" data-chrome />
+      {/* L3 · CHROME — the signature element (§2.3). */}
+      <Timeline />
     </>
   )
 }
