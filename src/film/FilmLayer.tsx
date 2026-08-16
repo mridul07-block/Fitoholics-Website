@@ -15,6 +15,7 @@ import { FrameLoader, budgetForTier } from './FrameLoader'
 import { Canvas2DRenderer } from './Canvas2DRenderer'
 import { WebGLFilmRenderer } from './WebGLRenderer'
 import { initSpine, prefersReducedMotion } from './useMasterProgress'
+import { motionNorm } from './velocity'
 import s from '../App.module.css'
 
 type AnyRenderer = Canvas2DRenderer | WebGLFilmRenderer
@@ -50,6 +51,9 @@ interface FilmStats {
 declare global {
   interface Window {
     __filmStats?: FilmStats
+    /** DEV: velocity distribution recorded since load, frames/sec */
+    __velLog?: (min?: number) => { n: number; p50: number; p90: number; p99: number; max: number } | null
+    __velReset?: () => void
   }
 }
 
@@ -136,6 +140,26 @@ export function FilmLayer() {
       cut: 0,
     }
     const pinScratch: number[] = []
+
+    // ---- DEV diagnostics for the velocity driven effects ----
+    // ?vel=<n> pins the velocity uniform so the high speed appearance can be
+    // screenshotted while the page is standing still. __velLog records the real
+    // distribution during a scroll so the pinned value can be a real one.
+    const devParams = import.meta.env.DEV ? new URLSearchParams(location.search) : null
+    const forcedVel = devParams?.has('vel') ? Number(devParams.get('vel')) : NaN
+    const velLog: number[] = []
+    if (import.meta.env.DEV) {
+      window.__velLog = (min = 0.05) => {
+        const v = velLog.filter((x) => x > min).sort((a, b) => a - b)
+        if (!v.length) return null
+        const at = (q: number) => v[Math.min(v.length - 1, Math.floor(q * v.length))]!
+        return { n: v.length, p50: at(0.5), p90: at(0.9), p99: at(0.99), max: v[v.length - 1]! }
+      }
+      window.__velReset = () => {
+        velLog.length = 0
+      }
+    }
+
     const offTick = spine.clock.onTick((c, deltaMs) => {
       loader.note(c.index, c.velocity)
       pinScratch.length = 0
@@ -161,9 +185,28 @@ export function FilmLayer() {
         renderState.velocity = c.velocity
         renderState.cut = atmos.state.cut
         renderState.wash = washAtProgress(c.smoothed) * filmEntrance.wash
-        // ghosting mitigation: high motion acts soften with velocity (§7.5 audit)
-        const v = Math.min(Math.abs(c.velocity) / 18, 1)
-        renderState.soften = 0.35 * c.act.ghostRisk * v
+        // Motion softening.
+        //
+        // This began as ghosting mitigation for a sequence decimated two to one
+        // to an effective 15 fps, where consecutive frames really did double
+        // image. The current encode keeps every source frame, so there is no
+        // ghosting left to hide, and what the term was actually doing was
+        // blurring the plate through every scroll: it reached full strength at
+        // 18 frames/sec, roughly 510 px/s, and in the high risk acts that meant
+        // a fourteen pixel blur for the entire length of the section.
+        //
+        // It survives only as motion blur on a genuine flick, where the film is
+        // moving fast enough that softness reads as speed. The act still
+        // modulates it, but as a nudge rather than as a doubling.
+        const m = Math.abs(motionNorm(c.velocity))
+        renderState.soften = m * (0.6 + 0.2 * c.act.ghostRisk)
+      }
+      if (import.meta.env.DEV) {
+        if (velLog.length < 4000) velLog.push(Math.abs(c.velocity))
+        if (Number.isFinite(forcedVel)) {
+          renderState.velocity = forcedVel
+          renderState.soften = Math.abs(motionNorm(forcedVel)) * (0.6 + 0.2 * c.act.ghostRisk)
+        }
       }
       renderState.time += deltaMs / 1000
       renderer.render(renderState)

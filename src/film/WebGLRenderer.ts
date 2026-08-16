@@ -9,6 +9,7 @@ import fragSrc from './film.frag.glsl?raw'
 import { FILM, type TierSpec } from './manifest'
 import type { FrameSource } from './FrameLoader'
 import { scrubDiag, type FilmRenderState } from './Canvas2DRenderer'
+import { motionNorm } from './velocity'
 
 const UPLOAD_BUDGET_MS = 6
 
@@ -165,13 +166,16 @@ export class WebGLFilmRenderer {
       blend = 0
     }
 
+    // the uniform, not the raw velocity: inside the dead zone a large change in
+    // hand speed changes nothing on screen, so it must not force a redraw
+    const motion = motionNorm(s.velocity)
     const ls = this.lastState
     const changed =
       s.index !== ls.index ||
       Math.abs(blend - ls.blend) >= 1 / 512 ||
       Math.abs(s.wash - ls.wash) >= 1e-3 ||
       Math.abs(s.soften - ls.soften) >= 1e-3 ||
-      Math.abs(s.velocity - ls.velocity) >= 0.15 ||
+      Math.abs(motion - ls.velocity) >= 4e-3 ||
       Math.abs(s.glow - ls.glow) >= 1e-3 ||
       Math.abs(s.cut - ls.cut) >= 1e-3 ||
       Math.abs(s.focalX - ls.focalX) >= 1e-4
@@ -183,7 +187,10 @@ export class WebGLFilmRenderer {
     gl.activeTexture(gl.TEXTURE1)
     gl.bindTexture(gl.TEXTURE_2D, this.ringTex[slotB]!)
     gl.uniform1f(this.u('uBlend'), blend)
-    gl.uniform1f(this.u('uVelocity'), Math.max(-1, Math.min(1, s.velocity / 30)))
+    // dead zoned and eased, NOT velocity/30: that saturated at 855 px/s, so
+    // every velocity driven effect ran at full strength during ordinary
+    // scrolling and the plate never looked sharp while the page moved.
+    gl.uniform1f(this.u('uVelocity'), motion)
     gl.uniform1f(this.u('uWash'), s.wash)
     gl.uniform1f(this.u('uSoften'), s.soften)
     gl.uniform1f(this.u('uTime'), s.time)
@@ -199,7 +206,7 @@ export class WebGLFilmRenderer {
     ls.blend = blend
     ls.wash = s.wash
     ls.soften = s.soften
-    ls.velocity = s.velocity
+    ls.velocity = motion
     ls.glow = s.glow
     ls.cut = s.cut
     ls.focalX = s.focalX

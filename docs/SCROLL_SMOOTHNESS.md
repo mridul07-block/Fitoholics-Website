@@ -136,3 +136,131 @@ was running. This is why only paired, same session comparisons are quoted.
 - ~1 draw per painted frame, 0 draws at rest
 - CLS 0, axe 0 violations
 - bundle 120.74 KB gz
+
+---
+
+# Addendum: the plate went soft whenever the page moved
+
+The work above made the scroll itself even. It did not make the film look
+sharp, and those are different complaints. What was reported next was that the
+picture turned blurry during scrolling, which is worth separating from frame
+rate: the film was being blurred deliberately, by the renderer, on purpose, at
+full strength, all the time.
+
+## The velocity uniform saturated at walking pace
+
+Four effects in the fragment shader scale off scroll speed: the depth parallax,
+the chromatic dispersion, the barrel warp and the depth of field. All four
+received the same input:
+
+```ts
+gl.uniform1f(this.u('uVelocity'), Math.max(-1, Math.min(1, s.velocity / 30)))
+```
+
+`s.velocity` is measured in frames of footage per second. The page runs about
+28 px of scroll per frame at every breakpoint, so that divisor of 30 puts full
+strength at **855 px/s**. Measured against real hand speeds:
+
+| scroll speed | film velocity | old uniform |
+|---|---|---|
+| 200 px/s, reading | 7 f/s | 0.23 |
+| 400 px/s | 14 f/s | 0.47 |
+| 800 px/s, steady scroll | 28 f/s | 0.93 |
+| 1500 px/s, moving with purpose | 53 f/s | **1.00** |
+| 4000 px/s, a real flick | 140 f/s | **1.00** |
+
+Everything from an ordinary continuous scroll upward was pinned at maximum.
+The effects were written as flourishes for fast motion and were in practice a
+permanent treatment applied to the whole film.
+
+## What full strength was doing
+
+**The parallax was tearing the plate, not shifting it.** The displacement was
+keyed off per pixel luminance:
+
+```glsl
+float depth = smoothstep(0.0, 1.0, luma(base)) * (1.0 - length(vUv - 0.5));
+vec2 pOff = vec2(uVelocity * 0.018 * (1.0 - depth), 0.0);
+```
+
+Luminance is a high frequency field. Neighbouring pixels of different
+brightness were pushed by different amounts, up to 0.018 uv apart, which is
+**35 px at 1920**. The frame did not lean, it sheared, and the shearing is what
+read as the image going out of focus.
+
+**The depth of field was mitigating a problem that no longer exists.** The
+`soften` term was written as ghosting mitigation for a sequence decimated two
+to one to an effective 15 fps, where consecutive frames genuinely double
+imaged. The current encode keeps every source frame (`no decimation`, per the
+encoder report). What survived was a blur that reached full strength at 18
+frames/sec, about 510 px/s, and in the `ghostRisk: 2` act produced a **14 px
+six tap Poisson blur** for the entire length of the section.
+
+**And some of it never switched off at all.** The gate was
+
+```glsl
+float blurAmt = (0.0015 + uSoften * 0.0055) * (0.35 + upper);
+if (blurAmt > 0.0016) { ... }
+```
+
+With the page standing still and `uSoften` at zero, the constant term alone
+reaches 0.002 wherever `upper` is high, clearing the gate on its own. The top
+third of the plate carried a permanent four pixel blur at rest.
+
+## Evidence
+
+Screenshots at a pinned frame index, so the only variable is the velocity
+uniform. `?vel=<frames per second>` is a DEV flag that holds the uniform while
+the page stands still, which is the only way to photograph a scroll artifact.
+
+- frame 172, `ghostRisk: 2`, at rest: window mullions, beard and dumbbell all
+  legible
+- same frame at `vel=60`, an ordinary 1700 px/s scroll: faces lose all
+  modelling, background is mush
+- frame 270, `ghostRisk: 0`, so no depth of field at all, at `vel=60`: still
+  smeared with visible doubling and colour fringing, which is what isolated the
+  parallax as a separate cause rather than a contributor to the blur
+
+## The fix
+
+`src/film/velocity.ts` replaces the divisor with a dead zone and a realistic
+full scale, smoothstepped between:
+
+```
+DEAD = 26 f/s   (about 740 px/s)  -> exactly zero below this
+FULL = 150 f/s  (about 4300 px/s) -> full strength only at a genuine flick
+```
+
+At reading speed the effects are not weak, they are **off**. At 1500 px/s the
+strength is 0.03. Full strength now requires a real flick, where softness reads
+as speed rather than as a lens fault.
+
+Alongside that:
+
+- the parallax field is radial and smooth instead of luminance keyed, and the
+  coefficient drops from 0.018 to 0.006, so the frame leans as one piece and
+  cannot shear detail apart
+- the depth of field is entirely motion gated, `uSoften * 0.0026 * (0.45 + upper)`,
+  so it is zero at rest and the six taps are not sampled at all
+- `soften` no longer doubles with `ghostRisk`; the act modulates it as a nudge
+  (0.6 / 0.8 / 1.0) rather than a multiplier
+- one texture sample pair is removed outright, since `base` existed only to
+  feed the luminance depth proxy
+- the WebGL redraw gate compares the normalised uniform, not raw velocity, so a
+  change in hand speed that cannot alter a pixel no longer forces a draw
+
+## Verified
+
+- frame 172 at `vel=60` is now indistinguishable from the same frame at rest
+- frame 172 at `vel=150`, a genuine flick, softens gently and stays readable
+- frame 270 at `vel=60` matches its at rest capture; the fringing is gone
+- the mobile `LOW_QUALITY` program, which has no depth of field, is sharp at
+  flick speed
+- build green, bundle 122.61 KB gz against the 210 KB gate
+
+Frame rate was not the cause and no frame rate claim is made here: paired
+software raster traces were too noisy between runs to quote a delta honestly.
+The shader does strictly less work than before — two fewer texture fetches on
+every pixel always, and the six tap loop skipped entirely at reading speed
+instead of running across the top third permanently and full screen through
+three of the six acts.

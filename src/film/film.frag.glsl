@@ -120,11 +120,16 @@ void main() {
   uv = barrel(uv, k);
 #endif
 
-  vec3 base = sampleFilm(uv);
-
-  // EFFECT 2 · depth parallax from a luminance proxy
-  float depth = smoothstep(0.0, 1.0, luma(base)) * (1.0 - length(vUv - 0.5));
-  vec2 pOff = vec2(uVelocity * 0.018 * (1.0 - depth), 0.0);
+  // EFFECT 2 · depth parallax.
+  //
+  // This used to key the displacement off per pixel luminance, which is a
+  // high frequency field: neighbouring pixels of different brightness were
+  // pushed by different amounts, up to 35 px apart, so the plate did not shift,
+  // it tore. That was the smear that read as the picture going soft the moment
+  // the page moved. The field is radial and smooth now, so the frame leans as
+  // one piece the way a real parallax does, and it cannot shear detail apart.
+  float depth = 1.0 - min(length(vUv - 0.5) * 1.15, 1.0);
+  vec2 pOff = vec2(uVelocity * 0.006 * (1.0 - depth), 0.0);
 
 #ifndef LOW_QUALITY
   // EFFECT 3 · velocity chromatic dispersion, widened briefly on a cut
@@ -136,9 +141,16 @@ void main() {
 
   // EFFECT 4 · depth of field, 6 tap Poisson, strongest in the upper third.
   // Taps read uFrame only; uFrameNext contributes at the centre tap via col.
+  //
+  // Entirely motion gated now. The constant 0.0015 term used to clear the gate
+  // on its own wherever `upper` was high, so the top third of the plate carried
+  // a permanent four pixel blur even with the page standing still, and uSoften
+  // then took it past fourteen pixels during any ordinary scroll. uSoften is
+  // zero inside the dead zone, so at reading speed there is no blur at all and
+  // the six taps are not even sampled.
   float upper = smoothstep(0.55, 1.0, 1.0 - vUv.y);
-  float blurAmt = (0.0015 + uSoften * 0.0055) * (0.35 + upper);
-  if (blurAmt > 0.0016) {
+  float blurAmt = uSoften * 0.0026 * (0.45 + upper);
+  if (blurAmt > 0.0004) {
     vec2 P[6];
     P[0] = vec2(0.94, 0.26); P[1] = vec2(-0.55, 0.81); P[2] = vec2(-0.72, -0.62);
     P[3] = vec2(0.34, -0.91); P[4] = vec2(0.11, 0.99); P[5] = vec2(-0.98, -0.12);
