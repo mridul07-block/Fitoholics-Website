@@ -132,6 +132,7 @@ export function FilmLayer() {
       atmBottom: atmos.state.bottom,
       glow: 0,
       grade: 0.34,
+      focalX: atmos.state.focalX,
       cut: 0,
     }
     const pinScratch: number[] = []
@@ -145,6 +146,7 @@ export function FilmLayer() {
       atmos.step(c.index, deltaMs)
       renderState.glow = atmos.state.glow
       renderState.grade = atmos.state.grade
+      renderState.focalX = atmos.state.focalX
       if (reduced) {
         // film locks to one keyframe per act, swapped at boundaries (§9 law 7)
         renderState.index = c.act.heroFrame

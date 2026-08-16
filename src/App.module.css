@@ -117,15 +117,37 @@
 .s7 { min-height: 118svh; }
 .s8 { min-height: 122svh; }
 
-/* §10: the 375 tier scales every section by the same factor, so the progress
-   ratios — and therefore the cut anchoring — are unchanged. */
-@media (max-width: 480px) {
-  .s1 { min-height: 88svh; }
-  .s2 { min-height: 88svh; }
-  .s3 { min-height: 141svh; }
-  .s4 { min-height: 227svh; }
-  .s5 { min-height: 80svh; }
-  .s6 { min-height: 144svh; }
-  .s7 { min-height: 94svh; }
-  .s8 { min-height: 98svh; }
+/* §10. Smaller screens are sized for reading, not by scaling the desktop
+   proportions down.
+   This is only safe because cut anchoring no longer depends on these numbers:
+   filmMap.ts pins film progress to the measured top of each section, so each
+   section still covers exactly its designated stretch of the film whatever
+   height it ends up. The film simply moves through an act faster or slower to
+   match where the copy actually is.
+   The rule that matters here is that no section may be shorter than the
+   viewport. A section shorter than a screen gives its content less than one
+   screen of dwell, and the copy flies past before it can be read — which is
+   what was happening to the proof section on a phone at 85svh.
+   Previously only <=480px was covered at all, leaving every 481-900px device
+   on the full desktop geometry. */
+@media (max-width: 900px) {
+  .s1 { min-height: 100svh; }
+  .s2 { min-height: 115svh; }
+  .s3 { min-height: 110svh; }
+  .s4 { min-height: 250svh; }
+  .s5 { min-height: 125svh; }
+  .s6 { min-height: 120svh; }
+  .s7 { min-height: 110svh; }
+  .s8 { min-height: 115svh; }
+}
+
+@media (max-width: 720px) {
+  .s1 { min-height: 100svh; }
+  .s2 { min-height: 125svh; }
+  .s3 { min-height: 110svh; }
+  .s4 { min-height: 240svh; }
+  .s5 { min-height: 135svh; }
+  .s6 { min-height: 125svh; }
+  .s7 { min-height: 110svh; }
+  .s8 { min-height: 120svh; }
 }

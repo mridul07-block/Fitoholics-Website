@@ -19,6 +19,8 @@ export interface AtmosphereState {
   grade: number
   /** 0..1 impulse, 1 at the instant of a cut, decaying to 0 */
   cut: number
+  /** horizontal crop centre, eased between acts so the frame never jumps */
+  focalX: number
   actIndex: number
 }
 
@@ -34,6 +36,7 @@ export class Atmosphere {
     glow: ACTS[0]!.glow,
     grade: 0.34,
     cut: 0,
+    focalX: ACTS[0]!.focalX,
     actIndex: 0,
   }
 
@@ -61,6 +64,7 @@ export class Atmosphere {
       s.bottom[i] = s.bottom[i]! + (act.atmBottom[i]! - s.bottom[i]!) * k
     }
     s.glow += (act.glow - s.glow) * k
+    s.focalX += (act.focalX - s.focalX) * k
     // the plate is pulled further into the ramp as the story warms
     const gradeTarget = 0.34 + act.glow * 0.22
     s.grade += (gradeTarget - s.grade) * k

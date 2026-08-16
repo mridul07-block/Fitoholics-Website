@@ -28,6 +28,14 @@ export interface Act {
   readonly atmBottom: readonly [number, number, number]
   /** how much ember bloom the act carries, 0..1 */
   readonly glow: number
+  /**
+   * Where the crop centres horizontally, 0..1 in texture space.
+   *
+   * A phone shows less than half of a 16:9 frame's width, so a centred crop
+   * throws away whichever side the subject is on. This is the point the narrow
+   * crop keeps, measured from the composition of each shot.
+   */
+  readonly focalX: number
 }
 
 /** hex string for the DOM side of the atmosphere */
@@ -52,6 +60,7 @@ export const ACTS: readonly Act[] = [
     atmTop: [0.043, 0.031, 0.055],
     atmBottom: [0.114, 0.063, 0.055],
     glow: 0.1,
+    focalX: 0.47,
   },
   {
     id: 'arrival',
@@ -64,6 +73,7 @@ export const ACTS: readonly Act[] = [
     atmTop: [0.039, 0.027, 0.055],
     atmBottom: [0.102, 0.071, 0.055],
     glow: 0.14,
+    focalX: 0.56,
   },
   {
     id: 'assessment',
@@ -76,6 +86,7 @@ export const ACTS: readonly Act[] = [
     atmTop: [0.047, 0.031, 0.024],
     atmBottom: [0.141, 0.078, 0.039],
     glow: 0.3,
+    focalX: 0.62,
   },
   {
     id: 'work',
@@ -88,6 +99,7 @@ export const ACTS: readonly Act[] = [
     atmTop: [0.039, 0.024, 0.02],
     atmBottom: [0.165, 0.071, 0.024],
     glow: 0.36,
+    focalX: 0.42,
   },
   {
     id: 'standard',
@@ -100,6 +112,7 @@ export const ACTS: readonly Act[] = [
     atmTop: [0.043, 0.024, 0.02],
     atmBottom: [0.188, 0.086, 0.024],
     glow: 0.44,
+    focalX: 0.52,
   },
   {
     id: 'proof',
@@ -112,6 +125,7 @@ export const ACTS: readonly Act[] = [
     atmTop: [0.063, 0.039, 0.024],
     atmBottom: [0.22, 0.125, 0.047],
     glow: 0.56,
+    focalX: 0.53,
   },
 ] as const
 

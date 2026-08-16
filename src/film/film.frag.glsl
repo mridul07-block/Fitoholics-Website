@@ -23,6 +23,9 @@ uniform float uGlow;
 uniform float uGrade;
 // 0..1 impulse fired on a hard cut, drives the flare sweep
 uniform float uCut;
+// where the crop centres horizontally in texture space; matters on narrow
+// viewports, where only part of the frame's width is visible
+uniform float uFocal;
 
 in vec2 vUv;
 out vec4 outColor;
@@ -39,12 +42,43 @@ float hash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
-// cover fit, preserves composition at any viewport aspect
-vec2 coverUv(vec2 uv) {
+/**
+ * Framing.
+ *
+ * `s` is the FRACTION of the texture visible on each axis, so screen uv maps to
+ * texture uv by centre + (uv - 0.5) * s. The previous version divided by s
+ * instead of multiplying, which is only correct when the viewport is exactly
+ * the texture's aspect: at 16:10 it sampled 6% outside the texture on each
+ * side, and on a phone it sampled u from -1.42 to 2.42, so most of the screen
+ * was clamped edge pixels smeared sideways.
+ *
+ * On a portrait viewport a true cover fit shows about a quarter of a 16:9
+ * frame's width, which destroys every composition in the film. Below
+ * MIN_WIDTH_FRAC the frame is zoomed out instead and the uncovered strips
+ * become the act's ground, reading as a widescreen frame in a dark room.
+ * uFocal picks which part of the width that narrow crop keeps.
+ */
+const float MIN_WIDTH_FRAC = 0.46;
+
+vec2 frameUv(vec2 uv, out float outside) {
   float ra = uResolution.x / uResolution.y;
   float ta = uTexSize.x / uTexSize.y;
-  vec2 s = ra > ta ? vec2(1.0, ta / ra) : vec2(ra / ta, 1.0);
-  return (uv - 0.5) / s + 0.5;
+  vec2 s;
+  if (ra > ta) {
+    s = vec2(1.0, ta / ra);            // wide viewport: full width, crop height
+  } else {
+    float base = ra / ta;              // what a pure cover fit would show
+    float target = max(base, MIN_WIDTH_FRAC);
+    s = vec2(target, target / base);   // zoom out; height fraction grows past 1
+  }
+  float cx = clamp(uFocal, s.x * 0.5, 1.0 - s.x * 0.5);
+  vec2 t = vec2(cx, 0.5) + (uv - 0.5) * s;
+  vec2 d = max(-t, t - 1.0);
+  // the horizontal edge is a hard crop, the vertical one is the letterbox and
+  // gets a soft fade so the frame dissolves into the ground rather than
+  // ending on a ruled line
+  outside = max(smoothstep(0.0, 0.004, d.x), smoothstep(0.0, 0.055, d.y));
+  return t;
 }
 
 #ifndef LOW_QUALITY
@@ -78,7 +112,8 @@ vec3 ramp(float t) {
 }
 
 void main() {
-  vec2 uv = coverUv(vUv);
+  float outside;
+  vec2 uv = frameUv(vUv, outside);
 
 #ifndef LOW_QUALITY
   float k = 0.012 + abs(uVelocity) * 0.018;
@@ -150,6 +185,10 @@ void main() {
   vec3 floorCol = mix(ground, RUST * 0.35, 0.28);
   col = mix(floorCol, col, mix(0.44, 1.0, vig));
   col = mix(floorCol, col, uWash);
+
+  // beyond the frame on a zoomed out portrait viewport: the act's own ground,
+  // so the letterbox belongs to the page rather than reading as a black bar
+  col = mix(col, floorCol, outside);
 
   outColor = vec4(col, 1.0);
 }

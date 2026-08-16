@@ -4,6 +4,7 @@ import { COPY } from './content/copy'
 import { initChoreography } from './motion/choreography'
 import { initA11yNav } from './motion/a11y'
 import { initSpine } from './film/useMasterProgress'
+import { SECTIONS, TOTAL_VH } from './film/beats'
 import { FilmLayer } from './film/FilmLayer'
 import { Timeline } from './components/Timeline'
 import { Entrance, Problem, Positioning, Protocol, TableStation, Fit, Proof, Close } from './components/stations'
@@ -40,6 +41,34 @@ const stationIds: readonly (string | undefined)[] = [
   'booking',
 ]
 
+/**
+ * Pacing check, DEV only.
+ *
+ * `min-height` is a floor, not a size: a section whose content is taller
+ * stretches, and the page stops being paced the way it was designed. Cut
+ * anchoring survives this now — filmMap.ts pins progress to measured section
+ * tops rather than to the raw scroll fraction — so this is a report about
+ * rhythm, not a correctness failure. A section far over its share is one where
+ * the copy is too long for the room it was given at that breakpoint.
+ */
+function assertSectionGeometry(): void {
+  const els = Array.from(document.querySelectorAll<HTMLElement>('[data-station]'))
+  if (els.length !== SECTIONS.length) return
+  const total = els.reduce((t, el) => t + el.offsetHeight, 0)
+  els.forEach((el, i) => {
+    const actual = el.offsetHeight / total
+    const spec = SECTIONS[i]!.h / TOTAL_VH
+    const drift = Math.abs(actual - spec) / spec
+    if (drift > 0.25) {
+      console.warn(
+        `[pacing] section ${i + 1} (${SECTIONS[i]!.id}) takes ${(actual * 100).toFixed(1)}% of the page, ` +
+          `designed for ${(spec * 100).toFixed(1)}%. Cut anchoring is unaffected (see filmMap.ts); ` +
+          `this is copy outgrowing the room it was given at this breakpoint.`,
+      )
+    }
+  })
+}
+
 export function App() {
   useEffect(() => {
     // Idempotent singleton — StrictMode double-invocation cannot create a
@@ -49,7 +78,10 @@ export function App() {
     ScrollTrigger.refresh()
     initA11yNav()
     // choreography splits lines, so it waits for the fonts (no reflow splits)
-    void document.fonts.ready.then(() => initChoreography())
+    void document.fonts.ready.then(() => {
+      initChoreography()
+      if (import.meta.env.DEV) assertSectionGeometry()
+    })
   }, [])
 
   return (

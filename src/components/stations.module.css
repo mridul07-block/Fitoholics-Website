@@ -271,6 +271,72 @@
   gap: var(--s-3);
 }
 
+/* The outlined call to action resolves on hover, so on a device with no hover
+   it never resolves at all — it just reads as a dark box over the footage.
+   Touch devices get the filled version, at any width. */
+@media (hover: none), (max-width: 720px) {
+  .ctaPrimary {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: var(--s-5) var(--s-6);
+    background: var(--ramp);
+    border-color: transparent;
+    color: var(--void);
+    font-weight: 600;
+  }
+  .ctaPrimary::before {
+    display: none;
+  }
+}
+
+/* ---------- phone: the hero is the whole first impression ---------- */
+@media (max-width: 720px) {
+  .inner {
+    padding-block: var(--s-8);
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-5);
+    width: min(100%, 22rem);
+    margin-inline: auto;
+  }
+
+  .lead {
+    margin-bottom: var(--s-6);
+  }
+
+  /* short screens: the cue was landing on top of the secondary link */
+  .scrollCue {
+    bottom: var(--s-3);
+    gap: var(--s-2);
+  }
+  .scrollCueRule {
+    height: 28px;
+  }
+
+  .closeCta {
+    display: block;
+    width: min(100%, 22rem);
+    margin-inline: auto;
+    text-align: center;
+    padding: var(--s-5) var(--s-4);
+    white-space: nowrap;
+  }
+
+  /* the marker column was sitting outside the page margin once the panel
+     scaled up through its Z travel */
+  .aspiration {
+    grid-template-columns: 16px 1fr;
+    column-gap: var(--s-3);
+  }
+  .aspirations {
+    gap: var(--s-5) var(--s-5);
+  }
+}
+
 .scrollCueRule {
   position: relative;
   width: 1px;
@@ -420,20 +486,26 @@
   font-size: var(--t-small);
 }
 
+/* Three short facts. Stacking them one per row on a phone turned a compact
+   band into a third of a screen, so they stay side by side and shrink. */
 @media (max-width: 720px) {
   .stats {
-    grid-template-columns: 1fr;
-    gap: var(--s-5);
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-4);
+    margin-bottom: var(--s-6);
   }
   .stat {
-    padding-right: 0;
-    padding-bottom: var(--s-5);
+    padding-right: var(--s-4);
   }
-  .stat:not(:last-child)::after {
-    top: auto;
-    bottom: 0;
-    height: 1px;
-    width: 48px;
+  .statValue {
+    font-size: var(--t-h3);
+  }
+  .statValue[data-placeholder] {
+    font-size: var(--t-small);
+  }
+  .statLabel {
+    font-size: 10px;
+    letter-spacing: .1em;
   }
 }
 
@@ -604,6 +676,46 @@
   transform-origin: top;
 }
 
+/* The pinned stage is exactly 100svh with overflow hidden, so on a phone a
+   full size header pushed the step copy past the bottom edge and it was
+   clipped away entirely. Everything in the pin steps down to fit. */
+@media (max-width: 720px) {
+  .protoSticky {
+    row-gap: var(--s-5);
+    padding-block: var(--s-7);
+  }
+  .protoTitle {
+    font-size: var(--t-h3);
+    margin-bottom: var(--s-2);
+  }
+  .protocolLead {
+    font-size: var(--t-small);
+    line-height: 1.5;
+  }
+  .protoBody {
+    min-height: 0;
+  }
+  .protoStage {
+    min-height: 13rem;
+  }
+  .protoNumeral {
+    font-size: 7rem;
+  }
+  .stepTitle {
+    font-size: var(--t-h3);
+  }
+  .protoLayer .stepTitle {
+    min-height: calc(var(--lh-h2) * 2em);
+  }
+  .stepBody {
+    font-size: var(--t-small);
+    line-height: 1.55;
+  }
+  .protoRail {
+    height: 3px;
+  }
+}
+
 @media (max-width: 900px) {
   .protoHead {
     grid-column: 1 / 13;
@@ -769,6 +881,37 @@
   .cards {
     grid-template-columns: 1fr;
     max-width: 560px;
+  }
+}
+
+/* On a phone three stacked cards are taller than the section, and a section
+   whose content outgrows its min-height stretches — which silently moves every
+   later section and breaks the film's cut anchoring. A snap carousel puts them
+   in one card's height and is the better mobile reading pattern anyway. */
+@media (max-width: 720px) {
+  .cards {
+    display: flex;
+    max-width: none;
+    gap: var(--s-4);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* bleed to the page edges so the next card peeks */
+    margin-inline: calc(var(--page-margin) * -1);
+    padding-inline: var(--page-margin);
+    padding-bottom: var(--s-3);
+  }
+  .cards::-webkit-scrollbar {
+    display: none;
+  }
+  .card {
+    flex: 0 0 84%;
+    scroll-snap-align: center;
+    padding: var(--s-5);
+  }
+  .cardQuote {
+    font-size: var(--t-body);
   }
 }
 

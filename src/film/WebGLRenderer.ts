@@ -29,7 +29,7 @@ export class WebGLFilmRenderer {
   private frameToSlot: Int32Array
   private ringCursor = 0
   private uniforms: Record<string, WebGLUniformLocation | null> = {}
-  private lastState = { index: -1, blend: -1, wash: -1, soften: -1, velocity: 0, glow: -1, cut: -1 }
+  private lastState = { index: -1, blend: -1, wash: -1, soften: -1, velocity: 0, glow: -1, cut: -1, focalX: -1 }
   private drawCount = 0
   private lastDrawnIndex = -1
   private contextLost = false
@@ -95,7 +95,7 @@ export class WebGLFilmRenderer {
     for (const name of [
       'uFrame', 'uFrameNext', 'uBlend', 'uVelocity', 'uWash', 'uSoften',
       'uResolution', 'uTexSize', 'uTime',
-      'uAtmTop', 'uAtmBottom', 'uGlow', 'uGrade', 'uCut',
+      'uAtmTop', 'uAtmBottom', 'uGlow', 'uGrade', 'uCut', 'uFocal',
     ]) {
       this.uniforms[name] = gl.getUniformLocation(this.program, name)
     }
@@ -173,7 +173,8 @@ export class WebGLFilmRenderer {
       Math.abs(s.soften - ls.soften) >= 1e-3 ||
       Math.abs(s.velocity - ls.velocity) >= 0.15 ||
       Math.abs(s.glow - ls.glow) >= 1e-3 ||
-      Math.abs(s.cut - ls.cut) >= 1e-3
+      Math.abs(s.cut - ls.cut) >= 1e-3 ||
+      Math.abs(s.focalX - ls.focalX) >= 1e-4
     if (!changed) return false
 
     gl.useProgram(this.program)
@@ -191,6 +192,7 @@ export class WebGLFilmRenderer {
     gl.uniform1f(this.u('uGlow'), s.glow)
     gl.uniform1f(this.u('uGrade'), s.grade)
     gl.uniform1f(this.u('uCut'), s.cut)
+    gl.uniform1f(this.u('uFocal'), s.focalX)
     gl.drawArrays(gl.TRIANGLES, 0, 3)
 
     ls.index = s.index
@@ -200,6 +202,7 @@ export class WebGLFilmRenderer {
     ls.velocity = s.velocity
     ls.glow = s.glow
     ls.cut = s.cut
+    ls.focalX = s.focalX
     this.lastDrawnIndex = s.index
     this.drawCount++
     return true

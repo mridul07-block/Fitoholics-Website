@@ -15,6 +15,8 @@ import type { FrameSource } from './FrameLoader'
 
 const DPR_CAP = 1.5
 const GRAIN_SIZE = 128
+/** must match MIN_WIDTH_FRAC in film.frag.glsl */
+const MIN_WIDTH_FRAC = 0.46
 
 /** one 128px noise tile as a data URI, built once at module scope */
 let grainUri: string | null = null
@@ -52,6 +54,8 @@ export interface FilmRenderState {
   glow: number
   /** how far the plate is pulled toward the ramp, 0..1 */
   grade: number
+  /** where the crop centres horizontally, 0..1 in texture space */
+  focalX: number
   /** 0..1 impulse fired on a hard cut in the footage */
   cut: number
 }
@@ -152,11 +156,34 @@ export class Canvas2DRenderer {
     const { width: cw, height: ch } = this.canvas
     const ctx = this.ctx
 
-    this.drawCover(a, cw, ch)
+    // ground first: on a portrait viewport the frame is zoomed out and does
+    // not reach the top and bottom edges
+    ctx.fillStyle = css(s.atmBottom)
+    ctx.fillRect(0, 0, cw, ch)
+
+    const band = this.drawFrame(a, cw, ch, s.focalX)
     if (b) {
       ctx.globalAlpha = s.blend
-      this.drawCover(b, cw, ch)
+      this.drawFrame(b, cw, ch, s.focalX)
       ctx.globalAlpha = 1
+    }
+
+    // soften the letterbox edges so the frame dissolves into the ground
+    // instead of ending on a ruled line (matches the shader's vertical fade)
+    if (band.h < ch - 1) {
+      const fade = Math.min(48, band.h * 0.12)
+      const ground = css(s.atmBottom)
+      const clear = css(s.atmBottom, 0)
+      const top = ctx.createLinearGradient(0, band.y, 0, band.y + fade)
+      top.addColorStop(0, ground)
+      top.addColorStop(1, clear)
+      ctx.fillStyle = top
+      ctx.fillRect(0, band.y, cw, fade)
+      const bot = ctx.createLinearGradient(0, band.y + band.h, 0, band.y + band.h - fade)
+      bot.addColorStop(0, ground)
+      bot.addColorStop(1, clear)
+      ctx.fillStyle = bot
+      ctx.fillRect(0, band.y + band.h - fade, cw, fade)
     }
 
     // Vignette and grain are NOT drawn here. Both are constant per frame, and
@@ -230,11 +257,30 @@ export class Canvas2DRenderer {
     this.overlay?.remove()
   }
 
-  private drawCover(bmp: ImageBitmap, cw: number, ch: number): void {
-    const scale = Math.max(cw / bmp.width, ch / bmp.height)
-    const w = bmp.width * scale
-    const h = bmp.height * scale
-    this.ctx.drawImage(bmp, (cw - w) / 2, (ch - h) / 2, w, h)
+  /**
+   * Mirrors frameUv() in the fragment shader, so both renderers frame the film
+   * identically: cover on a wide viewport, and on a portrait one a zoom out to
+   * MIN_WIDTH_FRAC of the frame's width centred on the act's focal point, with
+   * the uncovered strips left to the ground fill.
+   */
+  private drawFrame(bmp: ImageBitmap, cw: number, ch: number, focalX: number): { y: number; h: number } {
+    const ra = cw / ch
+    const ta = bmp.width / bmp.height
+    let widthFrac: number
+    if (ra > ta) {
+      widthFrac = 1
+    } else {
+      widthFrac = Math.max(ra / ta, MIN_WIDTH_FRAC)
+    }
+    const half = widthFrac / 2
+    const cx = Math.min(Math.max(focalX, half), 1 - half) * bmp.width
+    const sw = bmp.width * widthFrac
+    const scale = cw / sw
+    const dw = bmp.width * scale
+    const dh = bmp.height * scale
+    const dy = (ch - dh) / 2
+    this.ctx.drawImage(bmp, -(cx - sw / 2) * scale, dy, dw, dh)
+    return { y: dy, h: dh }
   }
 
 

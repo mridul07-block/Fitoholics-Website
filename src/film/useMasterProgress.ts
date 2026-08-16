@@ -14,6 +14,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { FILM } from './manifest'
 import { ACTS, actAtFrame, type Act } from './beats'
+import { filmProgressAt, rebuildFilmMap } from './filmMap'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -173,10 +174,15 @@ export function initSpine(): Spine {
     scrub: true,
     refreshPriority: -1,
     invalidateOnRefresh: true,
+    onRefresh: rebuildFilmMap,
     onUpdate: (self) => {
-      clock.state.raw = self.progress
+      // NOT self.progress: that is the raw scroll fraction, which only anchors
+      // the film's cuts to the copy while every section is exactly its
+      // specified fraction of the page. See filmMap.ts.
+      clock.state.raw = filmProgressAt(self.scroll())
     },
   })
+  rebuildFilmMap()
 
   const tick = (time: number, deltaMs: number) => {
     lenis.raf(time * 1000)
