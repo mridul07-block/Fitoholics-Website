@@ -45,10 +45,10 @@ export const COPY = {
       'For busy professionals tired of failed diets and unsustainable routines, Ikram Ansari builds lifelong habits, not temporary fixes, because he treats every client as a unique case, not a template.',
     stats: [
       { value: '10+', label: 'Years coaching', countTo: 10, suffix: '+' },
-      { value: '[CLIENT COUNT]', label: 'Transformations', countTo: null, suffix: '' },
+      { value: 'TBC', label: 'Transformations', countTo: null, suffix: '' },
       { value: '0', label: 'Fad diets, ever', countTo: 0, suffix: '' },
     ],
-    clientCount: '[CLIENT COUNT]',
+    clientCount: 'TBC',
     foot: 'Calm authority in a loud market. No shortcuts promised, none needed.',
   },
 
@@ -147,24 +147,28 @@ export const COPY = {
     index: '06',
     eyebrow: 'IN THEIR WORDS',
     h1Lines: ['Results that outlast', 'the coaching.'],
+    // Sample rows so the build is not blocked. Deliberately not written as
+    // quotes from named people: an invented endorsement on a live page is
+    // indistinguishable from a real one to a visitor, and this is a real
+    // coaching business. Overwrite all three with the client's own words.
     testimonials: [
       {
-        quote: '[TESTIMONIAL 1 QUOTE]',
-        name: '[NAME 1]',
-        profession: '[PROFESSION 1]',
-        duration: '[DURATION 1]',
+        quote: 'Sample quote one. Replace with a real client testimonial before launch.',
+        name: 'Client name',
+        profession: 'Profession',
+        duration: 'Programme length',
       },
       {
-        quote: '[TESTIMONIAL 2 QUOTE]',
-        name: '[NAME 2]',
-        profession: '[PROFESSION 2]',
-        duration: '[DURATION 2]',
+        quote: 'Sample quote two. Replace with a real client testimonial before launch.',
+        name: 'Client name',
+        profession: 'Profession',
+        duration: 'Programme length',
       },
       {
-        quote: '[TESTIMONIAL 3 QUOTE]',
-        name: '[NAME 3]',
-        profession: '[PROFESSION 3]',
-        duration: '[DURATION 3]',
+        quote: 'Sample quote three. Replace with a real client testimonial before launch.',
+        name: 'Client name',
+        profession: 'Profession',
+        duration: 'Programme length',
       },
     ],
     attributionSuffix: 'with Ikram',
@@ -182,10 +186,13 @@ export const COPY = {
   footer: {
     name: 'Ikram Ansari',
     role: 'Transformation Coach · Entrepreneur · Educator',
+    // Reserved and non routable on purpose. example.com cannot belong to
+    // anyone, and the number cannot dial, so a visitor who tries these reaches
+    // nothing rather than reaching a stranger.
     contact: {
-      email: '[EMAIL]',
-      instagram: '[INSTAGRAM]',
-      phone: '[PHONE]',
+      email: 'hello@example.com',
+      instagram: '@yourhandle',
+      phone: '+91 00000 00000',
     },
     copyright: '© 2026 Ikram Ansari. All rights reserved.',
   },
