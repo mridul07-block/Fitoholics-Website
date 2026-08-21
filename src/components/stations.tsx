@@ -9,7 +9,7 @@ import clsx from 'clsx'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from '../content/copy'
-import { prefersReducedMotion } from '../film/useMasterProgress'
+import { initSpine, prefersReducedMotion } from '../film/useMasterProgress'
 import s from './stations.module.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -106,16 +106,17 @@ export function Positioning() {
           </figure>
           <div className={s.stats}>
             {c.stats.map((stat) => (
-              <div key={stat.label} className={s.stat}>
+              <div key={stat.label} className={s.statCard} data-stat-card="" data-tilt="">
                 <div
-                  className={s.statValue}
+                  className={s.statCardValue}
                   data-placeholder={stat.countTo === null ? '' : undefined}
                   data-count-to={stat.countTo ?? undefined}
                   data-count-suffix={stat.countTo !== null ? stat.suffix : undefined}
                 >
                   {stat.value}
                 </div>
-                <div className={s.statLabel}>{stat.label}</div>
+                <div className={s.statCardLabel}>{stat.label}</div>
+                <div className={s.statCardBar} data-stat-bar="" aria-hidden="true" />
               </div>
             ))}
           </div>
@@ -142,6 +143,8 @@ export function Protocol() {
   const layerARef = useRef<HTMLDivElement>(null)
   const layerBRef = useRef<HTMLDivElement>(null)
   const railRef = useRef<HTMLDivElement>(null)
+  /** the pin trigger, so the stepper reads the same mapping the pin uses */
+  const triggerRef = useRef<ScrollTrigger | null>(null)
   const reduced = prefersReducedMotion()
 
   useEffect(() => {
@@ -221,13 +224,39 @@ export function Protocol() {
         }
       },
     })
+    triggerRef.current = st
     swap(0, true)
     current = 0
-    return () => st.kill()
+    return () => {
+      triggerRef.current = null
+      st.kill()
+    }
   }, [reduced, c.steps])
 
   // total characters, for proportional (honest) rail segment heights
   const totalLen = c.steps.reduce((sum, st) => sum + st.body.length, 0)
+
+  /**
+   * Travel to a step.
+   *
+   * The target is interpolated between the pin trigger's own `start` and `end`,
+   * not recomputed from the element. Deriving it independently is how this went
+   * wrong first time: the track sits inside a `position: relative` section, so
+   * its `offsetTop` is a few pixels rather than a document position, and
+   * clicking step 06 scrolled upward into step 01. Reading the trigger means
+   * the jump and the pin cannot disagree about where a step lives, whatever the
+   * offset parent or the section height turn out to be.
+   *
+   * Scrolled through Lenis rather than window.scrollTo: Lenis owns the scroll
+   * position, and moving it behind Lenis' back makes the two fight for a few
+   * frames, which shows as a stutter in the film.
+   */
+  const jumpToStep = (i: number) => {
+    const st = triggerRef.current
+    if (!st) return
+    const p = (i + 0.5) / c.steps.length
+    initSpine().lenis.scrollTo(st.start + p * (st.end - st.start), { duration: 1.1 })
+  }
 
   if (reduced) {
     return (
@@ -288,15 +317,18 @@ export function Protocol() {
               <p className={s.stepBody} data-step-body="" />
             </div>
           </div>
-          <div ref={railRef} className={s.protoRail} aria-hidden="true">
-            {c.steps.map((step) => (
-              <div
+          <div ref={railRef} className={s.protoRail} aria-label={c.h1}>
+            {c.steps.map((step, i) => (
+              <button
                 key={step.n}
+                type="button"
                 className={s.protoSegment}
                 style={{ flexGrow: step.body.length / totalLen }}
+                onClick={() => jumpToStep(i)}
+                aria-label={`${step.n}. ${step.title}`}
               >
-                <div className={s.protoSegmentFill} data-rail-fill="" />
-              </div>
+                <span className={s.protoSegmentFill} data-rail-fill="" />
+              </button>
             ))}
           </div>
         </div>
@@ -333,7 +365,8 @@ export function TableStation() {
           <span className={s.listLabel}>{c.mythsLabel}</span>
           <div className={s.myths}>
             {c.myths.map((myth) => (
-              <div key={myth.strike} className={s.mythPair} data-myth-pair="">
+              <div key={myth.strike} className={s.mythCard} data-myth-pair="" data-tilt="">
+                <span className={s.mythCardEdge} aria-hidden="true" data-myth-edge="" />
                 <p>
                   <span className={s.mythStrike} data-myth-strike="">
                     {myth.strike}
@@ -367,9 +400,9 @@ export function Fit() {
           </h2>
           <p className={s.body}>{c.body}</p>
           <span className={s.listLabel}>{c.aspirationsLabel}</span>
-          <ul className={s.aspirations}>
+          <ul className={s.chips}>
             {c.aspirations.map((item) => (
-              <li key={item} className={s.aspiration} data-aspiration="">
+              <li key={item} className={s.chip} data-aspiration="">
                 {item}
               </li>
             ))}
@@ -400,7 +433,7 @@ export function Proof() {
               reordered, and keying on a content field breaks the moment two
               entries share it, which the placeholder rows do by design */}
           {c.testimonials.map((t, i) => (
-            <figure key={i} className={s.card} data-card="">
+            <figure key={i} className={s.card} data-card="" data-tilt="">
               <blockquote className={s.cardQuote} data-placeholder="">
                 {t.quote}
               </blockquote>

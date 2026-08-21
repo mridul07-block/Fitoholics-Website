@@ -135,6 +135,32 @@
   --measure: 62ch;
   --grid-gutter: 1.5rem;
 
+  /* ---------- SURFACE ----------
+     The instrument language. Ikram's pitch is "measured, not guessed", so the
+     objects on this page are built like measuring devices rather than cards:
+     hairline edges, corner ticks, an index on every surface, and nothing
+     rounded. There is exactly one border-radius in this codebase and it belongs
+     to a dot — that is a position, not an oversight.
+
+     No backdrop-filter anywhere. Blurring a live backdrop over a scrubbing
+     canvas measured at about half the whole frame budget, so a slightly denser
+     flat surface does the same job for free. */
+  --surface:        rgba(var(--char-rgb), .82);
+  --surface-raised: rgba(var(--char-rgb), .92);
+  --hairline:       rgba(var(--bone-rgb), .12);
+  --hairline-warm:  rgba(var(--ember-rgb), .42);
+
+  /* corner ticks: the mark that says "instrument" rather than "card" */
+  --tick-len:  10px;
+  --tick-week: 1px;
+
+  /* hover: surfaces lift by this much and gain a ramp edge. Transform only. */
+  --lift: 3px;
+
+  /* ---------- THE MEASURE RAIL ---------- */
+  --rail-inset: clamp(10px, 1.6vw, 26px);
+  --rail-width: 26px;
+
   /* ---------- MOTION ---------- */
   --e-out: cubic-bezier(.22, 1, .36, 1);
   --e-in-out: cubic-bezier(.65, 0, .35, 1);

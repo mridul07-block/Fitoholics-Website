@@ -6,7 +6,7 @@ import { initA11yNav } from './motion/a11y'
 import { initSpine } from './film/useMasterProgress'
 import { SECTIONS, TOTAL_VH } from './film/beats'
 import { FilmLayer } from './film/FilmLayer'
-import { Timeline } from './components/Timeline'
+import { MeasureRail } from './components/MeasureRail'
 import { Entrance, Problem, Positioning, Protocol, TableStation, Fit, Proof, Close } from './components/stations'
 import s from './App.module.css'
 
@@ -118,8 +118,8 @@ export function App() {
         })}
       </main>
 
-      {/* L3 · CHROME — the signature element (§2.3). */}
-      <Timeline />
+      {/* L3 · CHROME — the signature element: position, never a film readout. */}
+      <MeasureRail />
     </>
   )
 }

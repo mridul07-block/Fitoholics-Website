@@ -11,6 +11,7 @@
  */
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { bindMagnetic, bindTilt } from './pointer'
 import { SplitText } from 'gsap/SplitText'
 import { prefersReducedMotion } from '../film/useMasterProgress'
 
@@ -113,20 +114,13 @@ export function initChoreography(): void {
   // Magnetic calls to action: the button leans toward the cursor by a few
   // pixels and springs back. Small enough to feel like weight, not a toy.
   // ---------------------------------------------------------------
-  for (const btn of qa('[data-magnetic]')) {
-    const strength = 0.22
-    const quickX = gsap.quickTo(btn, 'x', { duration: 0.4, ease: 'power3.out' })
-    const quickY = gsap.quickTo(btn, 'y', { duration: 0.4, ease: 'power3.out' })
-    btn.addEventListener('pointermove', (e) => {
-      const r = btn.getBoundingClientRect()
-      quickX((e.clientX - (r.left + r.width / 2)) * strength)
-      quickY((e.clientY - (r.top + r.height / 2)) * strength)
-    })
-    btn.addEventListener('pointerleave', () => {
-      quickX(0)
-      quickY(0)
-    })
-  }
+  for (const btn of qa('[data-magnetic]')) bindMagnetic(btn, 0.22)
+
+  // Surfaces tip toward the cursor. Bound only where there is a real pointer
+  // and only on the objects that read as physical — the testimonial cards, the
+  // stat cards and the myth cards. Chips are too small for a tilt to be
+  // anything but noise.
+  for (const el of qa('[data-tilt]')) bindTilt(el)
 
   // ---------------------------------------------------------------
   // Z travel (§7.7) — panels move through a real perspective context.
@@ -227,6 +221,29 @@ export function initChoreography(): void {
     })
   }
 
+  // station 3: the stat cards arrive as objects, then take their reading —
+  // the bar fills and the numeral counts at the same time, so the card reads
+  // like an instrument settling rather than like text appearing.
+  const statCards = qa('[data-station="3"] [data-stat-card]')
+  if (statCards.length) {
+    gsap.set(statCards, { autoAlpha: 0, y: 20 })
+    reveal(statCards[0]!, (tl) => {
+      tl.to(statCards, { autoAlpha: 1, y: 0, duration: 0.55, stagger: 0.09 })
+      statCards.forEach((card, i) => {
+        const bar = card.querySelector<HTMLElement>('[data-stat-bar]')
+        if (!bar) return
+        // a placeholder value has no reading to give, so its bar stays empty
+        const filled = card.querySelector('[data-count-to]') ? 1 : 0.12
+        tl.fromTo(
+          bar,
+          { '--fill': 0 } as gsap.TweenVars,
+          { '--fill': filled, duration: 0.9, ease: 'power2.out' } as gsap.TweenVars,
+          i * 0.09 + 0.18,
+        )
+      })
+    })
+  }
+
   // station 3: stat numerals count up (literal text for placeholders, §8 S3)
   const stats = qa('[data-station="3"] [data-count-to]')
   for (const stat of stats) {
@@ -271,18 +288,35 @@ export function initChoreography(): void {
         if (truth) {
           tl.to(truth, { autoAlpha: 1, y: 0, duration: 0.5 }, at + 0.83)
         }
+        // the ramp edge runs down the card as the truth lands, so the eye is
+        // pulled from the retired claim to the correction
+        const edge = pair.querySelector<HTMLElement>('[data-myth-edge]')
+        if (edge) {
+          tl.fromTo(
+            edge,
+            { '--edge': 0 } as gsap.TweenVars,
+            { '--edge': 1, duration: 0.6, ease: 'power2.inOut' } as gsap.TweenVars,
+            at + 0.7,
+          )
+        }
       })
     })
   }
 
-  // station 6: aspiration rules grow 0 -> 24px (§8 S6)
+  // station 6: the aspirations are chips now, so they arrive as objects rather
+  // than as rules that draw. Transform and opacity only, staggered tightly
+  // enough to read as one gesture instead of eight separate events.
   const aspirations = qa('[data-station="6"] [data-aspiration]')
   if (aspirations.length) {
-    gsap.set(aspirations, { autoAlpha: 0, '--ruleW': '0px' } as gsap.TweenVars)
+    gsap.set(aspirations, { autoAlpha: 0, y: 14, scale: 0.96 })
     reveal(aspirations[0]!, (tl) => {
-      aspirations.forEach((item, i) => {
-        tl.to(item, { '--ruleW': '24px', duration: 0.4 } as gsap.TweenVars, i * 0.07)
-          .to(item, { autoAlpha: 1, duration: 0.45 }, i * 0.07 + 0.08)
+      tl.to(aspirations, {
+        autoAlpha: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.5,
+        ease: 'back.out(1.6)',
+        stagger: 0.045,
       })
     })
   }
