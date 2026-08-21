@@ -10,9 +10,18 @@
     />
     <title>Ikram Ansari · Transformation Coach</title>
 
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
     <!-- Fonts: the only two preloads besides frame zero (§4.2). -->
     <link rel="preload" href="/fonts/bodoni-moda-var-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/archivo-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- The preloader mark. Preloaded because the preloader is, by definition,
+         the first thing painted, and discovering this image after the bundle
+         parses would show an empty gate for a beat. -->
+    <link rel="preload" as="image" fetchpriority="high" href="/brand/mark.webp" />
 
     <!-- Frame zero starts fetching during HTML parse, before any JS executes (§7.3).
          as="image", matched by an Image() in FrameLoader.primeFirstFrame: image
@@ -66,9 +75,156 @@
         background: linear-gradient(180deg, #0a0710 0%, #171016 100%);
         background-color: #08060a;
       }
+
+      /* ==========================================================
+         THE GATE — the preloader.
+
+         It lives here rather than in the bundle because a preloader that waits
+         for its own JavaScript has already failed at the one job it has. This
+         markup and these rules paint on the first frame, before main.tsx is
+         even parsed.
+
+         Colours are hardcoded rather than tokenised for the same reason:
+         tokens.css arrives with the bundle. They mirror tokens.css exactly —
+         ground #0a0710/#171016, ramp #6E2A0C/#FF5E1A/#FFA23A.
+
+         The mechanic: the runner starts unlit and fills with the ramp from the
+         feet up, in proportion to REAL load progress. The film reports actual
+         decoded bytes, so nothing here is a fake timer pretending to load.
+         ========================================================== */
+      #gate {
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, #0a0710 0%, #171016 100%);
+        /* Failsafe: if the bundle never runs, the gate still leaves. It is
+           overridden the moment JS takes control. */
+        animation: gateFailsafe 600ms linear 9s forwards;
+      }
+      #gate[data-js] {
+        animation: none;
+      }
+      @keyframes gateFailsafe {
+        to { opacity: 0; visibility: hidden; }
+      }
+
+      .gateStage {
+        display: grid;
+        justify-items: center;
+        gap: 26px;
+        transform: translateZ(0);
+      }
+
+      .gateMark {
+        position: relative;
+        width: clamp(170px, 26vw, 320px);
+        aspect-ratio: 640 / 578;
+      }
+      .gateMark img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      /* the unlit figure: present from the first frame so the gate is never a
+         blank rectangle waiting on a decode, and solid enough that the whole
+         silhouette reads while only part of it is lit */
+      .gateDim {
+        opacity: 0.2;
+      }
+      /* The lit figure, revealed from the feet up by --p (0..1).
+         A mask with a feathered stop rather than a hard clip: light rising
+         through the figure is the idea, and a straight edge travelling up a
+         runner reads as a loading bar drawn on top of a logo instead. */
+      .gateLit {
+        opacity: 0;
+        --p: 0;
+        -webkit-mask-image: linear-gradient(
+          to top,
+          #000 calc(var(--p) * 100%),
+          rgba(0, 0, 0, 0) calc(var(--p) * 100% + 11%)
+        );
+        mask-image: linear-gradient(
+          to top,
+          #000 calc(var(--p) * 100%),
+          rgba(0, 0, 0, 0) calc(var(--p) * 100% + 11%)
+        );
+      }
+
+      .gateBar {
+        position: relative;
+        width: clamp(120px, 18vw, 180px);
+        height: 1px;
+        background: rgba(247, 241, 233, 0.13);
+        overflow: hidden;
+      }
+      .gateFill {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, #6e2a0c 0%, #ff5e1a 50%, #ffa23a 100%);
+        transform: scaleX(0);
+        transform-origin: left center;
+      }
+
+      .gateTag {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.32em;
+        text-indent: 0.32em;
+        text-transform: uppercase;
+        color: #a79a90;
+        opacity: 0;
+      }
+
+      /* Corner ticks: the same instrument frame the content surfaces use, so
+         the gate is already speaking the page's language before the page
+         arrives. */
+      .gateCorner {
+        position: fixed;
+        width: 22px;
+        height: 22px;
+        border: 0 solid rgba(255, 162, 58, 0.55);
+        opacity: 0;
+      }
+      .gc1 { top: 22px; left: 22px; border-top-width: 1px; border-left-width: 1px; }
+      .gc2 { top: 22px; right: 22px; border-top-width: 1px; border-right-width: 1px; }
+      .gc3 { bottom: 22px; left: 22px; border-bottom-width: 1px; border-left-width: 1px; }
+      .gc4 { bottom: 22px; right: 22px; border-bottom-width: 1px; border-right-width: 1px; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .gateDim { opacity: 0.9; }
+        .gateCorner { opacity: 1; }
+      }
     </style>
+
+    <!-- With scripting off the gate would cover the page for ever. -->
+    <noscript>
+      <style>
+        #gate { display: none; }
+      </style>
+    </noscript>
   </head>
   <body>
+    <div id="gate" aria-hidden="true">
+      <span class="gateCorner gc1"></span>
+      <span class="gateCorner gc2"></span>
+      <span class="gateCorner gc3"></span>
+      <span class="gateCorner gc4"></span>
+      <div class="gateStage">
+        <div class="gateMark">
+          <img class="gateDim" src="/brand/mark.webp" alt="" decoding="async" fetchpriority="high" />
+          <img class="gateLit" src="/brand/mark.webp" alt="" decoding="async" />
+        </div>
+        <div class="gateBar"><span class="gateFill"></span></div>
+        <p class="gateTag">Fit for life</p>
+      </div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

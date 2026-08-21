@@ -4,6 +4,12 @@
 video frame/
 mobile_frame/
 
+# Brand masters. 1.2 MB of PNG and JPEG that only tools/brand-assets.mjs reads;
+# everything shipped is derived into public/brand and public/favicon-*.
+FITOHOLIX LOGO.jpg
+FITOHOLIX LOGO Removed Background.png
+favicon.png
+
 # build-time only tooling deps (sharp and its native binaries)
 tools/node_modules/
 

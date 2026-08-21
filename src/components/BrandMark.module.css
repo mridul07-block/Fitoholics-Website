@@ -1,0 +1,82 @@
+/* The fixed corner mark.
+
+   The page has no navigation and never had a header, so this is not a header —
+   it is a maker's mark. It sits opposite the measure rail so the two corners
+   balance, stays small enough never to compete with the film, and is the only
+   persistent brand element on the page.
+
+   It fades in after the gate has lifted and the entrance has landed, because
+   arriving with them would be a third thing moving during a two second
+   sequence that is already carrying the hero. */
+
+.mark {
+  position: fixed;
+  top: var(--rail-inset);
+  left: var(--rail-inset);
+  z-index: var(--z-chrome);
+  display: block;
+  width: 34px;
+  height: 34px;
+  opacity: 0;
+  animation: markIn 900ms var(--e-out) 2.4s forwards;
+  /* the mark is art, not a control surface: no hover box, no underline */
+  transition: transform var(--d-hover) var(--e-out);
+}
+
+.mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+@keyframes markIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: .92; transform: none; }
+}
+
+@media (hover: hover) {
+  .mark:hover {
+    transform: translateY(-2px) scale(1.06);
+  }
+}
+
+.mark:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark {
+    animation: none;
+    opacity: .92;
+    transition: none;
+  }
+  .mark:hover { transform: none; }
+}
+
+/* On a phone the corner is scarcer, and the mark competes with the copy that
+   now runs the full width. It shrinks rather than disappearing — the brand
+   should still be present on the device most people will see this on. */
+@media (max-width: 720px) {
+  .mark {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* ---------- the footer lockup ---------- */
+
+/* This is where the brand is stated properly rather than marked. Full lockup,
+   left aligned with the name it belongs to, above the contact row. */
+.lockup {
+  display: block;
+  width: clamp(180px, 22vw, 248px);
+  margin-bottom: var(--s-6);
+}
+
+.lockup img {
+  width: 100%;
+  height: auto;
+  display: block;
+}

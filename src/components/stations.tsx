@@ -10,6 +10,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from '../content/copy'
 import { initSpine, prefersReducedMotion } from '../film/useMasterProgress'
+import { BrandLockup } from './BrandMark'
 import s from './stations.module.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -467,6 +468,7 @@ export function Close() {
         </div>
         <footer className={clsx(s.footer, over)}>
           <div className={s.footerRule} aria-hidden="true" />
+          <BrandLockup />
           <div className={s.footerRow}>
             <div>
               <div className={s.footerName}>{f.name}</div>

@@ -16,6 +16,7 @@ import { Canvas2DRenderer } from './Canvas2DRenderer'
 import { WebGLFilmRenderer } from './WebGLRenderer'
 import { initSpine, prefersReducedMotion } from './useMasterProgress'
 import { motionNorm } from './velocity'
+import { publishLoad } from './loadProgress'
 import s from '../App.module.css'
 
 type AnyRenderer = Canvas2DRenderer | WebGLFilmRenderer
@@ -118,6 +119,11 @@ export function FilmLayer() {
       if (ruleRef.current) {
         ruleRef.current.style.transform = `scaleX(${p.stage === 'streaming' || p.stage === 'complete' ? 1 : p.blockingProgress})`
       }
+      // The gate reads this. It is the loader's own decoded byte count, which
+      // is why the preloader can report a real figure instead of running a
+      // timer and hoping.
+      const streaming = p.stage === 'streaming' || p.stage === 'complete'
+      publishLoad(streaming ? 1 : p.blockingProgress, streaming)
       if (import.meta.env.DEV) {
         window.__filmStats = {
           draws: renderer.draws,
