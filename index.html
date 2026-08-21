@@ -19,17 +19,46 @@
          preloads match the real request reliably, where an as="fetch" preload
          did not (Chrome rejected it on credentials mode) and a worker fetch
          cannot consume a preload at all, since preloads are document scoped.
-         media picks a single tier, mirroring the width thresholds in
-         selectTier(), so exactly one file is ever fetched. -->
-    <link rel="preload" as="image" fetchpriority="high" href="/film/854/f_000.webp" media="(max-width: 999px)" />
+         media picks a single tier, mirroring the thresholds in selectTier(), so
+         exactly one file is ever fetched.
+
+         The aspect split has to appear on every one of these: without it a
+         phone matches (max-width: 999px), preloads the landscape crop, and then
+         requests the portrait plate instead — a wasted fetch and the "preloaded
+         but not used" warning. 65/100 is PORTRAIT_MAX_ASPECT in manifest.ts;
+         the two must move together.
+
+         The constrained portrait tier (pvs, 608) depends on connection and
+         memory, which no media query can express, so it goes unpreloaded. That
+         is already true of the landscape tiers on a save-data connection. -->
+    <link
+      rel="preload"
+      as="image"
+      fetchpriority="high"
+      href="/film/810/f_000.webp"
+      media="(max-aspect-ratio: 65/100)"
+    />
+    <link
+      rel="preload"
+      as="image"
+      fetchpriority="high"
+      href="/film/854/f_000.webp"
+      media="(min-aspect-ratio: 651/1000) and (max-width: 999px)"
+    />
     <link
       rel="preload"
       as="image"
       fetchpriority="high"
       href="/film/1280/f_000.webp"
-      media="(min-width: 1000px) and (max-width: 1599px)"
+      media="(min-aspect-ratio: 651/1000) and (min-width: 1000px) and (max-width: 1599px)"
     />
-    <link rel="preload" as="image" fetchpriority="high" href="/film/1920/f_000.webp" media="(min-width: 1600px)" />
+    <link
+      rel="preload"
+      as="image"
+      fetchpriority="high"
+      href="/film/1920/f_000.webp"
+      media="(min-aspect-ratio: 651/1000) and (min-width: 1600px)"
+    />
 
     <style>
       /* Pre-hydration ground: the page is ink from the first byte, CLS 0. */

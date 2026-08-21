@@ -1,30 +1,45 @@
 /**
- * Watermark removal for the source sequence.
+ * Watermark removal for the source sequences.
  *
- * The generator stamps a four point sparkle at a fixed position on every frame
- * (bbox x 1704..1775, y 864..935, measured by taking the per pixel minimum of
- * ten frames from six different shots — only the constant mark survives).
- * Cropping it out would cost 20% of frame height, so the disc is erased and
+ * The generator stamps a four point sparkle at a fixed 180 px inset from the
+ * bottom right corner of every frame. Both renders carry it, at mirrored
+ * positions and at the same 72x72 size:
+ *
+ *   1920x1080 landscape   bbox x 1704..1775, y 864..935   centre 1740,900
+ *   1080x1920 portrait    bbox x 864..935, y 1704..1775   centre 900,1740
+ *
+ * Both were located the same way, by taking the per pixel minimum across
+ * frames sampled from all six shots: a static overlay stays bright even when
+ * the plate behind it goes dark, so only the constant mark survives.
+ *
+ * Cropping it out would cost 20% of the frame, so the disc is erased and
  * refilled by diffusion from the surrounding ring: Jacobi relaxation seeded
  * with the ring mean. The area is out of focus background in every shot, so a
  * smooth fill is indistinguishable from the plate, and the film vignette
  * darkens it further.
  *
+ * Because the mark is the same size in both renders, the hole, ring and
+ * iteration counts are shared and only the centre changes.
+ *
  * Mutates the raw RGB buffer in place.
  */
-export const WM = {
-  cx: 1740,
-  cy: 900,
-  /** everything inside this radius is discarded */
-  hole: 58,
-  /** known pixels out to here seed the solve */
-  ring: 78,
-  iterations: 220,
-}
+const RECT = { hole: 58, ring: 78, iterations: 220 }
 
-/** @param {Uint8Array|Buffer} data RGB, 3 channels @param {number} w @param {number} h */
-export function inpaintWatermark(data, w, h) {
-  const { cx, cy, hole, ring, iterations } = WM
+/** 1920x1080 source: bbox x 1704..1775, y 864..935 */
+export const WM_LANDSCAPE = { cx: 1740, cy: 900, ...RECT }
+/** 1080x1920 source: bbox x 864..935, y 1704..1775 */
+export const WM_PORTRAIT = { cx: 900, cy: 1740, ...RECT }
+
+/** back compat: the manifest field and the encode report both name this one */
+export const WM = WM_LANDSCAPE
+
+/**
+ * @param {Uint8Array|Buffer} data RGB, 3 channels
+ * @param {number} w @param {number} h
+ * @param {{cx:number,cy:number,hole:number,ring:number,iterations:number}} wm
+ */
+export function inpaintWatermark(data, w, h, wm = WM_LANDSCAPE) {
+  const { cx, cy, hole, ring, iterations } = wm
   const x0 = Math.max(0, cx - ring)
   const y0 = Math.max(0, cy - ring)
   const x1 = Math.min(w - 1, cx + ring)

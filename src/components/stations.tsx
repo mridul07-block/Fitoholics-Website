@@ -396,8 +396,11 @@ export function Proof() {
           </h2>
         </div>
         <div className={s.cards}>
-          {c.testimonials.map((t) => (
-            <figure key={t.name} className={s.card} data-card="">
+          {/* keyed by position, not by name: the list is static and never
+              reordered, and keying on a content field breaks the moment two
+              entries share it, which the placeholder rows do by design */}
+          {c.testimonials.map((t, i) => (
+            <figure key={i} className={s.card} data-card="">
               <blockquote className={s.cardQuote} data-placeholder="">
                 {t.quote}
               </blockquote>
