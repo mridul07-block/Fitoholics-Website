@@ -53,6 +53,23 @@
   /* the real perspective context panels travel through (§7.7) */
   perspective: 1400px;
   perspective-origin: 50% 50%;
+  /* Panels exit TOWARD the camera at z:340, which this perspective draws at
+     1400/(1400-340) = 1.32x, so a full width panel becomes 132% of the
+     viewport. Transformed boxes count toward scrollable overflow, so without a
+     clip here the document grew sideways: 501px of stray horizontal scroll on a
+     390 viewport, 617px at 1600. On a phone that let the whole content layer be
+     swiped off screen, leaving the fixed film behind it. Panels are meant to
+     fly out of frame, and the frame is the viewport.
+
+     clip, NEVER hidden. overflow-x:hidden forces overflow-y from visible to
+     auto, which would make this element a scroll container — and station 4's
+     protocol pin is position:sticky, which resolves against its nearest scroll
+     container. hidden would silently re-anchor the pin to main and break it.
+     clip creates no scroll container, so sticky still resolves against the
+     viewport (verified: pin position identical with and without this rule).
+     For the same reason there is no `overflow-x: hidden` fallback for older
+     engines — the fallback is the thing that would break the pin. */
+  overflow-x: clip;
 }
 
 .station,
