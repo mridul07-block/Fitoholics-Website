@@ -183,9 +183,33 @@ export const COPY = {
     note: 'Usually a reply within one working day.',
   },
 
+  nav: {
+    brand: 'Ikram Ansari',
+    brandMeta: 'Transformation Coach',
+    links: [
+      { label: 'The method', href: '#protocol' },
+      { label: 'Nutrition', href: '#nutrition' },
+      { label: 'Who it is for', href: '#fit' },
+      { label: 'Results', href: '#proof' },
+    ],
+    cta: 'Book a consultation',
+    menuOpen: 'Open menu',
+    menuClose: 'Close menu',
+  },
+
   footer: {
     name: 'Ikram Ansari',
     role: 'Transformation Coach · Entrepreneur · Educator',
+    tagline: 'Coaching busy professionals through transformations that hold, long after the coaching ends.',
+    linksLabel: 'EXPLORE',
+    links: [
+      { label: 'The method', href: '#protocol' },
+      { label: 'Nutrition', href: '#nutrition' },
+      { label: 'Who it is for', href: '#fit' },
+      { label: 'Results', href: '#proof' },
+      { label: 'Book a consultation', href: '#booking' },
+    ],
+    contactLabel: 'CONTACT',
     // Reserved and non routable on purpose. example.com cannot belong to
     // anyone, and the number cannot dial, so a visitor who tries these reaches
     // nothing rather than reaching a stranger.
@@ -199,7 +223,6 @@ export const COPY = {
 
   chrome: {
     skipLink: 'Skip to booking',
-    frameLabel: 'FRAME',
   },
 
   a11y: {

@@ -415,7 +415,6 @@ export function Proof() {
 
 export function Close() {
   const c = COPY.close
-  const f = COPY.footer
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimHeavy)} aria-hidden="true" />
@@ -429,21 +428,6 @@ export function Close() {
           </a>
           <p className={s.closeNote}>{c.note}</p>
         </div>
-        <footer className={clsx(s.footer, over)}>
-          <div className={s.footerRule} aria-hidden="true" />
-          <div className={s.footerRow}>
-            <div>
-              <div className={s.footerName}>{f.name}</div>
-              <div className={s.footerMeta}>{f.role}</div>
-            </div>
-            <div className={s.footerContacts}>
-              <span className={s.footerMeta}>{f.contact.email}</span>
-              <span className={s.footerMeta}>{f.contact.instagram}</span>
-              <span className={s.footerMeta}>{f.contact.phone}</span>
-            </div>
-          </div>
-          <div className={s.footerMeta}>{f.copyright}</div>
-        </footer>
       </div>
     </div>
   )

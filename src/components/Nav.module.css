@@ -1,0 +1,214 @@
+/* Local copy of the utility register (base.css §4.3).
+   Composing the global .utility would drop its own colour on these — base.css
+   lands after the modules, so on equal specificity it wins the cascade. A
+   local class is emitted in this file, before the rules below, so the colours
+   here hold. */
+.util {
+  font-family: var(--font-body);
+  font-weight: var(--w-medium);
+  font-size: var(--t-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: var(--stone);
+}
+
+/* A pane of glass floating over the film rather than a bar painted across it:
+   inset from all three edges, soft cornered, and lit along its top edge so it
+   reads as a surface catching the room's light.
+   The blur radius is deliberately modest — backdrop-filter re-rasterises its
+   backdrop every frame and the backdrop here is a scrubbing film canvas. This
+   element is ~64px tall, which is what keeps that affordable. */
+.bar {
+  position: fixed;
+  top: var(--s-3);
+  left: var(--page-margin);
+  right: var(--page-margin);
+  z-index: var(--z-chrome);
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  padding: var(--s-3) var(--s-3) var(--s-3) var(--s-5);
+  border-radius: var(--r-3);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  transition:
+    background-color 420ms var(--e-out),
+    border-color 420ms var(--e-out),
+    box-shadow 420ms var(--e-out);
+}
+
+/* the lit top edge — one hairline, inside the radius */
+.bar::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--glass-highlight) 22%,
+    var(--glass-highlight) 78%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Once the page has moved, the pane densifies so type stays legible over
+   whatever the film happens to be showing. */
+.bar[data-plated] {
+  background: var(--glass-bg-dense);
+  border-color: rgba(var(--bone-rgb), .09);
+  box-shadow: 0 14px 44px rgba(var(--void-rgb), .55);
+}
+
+.brand {
+  display: grid;
+  gap: 1px;
+  margin-right: auto;
+}
+
+.brandName {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: -.02em;
+  line-height: 1.15;
+  color: var(--bone);
+}
+
+.brandMeta {
+  composes: util;
+  font-size: 9.5px;
+  letter-spacing: .18em;
+  line-height: 1.15;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+/* Sentence case, not the utility register: five shouted labels in a row read
+   as a menu bar. The register stays quiet and the ramp does the pointing. */
+.link {
+  position: relative;
+  color: rgba(var(--bone-rgb), .74);
+  font-size: var(--t-small);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-1);
+  transition: color var(--d-hover) var(--e-out);
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  left: var(--s-4);
+  right: var(--s-4);
+  bottom: calc(var(--s-3) - 2px);
+  height: 1px;
+  background: var(--ramp-h);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 340ms var(--e-out);
+}
+
+.link:hover {
+  color: var(--bone);
+}
+
+.link:hover::after {
+  transform: scaleX(1);
+}
+
+.cta {
+  composes: btn from '../styles/base.css';
+  composes: btnGlass from '../styles/base.css';
+  padding: .85em 1.5em;
+}
+
+/* ---- mobile ---- */
+
+.toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-1);
+  place-content: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.toggleBar {
+  display: block;
+  width: 16px;
+  height: 1px;
+  background: var(--bone);
+  transition: transform 240ms var(--e-out);
+}
+
+.barOpen .toggleBar:first-of-type {
+  transform: translateY(3px) rotate(45deg);
+}
+
+.barOpen .toggleBar:last-of-type {
+  transform: translateY(-3px) rotate(-45deg);
+}
+
+.panel {
+  display: none;
+}
+
+.panelLink {
+  color: var(--bone);
+  font-size: var(--t-body);
+  padding-block: var(--s-3);
+  border-bottom: 1px solid rgba(var(--bone-rgb), .07);
+}
+
+.panelCta {
+  composes: btn from '../styles/base.css';
+  composes: btnPrimary from '../styles/base.css';
+  width: 100%;
+  margin-top: var(--s-3);
+}
+
+@media (max-width: 900px) {
+  /* .cta composes .btn, which sets display in base.css — and base.css lands
+     after this module, so an unqualified .cta here loses the cascade. */
+  .links,
+  .bar .cta {
+    display: none;
+  }
+
+  .toggle {
+    display: grid;
+  }
+
+  .bar {
+    flex-wrap: wrap;
+    padding: var(--s-3) var(--s-4);
+  }
+
+  .barOpen {
+    background: var(--glass-bg-dense);
+  }
+
+  .panel {
+    display: grid;
+    width: 100%;
+    gap: var(--s-2);
+    padding: var(--s-4) var(--s-2) var(--s-2);
+  }
+
+  .panel[hidden] {
+    display: none;
+  }
+}

@@ -287,6 +287,33 @@ export function initChoreography(): void {
     })
   }
 
+  // the masthead lands after the headline has, so the film reads first. Its
+  // hidden start is set in Nav.tsx before first paint, which is what keeps
+  // this from blinking (nothing to hide here, only to resolve).
+  const nav = q('[data-nav]')
+  if (nav) {
+    const items = Array.from(nav.children).filter((c) => !c.hasAttribute('hidden'))
+    gsap
+      .timeline({ delay: 0.9, defaults: { ease: 'power3.out' } })
+      .to(nav, { autoAlpha: 1, y: 0, duration: 0.75 })
+      .fromTo(items, { autoAlpha: 0, y: -6 }, { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.07 }, 0.15)
+  }
+
+  // the footer assembles rather than appearing: rule draws, then the columns
+  const footRule = q('[data-footer-rule]')
+  const footCols = qa('[data-footer-col]')
+  if (footRule && footCols.length) {
+    gsap.set(footRule, { '--ruleScale': 0 } as gsap.TweenVars)
+    gsap.set(footCols, { autoAlpha: 0, y: 18 })
+    gsap
+      .timeline({
+        scrollTrigger: { trigger: footRule, start: 'top 92%', once: true },
+        defaults: { ease: 'power2.out' },
+      })
+      .to(footRule, { '--ruleScale': 1, duration: 0.7, ease: 'power2.inOut' } as gsap.TweenVars)
+      .to(footCols, { autoAlpha: 1, y: 0, duration: 0.65, stagger: 0.09 }, 0.18)
+  }
+
   // station 7: testimonial cards stagger in with depth (§8 S7)
   const cards = qa('[data-station="7"] [data-card]')
   if (cards.length) {

@@ -100,29 +100,41 @@
     rgba(var(--void-rgb), 0) 100%
   );
 
-  /* ---------- TYPE ---------- */
-  --font-display: 'Bodoni Moda', 'Bodoni MT', Didot, Georgia, serif;
-  --font-body: 'Archivo', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* ---------- TYPE ----------
+     One grotesk, two widths (see fonts.css). Size is not what makes a page
+     feel expensive — restraint, spacing and weight are. The display scale is
+     deliberately small: the hero tops out around 4.5rem rather than 11rem, so
+     the headline sits inside the frame instead of covering it, and the film
+     stays the loudest thing on the screen. */
+  --font-display: 'Inter Tight', 'Inter Tight Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', 'Inter Fallback', ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  --t-hero:  clamp(3.4rem, 9.5vw, 11rem);
-  --t-h1:    clamp(2.6rem, 5.6vw, 5.6rem);
-  --t-h2:    clamp(1.9rem, 3.2vw, 3rem);
-  --t-h3:    clamp(1.35rem, 2vw, 1.75rem);
-  --t-lead:  clamp(1.15rem, 1.5vw, 1.5rem);
-  --t-body:  clamp(1rem, 1.05vw, 1.125rem);
+  --t-hero:  clamp(2.35rem, 4.6vw, 4.5rem);
+  --t-h1:    clamp(1.9rem, 3.1vw, 3rem);
+  --t-h2:    clamp(1.45rem, 2vw, 1.95rem);
+  --t-h3:    clamp(1.1rem, 1.35vw, 1.3rem);
+  --t-lead:  clamp(1.02rem, 1.15vw, 1.18rem);
+  --t-body:  clamp(.95rem, 1vw, 1.0625rem);
   --t-small: .9375rem;
-  --t-meta:  .75rem;
-  --t-act:   clamp(4rem, 15vw, 15rem);
+  --t-meta:  .6875rem;
+  --t-act:   clamp(3rem, 9vw, 8rem);
 
-  --lh-hero: .92;
-  --lh-h1:   1.02;
-  --lh-h2:   1.12;
-  --lh-body: 1.68;
-  --lh-lead: 1.55;
+  --lh-hero: 1.06;
+  --lh-h1:   1.12;
+  --lh-h2:   1.24;
+  --lh-body: 1.7;
+  --lh-lead: 1.62;
 
-  --tr-hero: -.032em;
-  --tr-h1:   -.024em;
-  --tr-meta: .14em;
+  /* Tight, not cramped. Grotesks at display size need negative tracking to
+     stop reading as UI text scaled up; running copy needs none. */
+  --tr-hero: -.028em;
+  --tr-h1:   -.022em;
+  --tr-h2:   -.016em;
+  --tr-meta: .12em;
+
+  --w-display: 600;
+  --w-body: 400;
+  --w-medium: 500;
 
   /* ---------- SPACE, 4px base ---------- */
   --s-1: .25rem;  --s-2: .5rem;   --s-3: .75rem;  --s-4: 1rem;
@@ -134,6 +146,28 @@
   --content-max: 1240px;
   --measure: 62ch;
   --grid-gutter: 1.5rem;
+
+  /* ---------- SHAPE ----------
+     Everything used to be hard cornered. A small consistent radius on the
+     things a hand touches (buttons, cards, the chrome) reads as considered
+     rather than as a wireframe; rules and hairlines stay sharp. */
+  --r-1: 4px;
+  --r-2: 8px;
+  --r-3: 14px;
+
+  /* ---------- GLASS ----------
+     The chrome is a pane of the room's light rather than a painted bar.
+     Blur radius stays modest on purpose: backdrop-filter re-rasterises its
+     backdrop every frame, and the backdrop here is a scrubbing film canvas
+     (see the note on .card in stations.module.css — full viewport blur cost
+     roughly half the frame budget). The nav is ~64px tall and the footer sits
+     over a film that has already stopped, so both stay cheap. */
+  --glass-bg: rgba(var(--bone-rgb), .045);
+  --glass-bg-dense: rgba(var(--void-rgb), .58);
+  --glass-border: rgba(var(--bone-rgb), .13);
+  --glass-highlight: rgba(var(--bone-rgb), .16);
+  --glass-blur: blur(18px) saturate(1.35);
+  --glass-shadow: 0 10px 40px rgba(var(--void-rgb), .45);
 
   /* ---------- MOTION ---------- */
   --e-out: cubic-bezier(.22, 1, .36, 1);

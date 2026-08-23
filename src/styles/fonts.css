@@ -1,39 +1,44 @@
-/* Self hosted variable fonts, latin subset, §4.2. Preloaded from index.html. */
+/* Self hosted variable fonts, latin subset, §4.2. Preloaded from index.html.
+ *
+ * One grotesk family in two widths: Inter Tight carries headlines, where the
+ * tighter fit lets a headline sit at a smaller size and still hold the column,
+ * and Inter carries everything that is read rather than scanned. A single
+ * skeleton across both means the page reads as one voice at every size.
+ */
 
 @font-face {
-  font-family: 'Bodoni Moda';
+  font-family: 'Inter Tight';
   font-style: normal;
-  font-weight: 400 700;
+  font-weight: 100 900;
   font-display: swap;
-  src: url('/fonts/bodoni-moda-var-latin.woff2') format('woff2');
+  src: url('/fonts/inter-tight-var-latin.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Archivo';
+  font-family: 'Inter';
   font-style: normal;
-  font-weight: 400 700;
-  font-stretch: 100%;
+  font-weight: 100 900;
   font-display: swap;
-  src: url('/fonts/archivo-var-latin.woff2') format('woff2');
+  src: url('/fonts/inter-var-latin.woff2') format('woff2');
 }
 
 /* size-adjust fallbacks so the swap causes no layout shift (CLS 0 gate).
    Metrics approximate the variable fonts against locally available faces. */
 
 @font-face {
-  font-family: 'Bodoni Moda Fallback';
-  src: local('Georgia');
-  size-adjust: 94.2%;
-  ascent-override: 96%;
-  descent-override: 26%;
+  font-family: 'Inter Tight Fallback';
+  src: local('Arial');
+  size-adjust: 101%;
+  ascent-override: 92%;
+  descent-override: 23%;
   line-gap-override: 0%;
 }
 
 @font-face {
-  font-family: 'Archivo Fallback';
+  font-family: 'Inter Fallback';
   src: local('Arial');
-  size-adjust: 99%;
+  size-adjust: 107%;
   ascent-override: 90%;
-  descent-override: 21%;
+  descent-override: 22%;
   line-gap-override: 0%;
 }

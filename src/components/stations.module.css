@@ -106,6 +106,7 @@
   font-size: var(--t-h1);
   line-height: var(--lh-h1);
   letter-spacing: var(--tr-h1);
+  text-wrap: balance;
   margin-bottom: var(--s-6);
   text-wrap: balance;
 }
@@ -156,9 +157,9 @@
 .hero {
   composes: display from '../styles/base.css';
   position: relative;
-  /* --t-hero overflows with the 30 character third hero line; scoped clamp
-     keeps each authored line a single rendered line at >=900px (flagged). */
-  font-size: clamp(2.6rem, 6.3vw, 7.5rem);
+  /* the display scale is restrained enough now that the 30 character third
+     hero line holds one rendered line on the token itself */
+  font-size: var(--t-hero);
   line-height: var(--lh-hero);
   letter-spacing: var(--tr-hero);
   margin-block: var(--s-6);
@@ -197,68 +198,16 @@
   justify-content: center;
 }
 
-/* Gradient border without a wrapper element: the ramp is the background and a
-   matching inset holds the ground, so the border itself carries the ramp. */
+/* Both calls to action are the shared button shapes (base.css §4.5) so every
+   button on the page carries the same geometry and the same hover. */
 .ctaPrimary {
-  position: relative;
-  display: inline-block;
-  padding: var(--s-4) var(--s-7);
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--atm-bottom), var(--atm-bottom)) padding-box,
-    var(--ramp) border-box;
-  color: var(--bone);
-  font-size: var(--t-small);
-  overflow: hidden;
-  text-shadow: none;
-  isolation: isolate;
-  transition:
-    color var(--d-hover) var(--e-out),
-    box-shadow var(--d-hover) var(--e-out);
-}
-
-.ctaPrimary::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--ramp);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--d-hover) var(--e-out);
-  z-index: -1;
-}
-
-.ctaPrimary:hover {
-  color: var(--void);
-  box-shadow: 0 6px 30px rgba(var(--ember-rgb), .3);
-}
-
-.ctaPrimary:hover::before {
-  transform: scaleX(1);
+  composes: btn from '../styles/base.css';
+  composes: btnPrimary from '../styles/base.css';
 }
 
 .ctaSecondary {
-  position: relative;
-  color: var(--bone);
-  font-size: var(--t-small);
-  padding-bottom: 2px;
-}
-
-.ctaSecondary::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 1px;
-  background: var(--stone);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--d-hover) var(--e-out);
-}
-
-.ctaSecondary:hover::after {
-  transform: scaleX(1);
+  composes: btn from '../styles/base.css';
+  composes: btnQuiet from '../styles/base.css';
 }
 
 .scrollCue {
@@ -271,22 +220,12 @@
   gap: var(--s-3);
 }
 
-/* The outlined call to action resolves on hover, so on a device with no hover
-   it never resolves at all — it just reads as a dark box over the footage.
-   Touch devices get the filled version, at any width. */
-@media (hover: none), (max-width: 720px) {
-  .ctaPrimary {
-    display: block;
+/* On a phone the pair goes full width, so the two actions stack as one block
+   rather than as two differently sized boxes. */
+@media (max-width: 720px) {
+  .ctaPrimary,
+  .ctaSecondary {
     width: 100%;
-    text-align: center;
-    padding: var(--s-5) var(--s-6);
-    background: var(--ramp);
-    border-color: transparent;
-    color: var(--void);
-    font-weight: 600;
-  }
-  .ctaPrimary::before {
-    display: none;
   }
 }
 
@@ -422,19 +361,20 @@
   position: absolute;
   left: -0.65em;
   top: -0.08em;
-  font-size: 5.5rem;
-  opacity: 0.55;
+  font-size: 3.4rem;
+  opacity: 0.4;
   line-height: 1;
 }
 
-/* A step under --t-h2: at the full h2 size this runs to ten lines in its column
-   and the first line collides with the fixed timeline chrome. */
+/* A step under --t-h2: at the full h2 size this runs to ten lines in its
+   column. Lighter than the headline register — a quote is spoken, not stated. */
 .quote {
   composes: display from '../styles/base.css';
   position: relative;
   font-weight: 400;
-  font-size: clamp(1.55rem, 2.35vw, 2.2rem);
-  line-height: var(--lh-h2);
+  font-size: clamp(1.3rem, 1.75vw, 1.7rem);
+  line-height: 1.42;
+  letter-spacing: var(--tr-h2);
   margin-bottom: var(--s-8);
   text-wrap: balance;
 }
@@ -549,16 +489,18 @@
 .stepNumeral {
   composes: display from '../styles/base.css';
   composes: ramped;
-  font-size: clamp(4rem, 8vw, 7rem);
+  font-size: clamp(2.4rem, 4.4vw, 3.8rem);
   line-height: 1;
-  opacity: 0.16;
+  opacity: 0.2;
   text-align: right;
+  letter-spacing: -.03em;
 }
 
 .stepTitle {
   composes: display from '../styles/base.css';
   font-size: var(--t-h2);
   line-height: var(--lh-h2);
+  letter-spacing: var(--tr-h2);
   margin-bottom: var(--s-4);
 }
 
@@ -626,7 +568,7 @@
 .protoNumeral {
   composes: display from '../styles/base.css';
   composes: ramped;
-  font-size: clamp(6rem, 15vw, 14rem);
+  font-size: clamp(3.2rem, 8vw, 7rem);
   line-height: 1;
   opacity: 0.16;
   text-align: right;
@@ -699,7 +641,7 @@
     min-height: 13rem;
   }
   .protoNumeral {
-    font-size: 7rem;
+    font-size: 4.2rem;
   }
   .stepTitle {
     font-size: var(--t-h3);
@@ -763,7 +705,7 @@
   display: inline;
   font-weight: 400;
   font-size: var(--t-h3);
-  line-height: var(--lh-h2);
+  line-height: 1.45;
   color: var(--stone);
   margin-bottom: var(--s-3);
   /* line-through, not a positioned rule: correct on wrapped lines. The colour
@@ -832,6 +774,8 @@
   position: relative;
   background: rgba(var(--char-rgb), .84); /* the only L2 surface (§8) */
   border: 1px solid rgba(var(--bone-rgb), .1);
+  border-radius: var(--r-3);
+  overflow: hidden;
   padding: var(--s-7);
   display: grid;
   align-content: start;
@@ -841,14 +785,30 @@
     border-color var(--d-hover) var(--e-out);
 }
 
-/* a ramp hairline along the top edge, the card's only colour */
+/* A ramp hairline along the top edge, the card's only colour, over the same
+   lit edge the glass chrome carries — so the cards read as the same material
+   family as the nav and the footer without paying for a backdrop blur (see
+   the note above: blurring a live film canvas is what this file avoids). */
 .card::before {
   content: '';
   position: absolute;
-  inset: -1px -1px auto;
+  inset: 0 0 auto;
   height: 1px;
   background: var(--ramp-h);
-  opacity: .55;
+  opacity: .5;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--bone-rgb), .06) 0%,
+    rgba(var(--bone-rgb), 0) 38%
+  );
+  pointer-events: none;
 }
 
 .card:hover {
@@ -860,7 +820,8 @@
   composes: display from '../styles/base.css';
   font-weight: 400;
   font-size: var(--t-h3);
-  line-height: var(--lh-h2);
+  line-height: 1.45;
+  letter-spacing: -.008em;
 }
 
 .cardQuote[data-placeholder] {
@@ -919,43 +880,13 @@
    Station 8 · THE CLOSE (CENTRE) + footer
    ============================================================ */
 
+/* The last button on the page, so it is the same shape as the first one and
+   only a size step larger. */
 .closeCta {
-  position: relative;
-  display: inline-block;
-  padding: var(--s-5) var(--s-9);
-  background: var(--ramp-wide);
-  background-size: 220% 100%;
-  background-position: 18% 50%;
-  color: var(--void);
+  composes: btn from '../styles/base.css';
+  composes: btnPrimary from '../styles/base.css';
+  padding: 1.15em 2.6em;
   font-size: var(--t-body);
-  font-weight: 600;
-  letter-spacing: .01em;
-  text-shadow: none;
-  box-shadow:
-    0 8px 32px rgba(var(--void-rgb), .5),
-    0 0 0 rgba(var(--ember-rgb), 0);
-  transition:
-    transform var(--d-hover) var(--e-out),
-    box-shadow var(--d-hover) var(--e-out),
-    background-position 520ms var(--e-out);
-}
-
-/* a hairline of light along the top edge, so the block reads as lit rather
-   than filled */
-.closeCta::after {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 1px;
-  background: rgba(var(--bone-rgb), .45);
-}
-
-.closeCta:hover {
-  transform: translateY(-2px);
-  background-position: 82% 50%;
-  box-shadow:
-    0 14px 44px rgba(var(--void-rgb), .65),
-    0 0 38px rgba(var(--ember-rgb), .34);
 }
 
 .closeNote {
@@ -963,38 +894,5 @@
   margin-top: var(--s-5);
 }
 
-.footer {
-  grid-column: 1 / 13;
-  margin-top: var(--s-11);
-  display: grid;
-  gap: var(--s-6);
-}
-
-.footerRule {
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(var(--ember-rgb), .5), rgba(var(--bone-rgb), .12) 45%, transparent);
-}
-
-.footerRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-5);
-}
-
-.footerName {
-  composes: display from '../styles/base.css';
-  font-size: var(--t-h3);
-}
-
-.footerMeta {
-  composes: utility from '../styles/base.css';
-}
-
-.footerContacts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-6);
-}
+/* The footer moved out of this station into components/SiteFooter.tsx, which
+   sits after <main> on its own opaque plate. */

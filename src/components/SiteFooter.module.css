@@ -1,0 +1,135 @@
+/* Glass, not paint. The film has already stopped by the time the footer is on
+   screen (see the film-end knot in film/filmMap.ts), so the backdrop under this
+   blur is a still frame — the expensive case, a blur over a scrubbing canvas,
+   never happens here. The last shot stays faintly visible through the pane,
+   which is what stops the page ending on a black rectangle. */
+.footer {
+  position: relative;
+  z-index: var(--z-content);
+  background: linear-gradient(
+    180deg,
+    rgba(var(--void-rgb), .72) 0%,
+    rgba(var(--void-rgb), .92) 55%,
+    rgba(var(--void-rgb), .97) 100%
+  );
+  -webkit-backdrop-filter: blur(26px) saturate(1.25);
+  backdrop-filter: blur(26px) saturate(1.25);
+  border-top: 1px solid var(--glass-border);
+  padding: var(--s-9) var(--page-margin) var(--s-6);
+}
+
+/* the lit edge, matching the nav pane */
+.footer::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--glass-highlight) 30%,
+    var(--glass-highlight) 70%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+.rule {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(var(--ember-rgb), .5), rgba(var(--bone-rgb), .12) 45%, transparent);
+  transform: scaleX(var(--ruleScale, 1));
+  transform-origin: left center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--s-8) var(--grid-gutter);
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding-top: var(--s-8);
+}
+
+.identity {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+}
+
+.name {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h3);
+  letter-spacing: -.02em;
+}
+
+.meta {
+  composes: utility from '../styles/base.css';
+}
+
+.tagline {
+  max-width: 38ch;
+  color: var(--stone);
+  font-size: var(--t-small);
+  line-height: var(--lh-body);
+}
+
+.column {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+}
+
+/* local utility register, for the same cascade reason as Nav.module.css */
+.util {
+  font-family: var(--font-body);
+  font-weight: var(--w-medium);
+  font-size: var(--t-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: var(--stone);
+}
+
+.label {
+  composes: util;
+  color: rgba(var(--bone-rgb), .45);
+  margin-bottom: var(--s-2);
+}
+
+.link {
+  position: relative;
+  width: fit-content;
+  color: var(--stone);
+  font-size: var(--t-small);
+  transition:
+    color var(--d-hover) var(--e-out),
+    transform var(--d-hover) var(--e-out);
+}
+
+a.link:hover {
+  color: var(--bone);
+  transform: translateX(3px);
+}
+
+.baseline {
+  max-width: var(--content-max);
+  margin: var(--s-8) auto 0;
+  padding-top: var(--s-5);
+  border-top: 1px solid rgba(var(--bone-rgb), .07);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .identity {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

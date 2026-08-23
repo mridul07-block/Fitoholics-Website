@@ -3,8 +3,13 @@ html {
 }
 
 body {
-  font-family: 'Archivo', 'Archivo Fallback', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: var(--t-body);
+  font-weight: var(--w-body);
+  /* grotesks want the optical niceties on: proper contextual alternates and
+     no lining-figure jitter in the stat rows */
+  font-feature-settings: 'cv05' 1, 'ss03' 1;
+  -webkit-font-smoothing: antialiased;
   line-height: var(--lh-body);
   color: var(--bone);
   background: var(--ink);
@@ -34,21 +39,22 @@ body {
     0 1px 2px rgba(var(--void-rgb), 0.78);
 }
 
-/* Utility type register (§4.3): Archivo 500, uppercase, tracked, stone. */
+/* Utility type register (§4.3): body face, medium, uppercase, tracked, stone. */
 .utility {
-  font-family: 'Archivo', 'Archivo Fallback', ui-sans-serif, system-ui, sans-serif;
-  font-weight: 500;
+  font-family: var(--font-body);
+  font-weight: var(--w-medium);
   font-size: var(--t-meta);
   letter-spacing: var(--tr-meta);
   text-transform: uppercase;
   color: var(--stone);
 }
 
-/* Display register: Bodoni Moda, headlines and numerals only (§4.3). */
+/* Display register: Inter Tight, headlines and numerals only (§4.3). */
 .display {
-  font-family: 'Bodoni Moda', 'Bodoni Moda Fallback', 'Bodoni MT', Didot, Georgia, serif;
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
   color: var(--bone);
+  font-feature-settings: 'ss03' 1;
 }
 
 .visuallyHidden {
@@ -61,4 +67,107 @@ body {
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ============================================================
+   Buttons (§4.5).
+   One shape and one motion for every call to action on the page: a soft
+   cornered block, body face at medium, and a single lift on hover. Variants
+   only change the surface, never the geometry, so a primary and a ghost
+   button next to each other line up on every edge.
+   ============================================================ */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  padding: .95em 1.9em;
+  border-radius: var(--r-2);
+  font-family: var(--font-body);
+  font-size: var(--t-small);
+  font-weight: var(--w-medium);
+  letter-spacing: .005em;
+  line-height: 1;
+  text-shadow: none;
+  white-space: nowrap;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    transform var(--d-hover) var(--e-out),
+    box-shadow var(--d-hover) var(--e-out),
+    background-color var(--d-hover) var(--e-out),
+    border-color var(--d-hover) var(--e-out),
+    color var(--d-hover) var(--e-out);
+}
+
+.btn:active {
+  transform: translateY(0) scale(.985);
+}
+
+/* Primary: the ramp, flattened to a quiet fill with one warm edge. The old
+   button wore the full gradient at full strength, which fought the film for
+   attention every time it appeared. */
+.btnPrimary {
+  background: linear-gradient(180deg, #F2540F 0%, #D8420A 100%);
+  color: #150802;
+  font-weight: 600;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .22),
+    0 6px 20px rgba(var(--void-rgb), .35);
+}
+
+.btnPrimary:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #FF6220 0%, #E8480B 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .3),
+    0 12px 30px rgba(var(--ember-rgb), .26);
+}
+
+/* Glass: a pane with an ember edge, for chrome and secondary actions sitting
+   over the film. */
+.btnGlass {
+  color: var(--bone);
+  background: var(--glass-bg);
+  border: 1px solid rgba(var(--ember-rgb), .38);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+}
+
+.btnGlass:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--ember-rgb), .75);
+  background: rgba(var(--ember-rgb), .12);
+  box-shadow: 0 10px 28px rgba(var(--void-rgb), .45);
+}
+
+/* Quiet: text with a rule that draws in. No box at all. */
+.btnQuiet {
+  padding: .95em 0;
+  border-radius: 0;
+  overflow: visible;
+  color: rgba(var(--bone-rgb), .8);
+}
+
+.btnQuiet::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: .55em;
+  width: 100%;
+  height: 1px;
+  background: var(--ramp-h);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 340ms var(--e-out);
+}
+
+.btnQuiet:hover {
+  color: var(--bone);
+}
+
+.btnQuiet:hover::after {
+  transform: scaleX(1);
 }

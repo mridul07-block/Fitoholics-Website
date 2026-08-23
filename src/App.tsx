@@ -7,6 +7,8 @@ import { initSpine } from './film/useMasterProgress'
 import { SECTIONS, TOTAL_VH } from './film/beats'
 import { FilmLayer } from './film/FilmLayer'
 import { Timeline } from './components/Timeline'
+import { Nav } from './components/Nav'
+import { SiteFooter } from './components/SiteFooter'
 import { Entrance, Problem, Positioning, Protocol, TableStation, Fit, Proof, Close } from './components/stations'
 import s from './App.module.css'
 
@@ -30,14 +32,15 @@ const stationContent: readonly (() => ReactNode)[] = [
   Close,
 ]
 
+/** ids the masthead and footer link to */
 const stationIds: readonly (string | undefined)[] = [
-  undefined,
+  'top',
   undefined,
   undefined,
   'protocol',
-  undefined,
-  undefined,
-  undefined,
+  'nutrition',
+  'fit',
+  'proof',
   'booking',
 ]
 
@@ -100,6 +103,9 @@ export function App() {
       {/* fires on every hard cut in the footage */}
       <div className={s.cutRule} aria-hidden="true" data-cut-rule />
 
+      {/* L3 · CHROME — the masthead sits over the film from the first frame. */}
+      <Nav />
+
       {/* L2 · CONTENT */}
       <main className={s.content}>
         {COPY.a11y.stations.map((label, i) => {
@@ -117,6 +123,8 @@ export function App() {
           )
         })}
       </main>
+
+      <SiteFooter />
 
       {/* L3 · CHROME — the signature element (§2.3). */}
       <Timeline />

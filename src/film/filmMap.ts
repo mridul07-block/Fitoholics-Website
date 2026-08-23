@@ -46,8 +46,15 @@ export function rebuildFilmMap(): void {
     // strictly increasing, or the inverse lookup is ambiguous
     if (y > next[next.length - 1]!.y) next.push({ y, p })
   }
-  if (scrollMax > next[next.length - 1]!.y) next.push({ y: scrollMax, p: 1 })
-  else next[next.length - 1] = { y: scrollMax, p: 1 }
+  // The film ends when the last station has been fully seen, not at the bottom
+  // of the document: the site footer sits below the stations on an opaque
+  // plate, and letting it own a stretch of the film would push the closing
+  // shot behind it.
+  const last = els[els.length - 1]!
+  const filmEnd = Math.min(scrollMax, Math.max(0, last.offsetTop + last.offsetHeight - window.innerHeight))
+
+  if (filmEnd > next[next.length - 1]!.y) next.push({ y: filmEnd, p: 1 })
+  else next[next.length - 1] = { y: Math.max(filmEnd, next[next.length - 1]!.y), p: 1 }
   knots = next
 }
 
