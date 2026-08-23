@@ -156,104 +156,135 @@ export function Protocol() {
     if (!root || !numeral || !layers[0] || !layers[1] || !rail) return
 
     const fills = Array.from(rail.querySelectorAll<HTMLElement>('[data-rail-fill]'))
-    let current = -1
-    let front = 0
-    /** the in flight wipe and numeral swap, so the next step can cancel them */
-    let wipe: gsap.core.Tween | null = null
-    let numeralTl: gsap.core.Timeline | null = null
+    const n = c.steps.length
 
-    const writeLayer = (el: HTMLElement, i: number) => {
-      const step = c.steps[i]!
-      el.querySelector('[data-step-title]')!.textContent = step.title
-      el.querySelector('[data-step-body]')!.textContent = step.body
+    /**
+     * The steps are scrubbed, not played.
+     *
+     * They used to be a timed tween fired from a threshold: cross the boundary
+     * and a 0.44s clip wipe started, independent of the hand. That is the one
+     * thing §9 law 2 says this page never does, and it showed. Measured off a
+     * phone recording, every boundary went: old copy cut to nothing, ~190ms of
+     * empty stage, then the new copy crawling up from the bottom edge so the
+     * last line of the body arrived before its own title. Seven of those on the
+     * way through the section, each one landing a beat after the finger moved.
+     * That is what read as vibrating.
+     *
+     * Now the two layers tile: the outgoing one travels up and out while the
+     * incoming one follows it in from below, both driven straight off scroll
+     * progress. They abut exactly — outgoing at -50% covers the top half of the
+     * stage, incoming at +50% covers the bottom half — so there is never a gap
+     * to blink through and never an overlap to read double. The stage clips, so
+     * nothing has to be faded to hide it, and the whole thing is one transform
+     * per layer per frame.
+     *
+     * Stop mid gesture and it holds mid gesture. There is no timer to be out of
+     * step with.
+     */
+    /** share of a step the copy holds still for before handing over */
+    const HOLD = 0.72
+
+    /** which step's copy each layer currently holds */
+    const held: (number | null)[] = [null, null]
+
+    /* Written straight to style rather than through GSAP. Nothing else animates
+       these three elements any more, so there is no tween to conflict with, and
+       a scrubbed writer wants the shortest path to the compositor — one string
+       per element per frame, no tween objects created and collected while the
+       film is drawing. Each is cached so a frame that does not move writes
+       nothing at all. */
+    const lastY = [NaN, NaN]
+    const setY = (slot: number, v: number) => {
+      if (lastY[slot] === v) return
+      lastY[slot] = v
+      layers[slot]!.style.transform = `translate3d(0, ${v}%, 0)`
+    }
+    let lastNumOpacity = NaN
+    let lastNumY = NaN
+    const setNumeral = (opacity: number, y: number) => {
+      if (lastNumOpacity !== opacity) {
+        lastNumOpacity = opacity
+        numeral.style.opacity = String(opacity)
+      }
+      if (lastNumY !== y) {
+        lastNumY = y
+        numeral.style.transform = `translate3d(0, ${y}px, 0)`
+      }
     }
 
-    const swap = (next: number, instant: boolean) => {
-      const step = c.steps[next]!
-      // Two steps can be requested inside one wipe on a fast scroll. Whatever is
-      // still running belongs to a step nobody is looking at any more.
-      wipe?.kill()
-      wipe = null
-      numeralTl?.kill()
-      numeralTl = null
-      // numeral crossfade: 0.35s opacity swap with a 22px Y drift (§8 S4)
-      if (instant) {
-        numeral.textContent = step.n
-        gsap.set(numeral, { opacity: NUMERAL_REST_OPACITY, y: 0 })
-      } else {
-        // opacity, not autoAlpha: the numeral rests at the low opacity set in
-        // CSS, and autoAlpha would drive it to a solid 1 and never restore it
-        numeralTl = gsap
-          .timeline()
-          .to(numeral, { opacity: 0, y: -22, duration: 0.175, ease: 'power2.inOut' })
-          .add(() => {
-            numeral.textContent = step.n
-          })
-          .fromTo(
-            numeral,
-            { opacity: 0, y: 22 },
-            { opacity: NUMERAL_REST_OPACITY, y: 0, duration: 0.175, ease: 'power2.out' },
-          )
+    const writeLayer = (slot: number, i: number) => {
+      const step = c.steps[i]!
+      const el = layers[slot]!
+      el.querySelector('[data-step-title]')!.textContent = step.title
+      el.querySelector('[data-step-body]')!.textContent = step.body
+      held[slot] = i
+    }
+
+    /** the layer holding step `i`, writing it into whichever slot is not `keep` */
+    const slotFor = (i: number, keep: number): number => {
+      if (held[0] === i) return 0
+      if (held[1] === i) return 1
+      const slot = held[0] === keep ? 1 : 0
+      writeLayer(slot, i)
+      return slot
+    }
+
+    /** last step the rail's completed segments and the numeral's text were written for */
+    let railFor = -1
+    let numeralFor = -1
+
+    const render = (progress: number) => {
+      const x = Math.min(Math.max(progress, 0), 0.999999) * n
+      const i = Math.floor(x)
+      const frac = x - i
+      const next = Math.min(i + 1, n - 1)
+      // the last step has nowhere to hand over to, so it simply holds
+      const t = i < n - 1 && frac > HOLD ? (frac - HOLD) / (1 - HOLD) : 0
+
+      const cur = slotFor(i, next)
+      setY(cur, -100 * t)
+      if (next !== i) setY(slotFor(next, i), 100 * (1 - t))
+
+      // The numeral hands over on the same gesture, through its own zero rather
+      // than past the other numeral — two ramp filled digits crossing would be
+      // unreadable at this size. opacity, not autoAlpha: it rests at the low
+      // opacity set in CSS and autoAlpha would drive it to a solid 1.
+      const numIdx = t < 0.5 ? i : next
+      if (numIdx !== numeralFor) {
+        numeral.textContent = c.steps[numIdx]!.n
+        numeralFor = numIdx
       }
-      // masked wipe, clip travelling bottom to top over 0.44s (§8 S4)
-      const incoming = layers[1 - front]!
-      const outgoing = layers[front]!
-      writeLayer(incoming, next)
-      /**
-       * The outgoing layer goes NOW, not when the wipe finishes.
-       *
-       * A layer has no background — it is bare type over the film — so an
-       * incoming layer stacked above an outgoing one occludes nothing. Hiding
-       * the old copy on the wipe's onComplete meant both steps were rendered on
-       * top of each other, both fully legible, for the whole 440ms: the smeared
-       * double text that reads as the animation lagging. The wipe is a reveal of
-       * the new copy against the footage, and it only works alone.
-       *
-       * Hiding it here also retires the onComplete that used to do it, which
-       * captured `outgoing` in a closure: fire a second swap before the first
-       * finished and that stale callback hid the layer that had since become the
-       * live one, blanking the step entirely.
-       */
-      gsap.set(outgoing, { zIndex: 1, autoAlpha: 0 })
-      if (instant) {
-        gsap.set(incoming, { clipPath: 'inset(0% 0% 0% 0%)', zIndex: 2 })
-      } else {
-        gsap.set(incoming, { clipPath: 'inset(100% 0% 0% 0%)', zIndex: 2 })
-        wipe = gsap.to(incoming, {
-          clipPath: 'inset(0% 0% 0% 0%)',
-          duration: 0.44,
-          ease: 'power2.inOut',
+      const away = t < 0.5 ? t * 2 : (1 - t) * 2
+      setNumeral(NUMERAL_REST_OPACITY * (1 - away), (t < 0.5 ? -22 : 22) * away)
+
+      // The rail is a measuring instrument, so it measures: segments behind you
+      // are full, the one you are in fills as you read it. Only the segment you
+      // are in is written per frame.
+      if (i !== railFor) {
+        fills.forEach((f, k) => {
+          if (k !== i) f.style.setProperty('--fill', k < i ? '1' : '0')
         })
+        railFor = i
       }
-      gsap.set(incoming, { autoAlpha: 1 })
-      front = 1 - front
-      // rail fills with ember as each step activates (CSS var: axis-agnostic,
-      // the rail is vertical on desktop and horizontal below 900px)
-      fills.forEach((f, i) => {
-        gsap.to(f, { '--fill': i <= next ? 1 : 0, duration: 0.3, ease: 'power2.out' } as gsap.TweenVars)
-      })
+      fills[i]?.style.setProperty('--fill', frac.toFixed(3))
     }
 
     const st = ScrollTrigger.create({
       trigger: root,
       start: 'top top',
       end: 'bottom bottom',
-      onUpdate: (self) => {
-        const step = Math.min(c.steps.length - 1, Math.floor(self.progress * c.steps.length))
-        if (step !== current) {
-          const instant = current < 0
-          current = step
-          swap(step, instant)
-        }
-      },
+      onUpdate: (self) => render(self.progress),
     })
     triggerRef.current = st
-    swap(0, true)
-    current = 0
+
+    writeLayer(0, 0)
+    if (n > 1) writeLayer(1, 1)
+    setY(0, 0)
+    setY(1, 100)
+    render(st.progress)
+
     return () => {
       triggerRef.current = null
-      wipe?.kill()
-      numeralTl?.kill()
       st.kill()
     }
   }, [reduced, c.steps])
