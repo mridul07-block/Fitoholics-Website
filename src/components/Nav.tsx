@@ -84,6 +84,34 @@ export function Nav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  /**
+   * Publish the pane's real height as --nav-h.
+   *
+   * This is a floating pane, so it pushes nothing down: anything that must not
+   * sit underneath it has to reserve the room itself, and tokens.css turns this
+   * into --nav-clear for the opening eyebrow and the pinned protocol header.
+   *
+   * Measured rather than assumed, because the pane is not one height. It is
+   * ~64px with everything on one row, but the brand block and the toggle stop
+   * fitting side by side somewhere around 380px and it wraps to ~128px — a
+   * hardcoded number puts the first line of the page back underneath it on a
+   * small phone. The 64px in tokens.css is only the value before this runs.
+   */
+  useEffect(() => {
+    const bar = barRef.current
+    if (!bar) return
+    const write = () => {
+      // Never while the menu is open: the panel is inside the pane and doubles
+      // its height, and opening a menu must not reflow the page behind it.
+      if (openRef.current) return
+      document.documentElement.style.setProperty('--nav-h', `${Math.round(bar.offsetHeight)}px`)
+    }
+    write()
+    const ro = new ResizeObserver(write)
+    ro.observe(bar)
+    return () => ro.disconnect()
+  }, [])
+
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {

@@ -22,7 +22,7 @@ const NUMERAL_REST_OPACITY = 0.16
 export function Entrance() {
   const c = COPY.entrance
   return (
-    <div className={s.inner}>
+    <div className={s.entranceInner}>
       <div className={clsx(s.scrim, s.scrimHeavy)} aria-hidden="true" />
       <div className={s.grid}>
         <div className={clsx(s.heroWrap, over)}>
@@ -158,6 +158,9 @@ export function Protocol() {
     const fills = Array.from(rail.querySelectorAll<HTMLElement>('[data-rail-fill]'))
     let current = -1
     let front = 0
+    /** the in flight wipe and numeral swap, so the next step can cancel them */
+    let wipe: gsap.core.Tween | null = null
+    let numeralTl: gsap.core.Timeline | null = null
 
     const writeLayer = (el: HTMLElement, i: number) => {
       const step = c.steps[i]!
@@ -167,13 +170,20 @@ export function Protocol() {
 
     const swap = (next: number, instant: boolean) => {
       const step = c.steps[next]!
+      // Two steps can be requested inside one wipe on a fast scroll. Whatever is
+      // still running belongs to a step nobody is looking at any more.
+      wipe?.kill()
+      wipe = null
+      numeralTl?.kill()
+      numeralTl = null
       // numeral crossfade: 0.35s opacity swap with a 22px Y drift (§8 S4)
       if (instant) {
         numeral.textContent = step.n
+        gsap.set(numeral, { opacity: NUMERAL_REST_OPACITY, y: 0 })
       } else {
         // opacity, not autoAlpha: the numeral rests at the low opacity set in
         // CSS, and autoAlpha would drive it to a solid 1 and never restore it
-        gsap
+        numeralTl = gsap
           .timeline()
           .to(numeral, { opacity: 0, y: -22, duration: 0.175, ease: 'power2.inOut' })
           .add(() => {
@@ -189,17 +199,30 @@ export function Protocol() {
       const incoming = layers[1 - front]!
       const outgoing = layers[front]!
       writeLayer(incoming, next)
+      /**
+       * The outgoing layer goes NOW, not when the wipe finishes.
+       *
+       * A layer has no background — it is bare type over the film — so an
+       * incoming layer stacked above an outgoing one occludes nothing. Hiding
+       * the old copy on the wipe's onComplete meant both steps were rendered on
+       * top of each other, both fully legible, for the whole 440ms: the smeared
+       * double text that reads as the animation lagging. The wipe is a reveal of
+       * the new copy against the footage, and it only works alone.
+       *
+       * Hiding it here also retires the onComplete that used to do it, which
+       * captured `outgoing` in a closure: fire a second swap before the first
+       * finished and that stale callback hid the layer that had since become the
+       * live one, blanking the step entirely.
+       */
+      gsap.set(outgoing, { zIndex: 1, autoAlpha: 0 })
       if (instant) {
         gsap.set(incoming, { clipPath: 'inset(0% 0% 0% 0%)', zIndex: 2 })
-        gsap.set(outgoing, { zIndex: 1, autoAlpha: 0 })
       } else {
-        gsap.set(incoming, { clipPath: 'inset(100% 0% 0% 0%)', autoAlpha: 1, zIndex: 2 })
-        gsap.set(outgoing, { zIndex: 1 })
-        gsap.to(incoming, {
+        gsap.set(incoming, { clipPath: 'inset(100% 0% 0% 0%)', zIndex: 2 })
+        wipe = gsap.to(incoming, {
           clipPath: 'inset(0% 0% 0% 0%)',
           duration: 0.44,
           ease: 'power2.inOut',
-          onComplete: () => gsap.set(outgoing, { autoAlpha: 0 }),
         })
       }
       gsap.set(incoming, { autoAlpha: 1 })
@@ -229,6 +252,8 @@ export function Protocol() {
     current = 0
     return () => {
       triggerRef.current = null
+      wipe?.kill()
+      numeralTl?.kill()
       st.kill()
     }
   }, [reduced, c.steps])

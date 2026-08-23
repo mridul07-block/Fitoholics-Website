@@ -401,6 +401,14 @@
   text-align: center;
 }
 
+/* Station 1 only. The masthead is a floating pane, so it pushes nothing down,
+   and on a phone the opening eyebrow was landing underneath it — the first line
+   of the page arriving already covered. See the phone block below; at wider
+   widths .inner's own padding is already deeper than the pane. */
+.entranceInner {
+  composes: inner;
+}
+
 .hero span {
   display: block;
 }
@@ -461,6 +469,15 @@
     padding-block: var(--s-8);
   }
 
+  /* Top anchored rather than centred, because the clearance has to be exact.
+     With align-content: centre the block re-centres inside its own padding box,
+     so adding padding to clear the masthead only moves the content by half of
+     what you added — the eyebrow stayed under the pane however much was added. */
+  .entranceInner {
+    align-content: start;
+    padding-block: var(--nav-clear) var(--s-8);
+  }
+
   .actions {
     flex-direction: column;
     align-items: stretch;
@@ -491,14 +508,14 @@
     white-space: nowrap;
   }
 
-  /* the marker column was sitting outside the page margin once the panel
-     scaled up through its Z travel */
-  .aspiration {
-    grid-template-columns: 16px 1fr;
-    column-gap: var(--s-3);
-  }
-  .aspirations {
-    gap: var(--s-5) var(--s-5);
+  /* Chips are shrink to fit, which is right when several share a line and wrong
+     the moment each one owns a row: six chips wrapped to six rows ended at six
+     different x positions and the column read as broken rather than as a list.
+     One per row, all the same width, so the right edge is a line. */
+  .chips {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--s-3);
   }
 }
 
@@ -655,9 +672,17 @@
   .statCardValue[data-placeholder] {
     font-size: var(--t-small);
   }
+  /* Three cards across a 390px phone leaves about 126px of content per card.
+     TRANSFORMATIONS at 10px and .1em tracking is wider than that, and the base
+     rule's `overflow-wrap: anywhere` then split it into TRANSFORMA / TIONS —
+     a word broken mid syllable, which reads as a bug rather than as a wrap.
+     Tighter tracking and a viewport relative size fit it on one line; `normal`
+     wrapping guarantees that if a label ever does outgrow its card it breaks at
+     a space instead of inventing a hyphenless split. */
   .statCardLabel {
-    font-size: 10px;
-    letter-spacing: .1em;
+    font-size: clamp(8px, 2.3vw, 10px);
+    letter-spacing: .04em;
+    overflow-wrap: normal;
   }
   .statCardBar {
     margin-top: var(--s-2);
@@ -831,45 +856,14 @@
   transform-origin: top;
 }
 
-/* The pinned stage is exactly 100svh with overflow hidden, so on a phone a
-   full size header pushed the step copy past the bottom edge and it was
-   clipped away entirely. Everything in the pin steps down to fit. */
-@media (max-width: 720px) {
-  .protoSticky {
-    row-gap: var(--s-5);
-    padding-block: var(--s-7);
-  }
-  .protoTitle {
-    font-size: var(--t-h3);
-    margin-bottom: var(--s-2);
-  }
-  .protocolLead {
-    font-size: var(--t-small);
-    line-height: 1.5;
-  }
-  .protoBody {
-    min-height: 0;
-  }
-  .protoStage {
-    min-height: 13rem;
-  }
-  .protoNumeral {
-    font-size: 4.2rem;
-  }
-  .stepTitle {
-    font-size: var(--t-h3);
-  }
-  .protoLayer .stepTitle {
-    min-height: calc(var(--lh-h2) * 2em);
-  }
-  .stepBody {
-    font-size: var(--t-small);
-    line-height: 1.55;
-  }
-  .protoRail {
-    height: 3px;
-  }
-}
+/* ORDER MATTERS BELOW THIS LINE. Both of these blocks match a phone and every
+   selector in them is a single class, so the cascade falls back to source order
+   and the LAST matching declaration wins. Wide-then-narrow is the only ordering
+   where the narrower block can actually override the wider one.
+   This was wrong: with the 720 block written first, `.protoStage` resolved to
+   the tablet's 20rem instead of the phone's 13rem, and the pinned protocol
+   reserved 320px for a stage holding about 210px of copy — roughly a third of
+   the phone's screen left empty under every step. */
 
 @media (max-width: 900px) {
   .protoHead {
@@ -903,6 +897,49 @@
     transform-origin: left;
   }
 }
+
+/* The pinned stage is exactly 100svh with overflow hidden, so on a phone a
+   full size header pushed the step copy past the bottom edge and it was
+   clipped away entirely. Everything in the pin steps down to fit. */
+@media (max-width: 720px) {
+  .protoSticky {
+    row-gap: var(--s-5);
+    /* The pin fills the viewport for the whole 240svh the section is on screen,
+       so without this its header spends all of that underneath the masthead. */
+    padding-block: max(var(--s-7), var(--nav-clear)) var(--s-7);
+  }
+  .protoTitle {
+    font-size: var(--t-h3);
+    margin-bottom: var(--s-2);
+  }
+  .protocolLead {
+    font-size: var(--t-small);
+    line-height: 1.5;
+  }
+  .protoBody {
+    min-height: 0;
+  }
+  .protoStage {
+    min-height: 13rem;
+  }
+  .protoNumeral {
+    font-size: 4.2rem;
+  }
+  .stepTitle {
+    font-size: var(--t-h3);
+  }
+  .protoLayer .stepTitle {
+    min-height: calc(var(--lh-h2) * 2em);
+  }
+  .stepBody {
+    font-size: var(--t-small);
+    line-height: 1.55;
+  }
+  .protoRail {
+    height: 3px;
+  }
+}
+
 
 /* ============================================================
    Station 5 · THE TABLE (LEFT) — myths right
@@ -942,32 +979,11 @@
    Station 6 · WHO THIS IS FOR (RIGHT)
    ============================================================ */
 
-.aspirations {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s-6) var(--s-7);
-}
-
-.aspiration {
-  display: grid;
-  grid-template-columns: 24px 1fr;
-  column-gap: var(--s-4);
-  align-items: baseline;
-}
-
-.aspiration::before {
-  content: '';
-  height: 1px;
-  width: var(--ruleW, 24px);
-  background: var(--ramp-h);
-  align-self: center;
-}
-
-@media (max-width: 720px) {
-  .aspirations {
-    grid-template-columns: 1fr;
-  }
-}
+/* The aspirations were rules-that-draw before they became chips. `.aspirations`
+   and `.aspiration` were left behind by that change and matched nothing — Fit()
+   renders `.chips`/`.chip`. They are gone; the chip rules live with the rest of
+   the instrument surface language above, and their phone layout is in the hero
+   block near the top of this file. */
 
 /* ============================================================
    Station 7 · THE PROOF (LEFT rail copy, cards below)

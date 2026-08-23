@@ -147,6 +147,22 @@
   --measure: 62ch;
   --grid-gutter: 1.5rem;
 
+  /* The room the masthead occupies, so content can be kept out of it.
+     Nav.module.css parks the pane at top: var(--s-3); --nav-clear is that
+     offset plus the pane plus a gap.
+
+     It is a floating pane, so nothing is pushed down by it automatically:
+     anything that must not sit underneath it has to say so. On a phone that is
+     the opening eyebrow and the pinned protocol header, both of which were
+     arriving already covered.
+
+     --nav-h is republished from the pane's measured height by Nav.tsx. It is
+     ~64px with everything on one row, but the pane wraps to two rows on a
+     narrow phone and one hardcoded number cannot cover both. The value here is
+     only the fallback until that measurement runs. */
+  --nav-h: 64px;
+  --nav-clear: calc(var(--s-3) + var(--nav-h) + var(--s-4));
+
   /* ---------- SURFACE ----------
      The instrument language. Ikram's pitch is "measured, not guessed", so the
      objects inside the content are built like measuring devices rather than
