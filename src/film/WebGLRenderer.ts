@@ -80,8 +80,12 @@ export class WebGLFilmRenderer {
         throw new Error(`software renderer: ${renderer}`)
       }
     }
-    if (gl.getParameter(gl.MAX_TEXTURE_SIZE) < tier.width) {
-      throw new Error('MAX_TEXTURE_SIZE below tier width')
+    // max, not width: a portrait tier's limiting dimension is its height, so a
+    // width-only check would pass an 810x1440 plate against a 1024 limit and
+    // then fail to allocate the ring.
+    const longest = Math.max(tier.width, tier.height)
+    if (gl.getParameter(gl.MAX_TEXTURE_SIZE) < longest) {
+      throw new Error(`MAX_TEXTURE_SIZE below tier longest side (${longest})`)
     }
 
     this.canvas.addEventListener('webglcontextlost', (e) => {

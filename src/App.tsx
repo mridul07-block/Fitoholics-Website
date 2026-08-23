@@ -3,10 +3,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from './content/copy'
 import { initChoreography } from './motion/choreography'
 import { initA11yNav } from './motion/a11y'
+import { initGate } from './motion/gate'
 import { initSpine } from './film/useMasterProgress'
 import { SECTIONS, TOTAL_VH } from './film/beats'
 import { FilmLayer } from './film/FilmLayer'
-import { Timeline } from './components/Timeline'
+import { MeasureRail } from './components/MeasureRail'
 import { Nav } from './components/Nav'
 import { SiteFooter } from './components/SiteFooter'
 import { Entrance, Problem, Positioning, Protocol, TableStation, Fit, Proof, Close } from './components/stations'
@@ -34,7 +35,7 @@ const stationContent: readonly (() => ReactNode)[] = [
 
 /** ids the masthead and footer link to */
 const stationIds: readonly (string | undefined)[] = [
-  'top',
+  undefined,
   undefined,
   undefined,
   'protocol',
@@ -80,8 +81,16 @@ export function App() {
     initSpine()
     ScrollTrigger.refresh()
     initA11yNav()
-    // choreography splits lines, so it waits for the fonts (no reflow splits)
-    void document.fonts.ready.then(() => {
+
+    // The gate takes over its own markup immediately — it has been painting
+    // since the first frame and needs to start reporting real progress, not
+    // wait on fonts it does not use.
+    const gateLifted = initGate()
+
+    // The entrance waits for BOTH: the fonts, because it splits lines and a
+    // split before the face resolves would re-wrap; and the gate, because an
+    // entrance played behind a full screen overlay is an entrance nobody sees.
+    void Promise.all([document.fonts.ready, gateLifted]).then(() => {
       initChoreography()
       if (import.meta.env.DEV) assertSectionGeometry()
     })
@@ -107,7 +116,7 @@ export function App() {
       <Nav />
 
       {/* L2 · CONTENT */}
-      <main className={s.content}>
+      <main className={s.content} id="top">
         {COPY.a11y.stations.map((label, i) => {
           const Station = stationContent[i]!
           return (
@@ -126,8 +135,11 @@ export function App() {
 
       <SiteFooter />
 
-      {/* L3 · CHROME — the signature element (§2.3). */}
-      <Timeline />
+      {/* L3 · CHROME — the signature rail down the right edge. The maker's
+          mark used to be fixed to the opposite corner; the masthead occupies
+          that corner now and carries the mark itself, so there is one brand
+          statement up there rather than two overlapping ones. */}
+      <MeasureRail />
     </>
   )
 }

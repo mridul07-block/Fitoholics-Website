@@ -1,0 +1,15 @@
+/* ---------- the footer lockup ---------- */
+
+/* This is where the brand is stated properly rather than marked. Full lockup,
+   left aligned with the name it belongs to, above the contact row. */
+.lockup {
+  display: block;
+  width: clamp(180px, 22vw, 248px);
+  margin-bottom: var(--s-6);
+}
+
+.lockup img {
+  width: 100%;
+  height: auto;
+  display: block;
+}

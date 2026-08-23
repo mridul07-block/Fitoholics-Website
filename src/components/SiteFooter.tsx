@@ -7,6 +7,7 @@
  * call to action.
  */
 import { COPY } from '../content/copy'
+import { BrandLockup } from './BrandMark'
 import s from './SiteFooter.module.css'
 
 export function SiteFooter() {
@@ -16,6 +17,7 @@ export function SiteFooter() {
       <div className={s.rule} aria-hidden="true" data-footer-rule="" />
       <div className={s.grid}>
         <div className={s.identity} data-footer-col="">
+          <BrandLockup />
           <div className={s.name}>{f.name}</div>
           <div className={s.meta}>{f.role}</div>
           <p className={s.tagline}>{f.tagline}</p>

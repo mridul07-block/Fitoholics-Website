@@ -1,0 +1,93 @@
+/* The measure rail (§ signature). Fixed to the right edge, never interactive,
+   never in the tab order — the skip link and the heading outline are the real
+   navigation. Everything here is transform or a static paint, so it costs the
+   scrubbing film nothing. */
+
+.rail {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: var(--rail-inset);
+  width: var(--rail-width);
+  z-index: var(--z-chrome);
+  pointer-events: none;
+  /* the whole rail fades up once the entrance has landed */
+  animation: railIn 900ms var(--e-out) 1.6s both;
+}
+
+@keyframes railIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* the unfilled hairline: the full extent of the page */
+.track,
+.fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 1px;
+}
+
+.track {
+  background: rgba(var(--bone-rgb), .13);
+}
+
+/* the filled portion, scaled from the top. A pre-painted gradient scaled by
+   transform, so the browser never repaints it as the value changes. */
+.fill {
+  background: var(--ramp-v);
+  transform: scaleY(0);
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.ticks {
+  position: absolute;
+  inset: 0;
+}
+
+/* one mark per chapter, extending left from the hairline. `top` is written
+   from the measured section offsets, not from the spec heights. */
+.tick {
+  position: absolute;
+  right: 0;
+  width: var(--tick-len);
+  height: 1px;
+  background: rgba(var(--bone-rgb), .24);
+  transform-origin: 100% 50%;
+  transition:
+    width var(--d-hover) var(--e-out),
+    background-color var(--d-hover) var(--e-out);
+}
+
+/* chapters already behind you carry the accent at low strength */
+.tick[data-passed] {
+  background: rgba(var(--ember-rgb), .5);
+}
+
+/* the chapter you are in: longer, and the one saturated mark on the rail */
+.tick[data-active] {
+  width: calc(var(--tick-len) * 2.2);
+  background: var(--flare);
+}
+
+/* Reduced motion keeps the rail — position is information, not decoration —
+   but drops the entrance fade and the tick easing. */
+@media (prefers-reduced-motion: reduce) {
+  .rail { animation: none; }
+  .tick { transition: none; }
+}
+
+/* On a phone the right edge is thumb territory. The rail stays (it is
+   pointer-events: none, so it cannot intercept anything) but pulls in tighter
+   and the ticks shorten, so it reads as an edge detail rather than a UI. */
+@media (max-width: 720px) {
+  .rail {
+    right: calc(var(--rail-inset) * .5);
+  }
+  .tick[data-active] {
+    width: calc(var(--tick-len) * 1.6);
+  }
+}

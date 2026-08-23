@@ -106,7 +106,6 @@
   font-size: var(--t-h1);
   line-height: var(--lh-h1);
   letter-spacing: var(--tr-h1);
-  text-wrap: balance;
   margin-bottom: var(--s-6);
   text-wrap: balance;
 }
@@ -151,14 +150,223 @@
 }
 
 /* ============================================================
+   THE INSTRUMENT SURFACE
+   ============================================================
+   The page's object language. Ikram's pitch is "measured, not guessed", so the
+   objects are built like measuring devices: a hairline rectangle with ticked
+   corners, an index, a value. Not a rounded card deck — this codebase has one
+   border-radius in a thousand lines and that is a position, not an oversight.
+
+   Cost control, because all of this sits over a scrubbing film:
+     · hover moves transform, border-color and background-color, nothing else
+     · no backdrop-filter, no filter, no animated box-shadow — each was measured
+       on this page and removed
+     · hover is behind (hover: hover) so no touch device pays for it
+   ============================================================ */
+
+.surface {
+  position: relative;
+  background-color: var(--surface);
+  border: 1px solid var(--hairline);
+  transition:
+    transform var(--d-hover) var(--e-out),
+    border-color var(--d-hover) var(--e-out),
+    background-color var(--d-hover) var(--e-out);
+}
+
+/* The corner ticks. Two L brackets at opposing corners, which is the whole
+   difference between reading as an instrument and reading as a card. */
+.surface::before,
+.surface::after {
+  content: '';
+  position: absolute;
+  width: var(--tick-len);
+  height: var(--tick-len);
+  border: 0 solid var(--hairline-warm);
+  pointer-events: none;
+  transition: border-color var(--d-hover) var(--e-out);
+}
+
+.surface::before {
+  top: -1px;
+  left: -1px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+
+.surface::after {
+  right: -1px;
+  bottom: -1px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+@media (hover: hover) {
+  .surface:hover {
+    transform: translateY(calc(var(--lift) * -1));
+    border-color: rgba(var(--bone-rgb), .22);
+    background-color: var(--surface-raised);
+  }
+  .surface:hover::before,
+  .surface:hover::after {
+    border-color: var(--flare);
+  }
+
+  /* Tilted surfaces do their lift in pointer.ts instead. GSAP writes an inline
+     transform and inline always beats the stylesheet, so this rule's lift would
+     be discarded the instant the pointer arrived — suppressing it here stops
+     the two from fighting for a frame on enter. */
+  .surface[data-tilt]:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface,
+  .surface::before,
+  .surface::after {
+    transition: none;
+  }
+  .surface:hover {
+    transform: none;
+  }
+}
+
+/* ---------- Station 3 · stat cards ---------- */
+
+.statCard {
+  composes: surface;
+  padding: var(--s-5) var(--s-5) var(--s-4);
+  display: grid;
+  align-content: start;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+/* the measured value, clipping the ramp */
+.statCardValue {
+  composes: display from '../styles/base.css';
+  composes: ramped;
+  font-size: clamp(1.9rem, 2.9vw, 2.6rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.statCardValue[data-placeholder] {
+  font-size: var(--t-h3);
+  background: none;
+  color: var(--stone);
+}
+
+/* Three cards inside a five column rail leaves each about 145px wide, and
+   TRANSFORMATIONS at the standard meta tracking is wider than that. The label
+   scales with the viewport and keeps a last resort break, so no label can ever
+   run out of its own card. */
+.statCardLabel {
+  composes: utility from '../styles/base.css';
+  font-size: clamp(8px, .62vw, 11px);
+  letter-spacing: .06em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* the bar under the value fills on reveal — the "reading" of the instrument */
+.statCardBar {
+  position: relative;
+  height: 2px;
+  margin-top: var(--s-3);
+  background: rgba(var(--bone-rgb), .1);
+  overflow: hidden;
+}
+
+.statCardBar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ramp-h);
+  transform: scaleX(var(--fill, 0));
+  transform-origin: left center;
+}
+
+/* ---------- Station 5 · myth cards ---------- */
+
+.mythCard {
+  composes: surface;
+  padding: var(--s-5) var(--s-6);
+  display: grid;
+  gap: var(--s-3);
+}
+
+/* the claim being retired recedes; the truth carries the light. The argument
+   is made by the contrast, so the two halves must not look alike. */
+.mythCardEdge {
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: var(--ramp-v);
+  transform: scaleY(var(--edge, 0));
+  transform-origin: top;
+}
+
+/* ---------- Station 6 · aspiration chips ---------- */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+
+.chip {
+  composes: surface;
+  padding: var(--s-3) var(--s-4);
+  font-size: var(--t-small);
+  color: var(--bone);
+  line-height: 1.35;
+}
+
+/* chips are small, so the full tick bracket is too busy — one corner only */
+.chip::after {
+  content: none;
+}
+
+.chip::before {
+  width: calc(var(--tick-len) * .6);
+  height: calc(var(--tick-len) * .6);
+}
+
+/* ---------- Station 4 · the protocol stepper ---------- */
+
+.protoSegment:disabled {
+  cursor: default;
+}
+
+.protoSegmentBtn {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+@media (hover: hover) {
+  .protoSegmentBtn:hover .protoSegmentFill {
+    opacity: .75;
+  }
+}
+
+/* ============================================================
    Station 1 · ENTRANCE (CENTRE)
    ============================================================ */
 
 .hero {
   composes: display from '../styles/base.css';
   position: relative;
-  /* the display scale is restrained enough now that the 30 character third
-     hero line holds one rendered line on the token itself */
+  /* --t-hero overflows with the 30 character third hero line; scoped clamp
+     keeps each authored line a single rendered line at >=900px (flagged). */
   font-size: var(--t-hero);
   line-height: var(--lh-hero);
   letter-spacing: var(--tr-hero);
@@ -199,7 +407,10 @@
 }
 
 /* Both calls to action are the shared button shapes (base.css §4.5) so every
-   button on the page carries the same geometry and the same hover. */
+   button on the page carries the same geometry and the same hover. Buttons are
+   the one place radius is allowed inside the content: they are the thing a
+   hand touches, so they belong to the chrome's family rather than to the
+   instrument surfaces around them. */
 .ctaPrimary {
   composes: btn from '../styles/base.css';
   composes: btnPrimary from '../styles/base.css';
@@ -223,8 +434,8 @@
 /* On a phone the pair goes full width, so the two actions stack as one block
    rather than as two differently sized boxes. */
 @media (max-width: 720px) {
-  .ctaPrimary,
-  .ctaSecondary {
+  .actions .ctaPrimary,
+  .actions .ctaSecondary {
     width: 100%;
   }
 }
@@ -366,41 +577,26 @@
   line-height: 1;
 }
 
-/* A step under --t-h2: at the full h2 size this runs to ten lines in its
-   column. Lighter than the headline register — a quote is spoken, not stated. */
+/* A step under --t-h2: at the full h2 size this runs to ten lines in its column
+   and the first line collides with the fixed timeline chrome. */
 .quote {
   composes: display from '../styles/base.css';
   position: relative;
   font-weight: 400;
   font-size: clamp(1.3rem, 1.75vw, 1.7rem);
-  line-height: 1.42;
-  letter-spacing: var(--tr-h2);
+  line-height: var(--lh-h2);
   margin-bottom: var(--s-8);
   text-wrap: balance;
 }
 
+/* Three surfaces, equal columns. The old hairline dividers between bare
+   numbers are gone: each stat now has its own edge, so a divider would be a
+   second rule doing the same job. */
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, auto);
-  justify-content: start;
-  gap: var(--s-7);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-4);
   margin-bottom: var(--s-7);
-}
-
-.stat {
-  position: relative;
-  padding-right: var(--s-7);
-}
-
-.stat:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 10%;
-  height: 80%;
-  width: 1px;
-  background: var(--stone);
-  opacity: 0.6;
 }
 
 .statValue {
@@ -434,18 +630,22 @@
     gap: var(--s-4);
     margin-bottom: var(--s-6);
   }
-  .stat {
-    padding-right: var(--s-4);
+  .statCard {
+    padding: var(--s-3);
+    gap: var(--s-1);
   }
-  .statValue {
+  .statCardValue {
     font-size: var(--t-h3);
   }
-  .statValue[data-placeholder] {
+  .statCardValue[data-placeholder] {
     font-size: var(--t-small);
   }
-  .statLabel {
+  .statCardLabel {
     font-size: 10px;
     letter-spacing: .1em;
+  }
+  .statCardBar {
+    margin-top: var(--s-2);
   }
 }
 
@@ -491,16 +691,14 @@
   composes: ramped;
   font-size: clamp(2.4rem, 4.4vw, 3.8rem);
   line-height: 1;
-  opacity: 0.2;
+  opacity: 0.16;
   text-align: right;
-  letter-spacing: -.03em;
 }
 
 .stepTitle {
   composes: display from '../styles/base.css';
   font-size: var(--t-h2);
   line-height: var(--lh-h2);
-  letter-spacing: var(--tr-h2);
   margin-bottom: var(--s-4);
 }
 
@@ -705,7 +903,7 @@
   display: inline;
   font-weight: 400;
   font-size: var(--t-h3);
-  line-height: 1.45;
+  line-height: var(--lh-h2);
   color: var(--stone);
   margin-bottom: var(--s-3);
   /* line-through, not a positioned rule: correct on wrapped lines. The colour
@@ -771,57 +969,27 @@
    measured at roughly half the whole frame budget; a slightly denser surface
    is indistinguishable over dark footage and costs nothing per frame. */
 .card {
-  position: relative;
-  background: rgba(var(--char-rgb), .84); /* the only L2 surface (§8) */
-  border: 1px solid rgba(var(--bone-rgb), .1);
-  border-radius: var(--r-3);
-  overflow: hidden;
+  composes: surface;
   padding: var(--s-7);
   display: grid;
   align-content: start;
   gap: var(--s-5);
-  transition:
-    transform var(--d-hover) var(--e-out),
-    border-color var(--d-hover) var(--e-out);
-}
-
-/* A ramp hairline along the top edge, the card's only colour, over the same
-   lit edge the glass chrome carries — so the cards read as the same material
-   family as the nav and the footer without paying for a backdrop blur (see
-   the note above: blurring a live film canvas is what this file avoids). */
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 1px;
-  background: var(--ramp-h);
-  opacity: .5;
-}
-
-.card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    180deg,
-    rgba(var(--bone-rgb), .06) 0%,
-    rgba(var(--bone-rgb), 0) 38%
-  );
-  pointer-events: none;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(var(--ember-rgb), .3);
+  /* The ramp hairline along the top edge, painted by the element's own
+     background rather than a pseudo element, because ::before and ::after now
+     belong to the surface's corner ticks. */
+  background-image: var(--ramp-h);
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: 0 0;
+  /* tilt is written per pointer move; the surface transition would fight it */
+  transform-style: preserve-3d;
 }
 
 .cardQuote {
   composes: display from '../styles/base.css';
   font-weight: 400;
   font-size: var(--t-h3);
-  line-height: 1.45;
-  letter-spacing: -.008em;
+  line-height: var(--lh-h2);
 }
 
 .cardQuote[data-placeholder] {
@@ -895,4 +1063,4 @@
 }
 
 /* The footer moved out of this station into components/SiteFooter.tsx, which
-   sits after <main> on its own opaque plate. */
+   sits after <main> on its own pane and carries the brand lockup with it. */

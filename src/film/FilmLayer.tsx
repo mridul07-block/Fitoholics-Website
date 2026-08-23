@@ -6,8 +6,8 @@
  * same seam in Phase 5. The LQIP ground stays as the host background so
  * there is never a blank viewport (CLS 0, §7.3).
  */
-import { useEffect, useRef } from 'react'
-import { FILM, selectTier } from './manifest'
+import { useEffect, useRef, useState } from 'react'
+import { FILM, lqipFor, selectTier } from './manifest'
 import { washAtProgress } from './beats'
 import { Atmosphere, publishAct } from './atmosphere'
 import { entranceDone, filmEntrance } from '../motion/choreography'
@@ -16,6 +16,7 @@ import { Canvas2DRenderer } from './Canvas2DRenderer'
 import { WebGLFilmRenderer } from './WebGLRenderer'
 import { initSpine, prefersReducedMotion } from './useMasterProgress'
 import { motionNorm } from './velocity'
+import { publishLoad } from './loadProgress'
 import s from '../App.module.css'
 
 type AnyRenderer = Canvas2DRenderer | WebGLFilmRenderer
@@ -31,7 +32,12 @@ function pickRenderer(host: HTMLElement, loader: FrameLoader, tier: ReturnType<t
   const allowSoftware = import.meta.env.DEV && filmParam === 'gl-force'
   try {
     const nav = navigator as Navigator & { deviceMemory?: number }
-    const quality = tier.id === 'sm' || (nav.deviceMemory ?? 8) <= 4 ? 'low' : 'high'
+    // Portrait means a phone, which keeps the LOW_QUALITY program it already
+    // runs. That program compiles out dispersion, depth of field and barrel
+    // only; the grade, atmosphere, ember bloom, grain, vignette and wash are
+    // all still in it, so the colour is identical across orientations.
+    const quality =
+      tier.orientation === 'portrait' || tier.id === 'sm' || (nav.deviceMemory ?? 8) <= 4 ? 'low' : 'high'
     return new WebGLFilmRenderer(host, loader, tier, quality, allowSoftware)
   } catch (err) {
     if (import.meta.env.DEV) console.warn('webgl unavailable, canvas 2d path:', err)
@@ -60,12 +66,16 @@ declare global {
 export function FilmLayer() {
   const hostRef = useRef<HTMLDivElement>(null)
   const ruleRef = useRef<HTMLDivElement>(null)
+  // Resolved once, in render, because the LQIP ground below has to match the
+  // shape of the set that is about to cover it. Stable for the component's
+  // life, which is what lets the effect below keep its empty dependency list.
+  const [tier] = useState(selectTier)
+  const portrait = tier.orientation === 'portrait'
 
   useEffect(() => {
     const host = hostRef.current
     if (!host) return
 
-    const tier = selectTier()
     const loader = new FrameLoader(tier, budgetForTier(tier))
     let renderer: AnyRenderer = pickRenderer(host, loader, tier)
     if (renderer.kind === 'webgl') {
@@ -109,6 +119,11 @@ export function FilmLayer() {
       if (ruleRef.current) {
         ruleRef.current.style.transform = `scaleX(${p.stage === 'streaming' || p.stage === 'complete' ? 1 : p.blockingProgress})`
       }
+      // The gate reads this. It is the loader's own decoded byte count, which
+      // is why the preloader can report a real figure instead of running a
+      // timer and hoping.
+      const streaming = p.stage === 'streaming' || p.stage === 'complete'
+      publishLoad(streaming ? 1 : p.blockingProgress, streaming)
       if (import.meta.env.DEV) {
         window.__filmStats = {
           draws: renderer.draws,
@@ -136,7 +151,7 @@ export function FilmLayer() {
       atmBottom: atmos.state.bottom,
       glow: 0,
       grade: 0.34,
-      focalX: atmos.state.focalX,
+      focalX: portrait ? 0.5 : atmos.state.focalX,
       cut: 0,
     }
     const pinScratch: number[] = []
@@ -170,7 +185,10 @@ export function FilmLayer() {
       atmos.step(c.index, deltaMs)
       renderState.glow = atmos.state.glow
       renderState.grade = atmos.state.grade
-      renderState.focalX = atmos.state.focalX
+      // The per act focal points exist to rescue a narrow crop of a landscape
+      // composition. The vertical plate is composed centred and is barely
+      // cropped at all, so applying them would just push it off centre.
+      if (!portrait) renderState.focalX = atmos.state.focalX
       if (reduced) {
         // film locks to one keyframe per act, swapped at boundaries (§9 law 7)
         renderState.index = c.act.heroFrame
@@ -236,7 +254,7 @@ export function FilmLayer() {
       className={s.film}
       aria-hidden="true"
       data-film-host
-      style={{ backgroundImage: `url("${FILM.lqip[0]}")` }}
+      style={{ backgroundImage: `url("${lqipFor(tier)[0]}")` }}
     >
       <div ref={ruleRef} className={s.loadingRule} />
     </div>

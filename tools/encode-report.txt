@@ -1,8 +1,18 @@
-encode-frames report · 2026-08-16T19:26:59.955Z
-source: 1920x1080, 300 frames, no decimation
-watermark: diffusion inpaint r58 at 1740,900 (sparkle bbox 1704..1775 x 864..935)
-cuts: 55, 99, 140, 195, 240
-tier xl 1920x1080: total 12.93 MB, avg 44.1 KB/frame
-tier lg 1280x720: total 8.48 MB, avg 29.0 KB/frame
-tier sm 854x480: total 5.06 MB, avg 17.3 KB/frame
-elapsed: 60.2s
+encode-frames report · 2026-08-21T07:48:05.689Z
+300 frames per set, no decimation
+
+landscape  source 1920x1080 from video frame/
+  watermark: diffusion inpaint r58 at 1740,900
+  cuts: 55, 99, 140, 195, 240
+  tier xl 1920x1080: total 12.93 MB, avg 44.1 KB/frame
+  tier lg 1280x720: total 8.48 MB, avg 29.0 KB/frame
+  tier sm 854x480: total 5.06 MB, avg 17.3 KB/frame
+
+portrait  source 1080x1920 from mobile_frame/
+  watermark: diffusion inpaint r58 at 900,1740
+  cuts: 54, 98, 139, 195, 239
+  tier pv 810x1440: total 11.02 MB, avg 37.6 KB/frame
+  tier pvs 608x1080: total 7.42 MB, avg 25.3 KB/frame
+
+hero frames (shared): 22, 72, 118, 168, 216, 276
+elapsed: 91.7s

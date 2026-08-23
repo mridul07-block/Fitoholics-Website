@@ -98,8 +98,11 @@ export function Nav() {
   return (
     <header ref={barRef} className={clsx(s.bar, open && s.barOpen)} data-nav="">
       <a className={s.brand} href="#top">
-        <span className={s.brandName}>{c.brand}</span>
-        <span className={s.brandMeta}>{c.brandMeta}</span>
+        <img className={s.brandMark} src="/brand/mark-sm.webp" alt="" width={34} height={31} decoding="async" />
+        <span className={s.brandText}>
+          <span className={s.brandName}>{c.brand}</span>
+          <span className={s.brandMeta}>{c.brandMeta}</span>
+        </span>
       </a>
 
       <nav className={s.links} aria-label={c.brand}>

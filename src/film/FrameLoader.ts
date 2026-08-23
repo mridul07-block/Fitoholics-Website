@@ -366,6 +366,14 @@ export function budgetForTier(tier: TierSpec): number {
   const frameBytes = tier.width * tier.height * 4
   if (tier.id === 'sm') return 44 * frameBytes // ~72 MB
   if (tier.id === 'lg') return 40 * frameBytes // ~147 MB
+  // Portrait frames are far bigger than the 854x480 crop phones used to get,
+  // and a decoded frame's bytes come straight out of this budget, so the
+  // resident window has to be sized from the requirement rather than picked.
+  // maxWindow below is (budget / frameBytes) - LOOKBEHIND - 4, and it must
+  // still reach LOOKAHEAD_BASE or the prefetcher and the evictor chase each
+  // other and every frame decodes twice.
+  if (tier.id === 'pv') return 23 * frameBytes // 4.67 MB/frame -> ~110 MB, window 14
+  if (tier.id === 'pvs') return 28 * frameBytes // 2.50 MB/frame -> ~70 MB, window 19
   // xl: holding all 300 decoded would be 2.5 GB; 30 frames ≈ 249 MB
   return 30 * frameBytes
 }

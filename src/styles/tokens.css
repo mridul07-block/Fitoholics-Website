@@ -147,10 +147,40 @@
   --measure: 62ch;
   --grid-gutter: 1.5rem;
 
+  /* ---------- SURFACE ----------
+     The instrument language. Ikram's pitch is "measured, not guessed", so the
+     objects inside the content are built like measuring devices rather than
+     cards: hairline edges, corner ticks, an index on every surface.
+
+     Content surfaces stay sharp and flat; the chrome that floats over the film
+     (the masthead, the footer) is glass. The split is deliberate — an
+     instrument reads as an instrument because it is not a pane, and a pane
+     over moving footage reads as a pane because it is not an instrument.
+
+     No backdrop-filter on these. Blurring a live backdrop over a scrubbing
+     canvas measured at about half the whole frame budget, so a slightly denser
+     flat surface does the same job for free; see the GLASS block for where
+     that cost is affordable and why. */
+  --surface:        rgba(var(--char-rgb), .82);
+  --surface-raised: rgba(var(--char-rgb), .92);
+  --hairline:       rgba(var(--bone-rgb), .12);
+  --hairline-warm:  rgba(var(--ember-rgb), .42);
+
+  /* corner ticks: the mark that says "instrument" rather than "card" */
+  --tick-len:  10px;
+  --tick-week: 1px;
+
+  /* hover: surfaces lift by this much and gain a ramp edge. Transform only. */
+  --lift: 3px;
+
+  /* ---------- THE MEASURE RAIL ---------- */
+  --rail-inset: clamp(10px, 1.6vw, 26px);
+  --rail-width: 26px;
+
   /* ---------- SHAPE ----------
-     Everything used to be hard cornered. A small consistent radius on the
-     things a hand touches (buttons, cards, the chrome) reads as considered
-     rather than as a wireframe; rules and hairlines stay sharp. */
+     Radius belongs to the things a hand touches — buttons and the chrome
+     panes. The instrument surfaces above stay square, and rules, hairlines and
+     ticks are never rounded. */
   --r-1: 4px;
   --r-2: 8px;
   --r-3: 14px;
@@ -159,9 +189,9 @@
      The chrome is a pane of the room's light rather than a painted bar.
      Blur radius stays modest on purpose: backdrop-filter re-rasterises its
      backdrop every frame, and the backdrop here is a scrubbing film canvas
-     (see the note on .card in stations.module.css — full viewport blur cost
-     roughly half the frame budget). The nav is ~64px tall and the footer sits
-     over a film that has already stopped, so both stay cheap. */
+     (see the SURFACE note above — full viewport blur cost roughly half the
+     frame budget). The nav is ~64px tall and the footer sits over a film that
+     has already stopped, so both stay cheap. Nothing else on the page blurs. */
   --glass-bg: rgba(var(--bone-rgb), .045);
   --glass-bg-dense: rgba(var(--void-rgb), .58);
   --glass-border: rgba(var(--bone-rgb), .13);

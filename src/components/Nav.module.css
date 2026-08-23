@@ -65,10 +65,25 @@
   box-shadow: 0 14px 44px rgba(var(--void-rgb), .55);
 }
 
+/* The maker's mark and the name, together. The mark used to be fixed to this
+   corner on its own (components/BrandMark.tsx); with a masthead here that was
+   two brand statements stacked on one another, so the mark moved inside. */
 .brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-right: auto;
+}
+
+.brandMark {
+  width: 30px;
+  height: auto;
+  opacity: .92;
+}
+
+.brandText {
   display: grid;
   gap: 1px;
-  margin-right: auto;
 }
 
 .brandName {
