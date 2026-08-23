@@ -813,15 +813,9 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The frame the steps travel through.
-   The two layers tile: one leaves upward as the next follows it in from below
-   (stations.tsx), so the stage has to clip or both would be readable outside
-   their turn. This is also what lets the handover be pure transform — nothing
-   has to be faded out to hide it. */
 .protoStage {
   position: relative;
   min-height: 16rem;
-  overflow: hidden;
 }
 
 /* Top anchored, with the title's space reserved for two lines. Centring here
@@ -925,12 +919,8 @@
   .protoBody {
     min-height: 0;
   }
-  /* The stage clips now, so this is no longer just breathing room — it is the
-     floor under the tallest step. Deep Assessment's body runs to 222px at
-     360px wide, and anything shorter than that would cut the last line off.
-     Still well under the 20rem the cascade used to hand phones by accident. */
   .protoStage {
-    min-height: 16rem;
+    min-height: 13rem;
   }
   .protoNumeral {
     font-size: 4.2rem;
