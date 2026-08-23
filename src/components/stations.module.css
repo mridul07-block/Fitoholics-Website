@@ -168,10 +168,25 @@
   position: relative;
   background-color: var(--surface);
   border: 1px solid var(--hairline);
+  box-shadow: var(--glass-ring);
   transition:
     transform var(--d-hover) var(--e-out),
     border-color var(--d-hover) var(--e-out),
-    background-color var(--d-hover) var(--e-out);
+    background-color 260ms var(--e-out);
+}
+
+/* Glass, paid for only when it can be seen.
+   A blurred backdrop over a scrubbing film is the single most expensive thing
+   this page can do (docs/SCROLL_SMOOTHNESS.md: p95 36ms -> 70ms). It is also
+   worth nothing while the page is moving, because nobody reads a card in
+   flight. So the surfaces become glass the moment the film settles and go flat
+   again as soon as it moves; the tint crossfades, and the blur itself switches
+   under motion, where the change cannot be seen. motion/stillness.ts owns the
+   flag. */
+:global(html[data-motion='still']) .surface {
+  background-color: var(--surface-glass);
+  -webkit-backdrop-filter: var(--surface-blur);
+  backdrop-filter: var(--surface-blur);
 }
 
 /* The corner ticks. Two L brackets at opposing corners, which is the whole
@@ -977,10 +992,12 @@
   /* The ramp hairline along the top edge, painted by the element's own
      background rather than a pseudo element, because ::before and ::after now
      belong to the surface's corner ticks. */
-  background-image: var(--ramp-h);
-  background-repeat: no-repeat;
-  background-size: 100% 1px;
-  background-position: 0 0;
+  background-image:
+    var(--ramp-h),
+    linear-gradient(180deg, rgba(var(--bone-rgb), .08) 0%, rgba(var(--bone-rgb), 0) 42%);
+  background-repeat: no-repeat, no-repeat;
+  background-size: 100% 1px, 100% 100%;
+  background-position: 0 0, 0 0;
   /* tilt is written per pointer move; the surface transition would fight it */
   transform-style: preserve-3d;
 }

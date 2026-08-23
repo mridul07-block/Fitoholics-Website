@@ -8,12 +8,12 @@
   z-index: var(--z-content);
   background: linear-gradient(
     180deg,
-    rgba(var(--void-rgb), .72) 0%,
-    rgba(var(--void-rgb), .92) 55%,
-    rgba(var(--void-rgb), .97) 100%
+    rgba(var(--void-rgb), .58) 0%,
+    rgba(var(--void-rgb), .86) 55%,
+    rgba(var(--void-rgb), .95) 100%
   );
-  -webkit-backdrop-filter: blur(26px) saturate(1.25);
-  backdrop-filter: blur(26px) saturate(1.25);
+  -webkit-backdrop-filter: blur(30px) saturate(1.45);
+  backdrop-filter: blur(30px) saturate(1.45);
   border-top: 1px solid var(--glass-border);
   padding: var(--s-9) var(--page-margin) var(--s-6);
 }

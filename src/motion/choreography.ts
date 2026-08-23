@@ -124,7 +124,7 @@ export function initChoreography(): void {
 
   // ---------------------------------------------------------------
   // Z travel (§7.7) — panels move through a real perspective context.
-  // Enter from depth, rest >= 45% of range, exit TOWARD the camera.
+  // Enter from depth, rest >= 70% of range, exit TOWARD the camera.
   // Station 1 (entrance owns it) and station 4 (pinned) are excluded.
   // ---------------------------------------------------------------
   // No filter: blur() on the travelling panels. Animating a blur re-rasterises
@@ -153,13 +153,25 @@ export function initChoreography(): void {
       },
       defaults: { ease: 'none' },
     })
+    // Proportions are the reading budget. The panel used to travel 620px of
+    // depth and hold legible for 55% of its window; at perspective 1400 that
+    // is the copy scaling from 0.69 to 1.32 while someone is trying to read
+    // it, and the exit fade started before the section did. Depth is now a
+    // quarter of what it was and the still, fully opaque middle is 72% of the
+    // section, so the copy arrives, holds long enough to be read at a constant
+    // size, and only then leaves.
+    //
+    // The eases matter as much as the numbers: on a scrub, `none` means the
+    // fade tracks the wheel linearly and the copy spends the whole entrance
+    // half visible. power2.out brings it to full opacity early and holds it
+    // there; power2.in keeps it solid until it is genuinely on its way out.
     tl.fromTo(
       panel,
-      { z: -620, rotationX: 7, autoAlpha: 0 },
-      { z: 0, rotationX: 0, autoAlpha: 1, duration: 0.22 },
+      { z: -260, rotationX: 4, autoAlpha: 0 },
+      { z: 0, rotationX: 0, autoAlpha: 1, duration: 0.14, ease: 'power2.out' },
     )
-      .to(panel, { z: 0, duration: 0.55 })
-      .to(panel, { z: 340, rotationX: -5, autoAlpha: 0, duration: 0.23 })
+      .to(panel, { z: 0, duration: 0.72 })
+      .to(panel, { z: 150, rotationX: -3, autoAlpha: 0, duration: 0.14, ease: 'power2.in' })
   }
 
   // ---------------------------------------------------------------

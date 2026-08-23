@@ -163,6 +163,10 @@
      that cost is affordable and why. */
   --surface:        rgba(var(--char-rgb), .82);
   --surface-raised: rgba(var(--char-rgb), .92);
+  /* what a surface becomes once the film has settled and the blur is
+     affordable — see motion/stillness.ts */
+  --surface-glass:  rgba(var(--char-rgb), .5);
+  --surface-blur:   blur(16px) saturate(1.3);
   --hairline:       rgba(var(--bone-rgb), .12);
   --hairline-warm:  rgba(var(--ember-rgb), .42);
 
@@ -192,12 +196,16 @@
      (see the SURFACE note above — full viewport blur cost roughly half the
      frame budget). The nav is ~64px tall and the footer sits over a film that
      has already stopped, so both stay cheap. Nothing else on the page blurs. */
-  --glass-bg: rgba(var(--bone-rgb), .045);
-  --glass-bg-dense: rgba(var(--void-rgb), .58);
-  --glass-border: rgba(var(--bone-rgb), .13);
-  --glass-highlight: rgba(var(--bone-rgb), .16);
-  --glass-blur: blur(18px) saturate(1.35);
+  --glass-bg: rgba(var(--bone-rgb), .05);
+  --glass-bg-dense: rgba(var(--void-rgb), .42);
+  --glass-border: rgba(var(--bone-rgb), .15);
+  --glass-highlight: rgba(var(--bone-rgb), .22);
+  --glass-blur: blur(24px) saturate(1.5);
   --glass-shadow: 0 10px 40px rgba(var(--void-rgb), .45);
+  /* the inner ring that makes a pane read as thick rather than as a tint */
+  --glass-ring:
+    inset 0 1px 0 rgba(var(--bone-rgb), .14),
+    inset 0 -1px 0 rgba(var(--void-rgb), .35);
 
   /* ---------- MOTION ---------- */
   --e-out: cubic-bezier(.22, 1, .36, 1);

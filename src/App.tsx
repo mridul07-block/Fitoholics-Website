@@ -3,6 +3,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from './content/copy'
 import { initChoreography } from './motion/choreography'
 import { initA11yNav } from './motion/a11y'
+import { initStillness } from './motion/stillness'
 import { initGate } from './motion/gate'
 import { initSpine } from './film/useMasterProgress'
 import { SECTIONS, TOTAL_VH } from './film/beats'
@@ -81,6 +82,9 @@ export function App() {
     initSpine()
     ScrollTrigger.refresh()
     initA11yNav()
+    // publishes data-motion, which is what lets the glass surfaces blur only
+    // while the film is settled (see motion/stillness.ts)
+    initStillness()
 
     // The gate takes over its own markup immediately — it has been painting
     // since the first frame and needs to start reporting real progress, not

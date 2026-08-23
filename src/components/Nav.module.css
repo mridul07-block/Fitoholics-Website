@@ -33,7 +33,7 @@
   border: 1px solid var(--glass-border);
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
-  box-shadow: var(--glass-shadow);
+  box-shadow: var(--glass-shadow), var(--glass-ring);
   transition:
     background-color 420ms var(--e-out),
     border-color 420ms var(--e-out),
@@ -59,10 +59,12 @@
 
 /* Once the page has moved, the pane densifies so type stays legible over
    whatever the film happens to be showing. */
+/* Denser, not opaque: the film should still be legible through the pane, which
+   is the whole point of it being glass rather than a bar. */
 .bar[data-plated] {
   background: var(--glass-bg-dense);
-  border-color: rgba(var(--bone-rgb), .09);
-  box-shadow: 0 14px 44px rgba(var(--void-rgb), .55);
+  border-color: rgba(var(--bone-rgb), .16);
+  box-shadow: 0 14px 44px rgba(var(--void-rgb), .5), var(--glass-ring);
 }
 
 /* The maker's mark and the name, together. The mark used to be fixed to this
