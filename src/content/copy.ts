@@ -210,13 +210,14 @@ export const COPY = {
       { label: 'Book a consultation', href: '#booking' },
     ],
     contactLabel: 'CONTACT',
-    // Reserved and non routable on purpose. example.com cannot belong to
-    // anyone, and the number cannot dial, so a visitor who tries these reaches
-    // nothing rather than reaching a stranger.
+    // The phone number is Ikram's real one and dials. Email and instagram are
+    // still reserved and non routable on purpose: example.com cannot belong to
+    // anyone and the handle is a stand in, so a visitor who tries either
+    // reaches nothing rather than reaching a stranger.
     contact: {
       email: 'hello@example.com',
       instagram: '@yourhandle',
-      phone: '+91 00000 00000',
+      phone: '+91 97387 20404',
     },
     copyright: '© 2026 Ikram Ansari. All rights reserved.',
   },
