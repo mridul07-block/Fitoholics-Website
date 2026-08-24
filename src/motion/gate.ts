@@ -35,8 +35,13 @@ export function initGate(): Promise<void> {
 
   const lit = gate.querySelector<HTMLElement>('.gateLit')
   const fill = gate.querySelector<HTMLElement>('.gateFill')
+  const bar = gate.querySelector<HTMLElement>('.gateBar')
   const tag = gate.querySelector<HTMLElement>('.gateTag')
+  const num = gate.querySelector<HTMLElement>('.gateNum')
+  const readout = gate.querySelector<HTMLElement>('.gateReadout')
+  const glow = gate.querySelector<HTMLElement>('.gateGlow')
   const corners = Array.from(gate.querySelectorAll<HTMLElement>('.gateCorner'))
+  const shutters = Array.from(gate.querySelectorAll<HTMLElement>('.gateShutter'))
   const stage = gate.querySelector<HTMLElement>('.gateStage')
   const t0 = performance.now()
   const soft = !reduced()
@@ -48,6 +53,21 @@ export function initGate(): Promise<void> {
       { opacity: 0, scale: 0.6 },
       { opacity: 1, scale: 1, duration: 0.7, ease: 'power2.out', stagger: 0.06, delay: 0.1 },
     )
+  }
+
+  // The readout waits for a figure worth showing. On a slow connection the
+  // loader reports nothing until the first frames decode, and a counter parked
+  // on 0 for several seconds reads as broken — worse than no counter at all.
+  // The figure, the embers and the shine carry that wait instead.
+  let readoutShown = false
+  const showReadout = () => {
+    if (readoutShown || !readout) return
+    readoutShown = true
+    if (!soft) {
+      readout.style.opacity = '1'
+      return
+    }
+    gsap.fromTo(readout, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
   }
 
   return new Promise<void>((resolve) => {
@@ -65,11 +85,23 @@ export function initGate(): Promise<void> {
         ease: 'power2.out',
         overwrite: true,
         onUpdate: () => {
+          const v = shown.p
           if (lit) {
             lit.style.opacity = '1'
-            lit.style.setProperty('--p', shown.p.toFixed(4))
+            lit.style.setProperty('--p', v.toFixed(4))
           }
-          if (fill) fill.style.transform = `scaleX(${shown.p.toFixed(4)})`
+          if (fill) fill.style.transform = `scaleX(${v.toFixed(4)})`
+          // the bloom rides the leading edge of the fill
+          if (bar) bar.style.setProperty('--p', v.toFixed(4))
+          if (num) num.textContent = String(Math.round(v * 100))
+          // The room lights as the film lands: the figure is being lit by
+          // something, and this is the something. It starts at a low ember
+          // rather than at nothing, so the opening frame is a figure standing
+          // in a pool of light instead of a silhouette in a void.
+          if (glow) {
+            glow.style.opacity = (0.14 + v * 0.76).toFixed(3)
+            glow.style.transform = `scale(${(0.72 + v * 0.28).toFixed(3)})`
+          }
         },
       })
       if (tag && p > 0.45 && soft) {
@@ -110,15 +142,21 @@ export function initGate(): Promise<void> {
             if (fill) fill.style.transform = `scaleX(${shown.p.toFixed(4)})`
           },
         })
-        .to(stage, { scale: 1.04, duration: 0.5, ease: 'power2.out' }, '<')
+        // one bloom as the figure completes, the light it has been gathering
+        .to(glow, { opacity: 1, scale: 1.18, duration: 0.45, ease: 'power2.out' }, '<')
+        .to(stage, { scale: 1.05, duration: 0.55, ease: 'power2.out' }, '<')
         .to(corners, { opacity: 0, scale: 1.35, duration: 0.5, ease: 'power2.in', stagger: 0.03 }, '<0.1')
-        .to([stage], { opacity: 0, duration: 0.45, ease: 'power2.in' }, '>-0.28')
-        // the ground lifts away rather than fading, so the film is revealed
-        // rather than cross dissolved into
-        .to(gate, { yPercent: -100, duration: 0.75, ease: 'power3.inOut' }, '>-0.15')
+        .to([stage, glow], { opacity: 0, duration: 0.42, ease: 'power2.in' }, '>-0.3')
+        // The ground parts rather than fading: two shutters leave through the
+        // top and bottom edges and the film is behind them, already running.
+        // A cross dissolve would show the film through a grey sheet; this
+        // shows it through nothing.
+        .to(shutters[0]!, { yPercent: -101, duration: 0.85, ease: 'power3.inOut' }, '>-0.12')
+        .to(shutters[1]!, { yPercent: 101, duration: 0.85, ease: 'power3.inOut' }, '<')
     }
 
     const off = onLoad((s) => {
+      if (s.progress > 0.005) showReadout()
       applyProgress(s.progress)
       if (s.ready) {
         off()

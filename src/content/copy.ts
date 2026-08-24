@@ -210,14 +210,27 @@ export const COPY = {
       { label: 'Book a consultation', href: '#booking' },
     ],
     contactLabel: 'CONTACT',
-    // The phone number is Ikram's real one and dials. Email and instagram are
-    // still reserved and non routable on purpose: example.com cannot belong to
-    // anyone and the handle is a stand in, so a visitor who tries either
-    // reaches nothing rather than reaching a stranger.
+    // The phone number is Ikram's real one and dials. The email is still
+    // reserved and non routable on purpose: example.com cannot belong to
+    // anyone, so a visitor who tries it reaches nothing rather than reaching a
+    // stranger.
     contact: {
       email: 'hello@example.com',
-      instagram: '@yourhandle',
       phone: '+91 97387 20404',
+    },
+    followLabel: 'FOLLOW',
+    // Two accounts, because they are two different things: the coach and the
+    // business. Both are live.
+    social: [
+      { label: '@iamikramansari', href: 'https://www.instagram.com/iamikramansari/' },
+      { label: '@fitoholix.in', href: 'https://www.instagram.com/fitoholix.in/' },
+    ],
+    // The agency credit, stated once beside the copyright where a credit
+    // belongs, rather than competing with the client's own contact details.
+    credit: {
+      prefix: 'Marketing by',
+      name: 'Orange Production',
+      href: 'https://orangeproduction.co.in/',
     },
     copyright: '© 2026 Ikram Ansari. All rights reserved.',
   },
