@@ -141,7 +141,14 @@ export function Nav() {
         ))}
       </nav>
 
-      <a className={s.cta} href="#booking" data-magnetic="">
+      <a
+        className={s.cta}
+        href={COPY.booking.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={COPY.booking.a11y}
+        data-magnetic=""
+      >
         {c.cta}
       </a>
 
@@ -163,7 +170,14 @@ export function Nav() {
             {l.label}
           </a>
         ))}
-        <a className={s.panelCta} href="#booking" onClick={() => setOpen(false)}>
+        <a
+          className={s.panelCta}
+          href={COPY.booking.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={COPY.booking.a11y}
+          onClick={() => setOpen(false)}
+        >
           {c.cta}
         </a>
       </div>

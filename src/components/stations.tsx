@@ -38,7 +38,14 @@ export function Entrance() {
             {c.lead}
           </p>
           <div className={s.actions} data-s1-actions="">
-            <a className={s.ctaPrimary} href="#booking" data-magnetic="">
+            <a
+              className={s.ctaPrimary}
+              href={COPY.booking.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={COPY.booking.a11y}
+              data-magnetic=""
+            >
               {c.cta1}
             </a>
             <a className={s.ctaSecondary} href="#protocol">
@@ -484,7 +491,15 @@ export function Close() {
           <p className={s.eyebrow}>{c.eyebrow}</p>
           <h2 className={clsx(s.hero, s.heroClose)}>{c.hero}</h2>
           <p className={s.lead}>{c.lead}</p>
-          <a className={s.closeCta} href="#booking" id="booking-action" data-magnetic="">
+          <a
+            className={s.closeCta}
+            href={COPY.booking.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={COPY.booking.a11y}
+            id="booking-action"
+            data-magnetic=""
+          >
             {c.cta}
           </a>
           <p className={s.closeNote}>{c.note}</p>

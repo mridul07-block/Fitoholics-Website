@@ -5,7 +5,38 @@
  * tools/check-placeholders.mjs blocks production builds while any remain.
  */
 
+/**
+ * Where every "Book a consultation" on the page goes.
+ *
+ * A WhatsApp chat rather than a form or a scroll to the closing section: the
+ * consultation is a conversation, and this is the line Ikram actually answers.
+ * Declared once, above COPY, so the masthead, the hero, the close and the
+ * footer cannot drift apart — and so the footer's own links array can point at
+ * it without an object having to reference itself while it is being built.
+ *
+ * wa.me wants the number in E.164 with no plus, spaces or dashes. It is the
+ * same line as footer.contact.phone — change both together.
+ *
+ * The prefilled message is a courtesy: the chat opens with the reason for
+ * writing already typed, so the visitor is not left facing an empty box and
+ * Ikram can tell where the message came from. It is editable before sending.
+ */
+const BOOKING_HREF = `https://wa.me/919738720404?text=${encodeURIComponent(
+  "Hi Ikram, I'd like to book a consultation.",
+)}`
+
 export const COPY = {
+  booking: {
+    href: BOOKING_HREF,
+    /**
+     * The accessible name. The link opens WhatsApp in a new tab, which a
+     * sighted visitor infers from context and a screen reader user cannot — so
+     * it is said. It still begins with the visible label, as WCAG 2.5.3 (Label
+     * in Name) requires.
+     */
+    a11y: 'Book a consultation on WhatsApp (opens in a new tab)',
+  },
+
   entrance: {
     eyebrow: 'TRANSFORMATION COACH · TEN PLUS YEARS',
     heroLines: [
@@ -207,7 +238,8 @@ export const COPY = {
       { label: 'Nutrition', href: '#nutrition' },
       { label: 'Who it is for', href: '#fit' },
       { label: 'Results', href: '#proof' },
-      { label: 'Book a consultation', href: '#booking' },
+      // the one outbound entry in this column; SiteFooter marks it up as external
+      { label: 'Book a consultation', href: BOOKING_HREF },
     ],
     contactLabel: 'CONTACT',
     // Both are Ikram's real details and both reach him: the number dials and

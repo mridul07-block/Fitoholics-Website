@@ -29,11 +29,26 @@ export function SiteFooter() {
 
         <nav className={s.column} aria-label={f.linksLabel} data-footer-col="">
           <span className={s.label}>{f.linksLabel}</span>
-          {f.links.map((l) => (
-            <a key={l.href} className={s.link} href={l.href}>
-              {l.label}
-            </a>
-          ))}
+          {f.links.map((l) => {
+            // Every entry here is an in-page section except the last, which
+            // books the consultation and so leaves for WhatsApp like the
+            // social links below.
+            const external = !l.href.startsWith('#')
+            return (
+              <a
+                key={l.href}
+                className={s.link}
+                href={l.href}
+                {...(external && {
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+                  'aria-label': COPY.booking.a11y,
+                })}
+              >
+                {l.label}
+              </a>
+            )
+          })}
         </nav>
 
         <div className={s.column} data-footer-col="">
