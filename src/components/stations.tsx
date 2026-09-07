@@ -466,7 +466,13 @@ export function Proof() {
               entries share it, which the placeholder rows do by design */}
           {c.testimonials.map((t, i) => (
             <figure key={i} className={s.card} data-card="" data-tilt="">
-              <blockquote className={s.cardQuote} data-placeholder="">
+              {/* Dimmed while the row is still marked draft, so an invented
+                  quote never presents itself with the confidence of a real
+                  one. Drops away on its own when the flag is deleted. */}
+              <blockquote
+                className={s.cardQuote}
+                data-placeholder={'draft' in t && t.draft ? '' : undefined}
+              >
                 {t.quote}
               </blockquote>
               <div className={s.cardRule} aria-hidden="true" />

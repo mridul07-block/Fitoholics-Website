@@ -125,13 +125,36 @@ a.link:hover {
   border-top: 1px solid rgba(var(--bone-rgb), .07);
 }
 
+/* The two credits sit together at the far end of the baseline, and wrap as a
+   pair rather than one of them dropping alone onto its own line. The row gap
+   is smaller than the column gap so a wrapped pair reads as one block. */
+.credits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-5);
+}
+
+/* The one link in the small print, so it has to look like one.
+   Brighter than the stone it sits in rather than accent coloured: ember on
+   this ground is about 2.6:1 and would make the link harder to read than the
+   words around it, which is the opposite of pointing at it. The ramp does the
+   pointing from the underline, where its contrast does not have to carry the
+   text. */
 .credit {
-  color: rgba(var(--bone-rgb), .62);
-  transition: color var(--d-hover) var(--e-out);
+  color: var(--bone);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(var(--ember-rgb), .8);
+  text-underline-offset: 3px;
+  transition:
+    color var(--d-hover) var(--e-out),
+    text-decoration-color var(--d-hover) var(--e-out);
 }
 
 a.credit:hover {
-  color: var(--ember);
+  color: var(--flare);
+  text-decoration-color: var(--flare);
 }
 
 @media (max-width: 1100px) {

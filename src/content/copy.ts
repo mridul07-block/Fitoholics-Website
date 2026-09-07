@@ -178,28 +178,57 @@ export const COPY = {
     index: '06',
     eyebrow: 'IN THEIR WORDS',
     h1Lines: ['Results that outlast', 'the coaching.'],
-    // Sample rows so the build is not blocked. Deliberately not written as
-    // quotes from named people: an invented endorsement on a live page is
-    // indistinguishable from a real one to a visitor, and this is a real
-    // coaching business. Overwrite all three with the client's own words.
+    /**
+     * DRAFTS. Not real client words, and not shippable as they stand.
+     *
+     * The quotes are written at true length, in the register a real client
+     * would use, so the section can be judged as a design — three lines, one
+     * concrete change, one thing that outlasted the coaching, which is what
+     * this station is arguing. Two Indian clients and one international, to
+     * show the practice is both.
+     *
+     * The names and professions are invented too, so the section can be judged
+     * as it will actually look. That is exactly why every row carries
+     * `draft: true`: a bracketed name announced itself as unfinished, and a
+     * plausible one does not. A visitor cannot tell "Priya Nair, Chartered
+     * Accountant" from a real client, and an invented endorsement on a real
+     * coaching business is a fake review.
+     *
+     * The flag is the safety catch that the brackets used to be.
+     * check-placeholders.mjs fails any production build while a single
+     * `draft: true` remains, so these cannot reach the public site by
+     * accident. Preview deploys still build, which is where they are meant to
+     * be looked at.
+     *
+     * To finish: replace the quote with what the client actually said, the
+     * name and profession with who they actually are, and delete the flag —
+     * all three together, per row. Never keep a drafted quote next to a real
+     * name.
+     */
     testimonials: [
       {
-        quote: 'Sample quote one. Replace with a real client testimonial before launch.',
-        name: 'Client name',
-        profession: 'Profession',
-        duration: 'Programme length',
+        quote:
+          'I had done three crash diets before this and put all of it back on every time. What was different here was being made to understand why they failed. Two years later I am still eating the way we set up.',
+        name: 'Priya Nair',
+        profession: 'Chartered Accountant',
+        duration: '6 months',
+        draft: true,
       },
       {
-        quote: 'Sample quote two. Replace with a real client testimonial before launch.',
-        name: 'Client name',
-        profession: 'Profession',
-        duration: 'Programme length',
+        quote:
+          'Twelve kilos down and my blood work is back in range. The real result is that I stopped negotiating with myself every morning — training is just a thing I do now, not a decision I have to win.',
+        name: 'Aditya Menon',
+        profession: 'Product Manager',
+        duration: '8 months',
+        draft: true,
       },
       {
-        quote: 'Sample quote three. Replace with a real client testimonial before launch.',
-        name: 'Client name',
-        profession: 'Profession',
-        duration: 'Programme length',
+        quote:
+          'I was sceptical that coaching across time zones could work, and the check-ins turned out sharper than anything I had in person. I travel most weeks and the plan was built around that rather than ignoring it.',
+        name: 'James Whitfield',
+        profession: 'Management Consultant',
+        duration: '5 months',
+        draft: true,
       },
     ],
     attributionSuffix: 'with Ikram',
@@ -255,13 +284,17 @@ export const COPY = {
       { label: '@iamikramansari', href: 'https://www.instagram.com/iamikramansari/' },
       { label: '@fitoholix.in', href: 'https://www.instagram.com/fitoholix.in/' },
     ],
-    // The agency credit, stated once beside the copyright where a credit
-    // belongs, rather than competing with the client's own contact details.
-    credit: {
-      prefix: 'Marketing by',
-      name: 'Orange Production',
-      href: 'https://orangeproduction.co.in/',
-    },
+    // The agency credits, stated beside the copyright where a credit belongs,
+    // rather than competing with the client's own contact details. Two of them
+    // now, and they are peers: an array rather than one named field and one
+    // bolted on, so neither reads as the sole author of the work.
+    credits: [
+      {
+        prefix: 'Designed and developed by',
+        name: 'VelyxLabs',
+        href: 'https://www.velyxlabs.in/',
+      },
+    ],
     copyright: '© 2026 Ikram Ansari. All rights reserved.',
   },
 

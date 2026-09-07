@@ -79,11 +79,15 @@ export function SiteFooter() {
 
       <div className={s.baseline} data-footer-col="">
         <span className={s.meta}>{f.copyright}</span>
-        <span className={s.meta}>
-          {f.credit.prefix}{' '}
-          <a className={s.credit} href={f.credit.href} target="_blank" rel="noopener noreferrer">
-            {f.credit.name}
-          </a>
+        <span className={s.credits}>
+          {f.credits.map((c) => (
+            <span key={c.href} className={s.meta}>
+              {c.prefix}{' '}
+              <a className={s.credit} href={c.href} target="_blank" rel="noopener noreferrer">
+                {c.name}
+              </a>
+            </span>
+          ))}
         </span>
       </div>
     </footer>

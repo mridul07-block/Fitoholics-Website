@@ -4,6 +4,14 @@
  * Blocks a PRODUCTION build while any "[" placeholder remains in testimonial
  * data, so a bracketed testimonial can never ship to the live site by accident.
  *
+ * It also blocks on `draft: true`, which is the more important of the two.
+ * A bracketed "[CLIENT NAME 1]" announces itself as unfinished to anyone who
+ * sees it; a drafted testimonial is written to look exactly like a real one so
+ * the section can be judged as it will actually appear, and nothing about it
+ * warns a visitor — or a person running a deploy — that the client does not
+ * exist. An invented endorsement on a real business is a fake review, so the
+ * rows carry an explicit flag and the flag is what stops them shipping.
+ *
  * Preview and staging deploys are a different case: the point of a preview is
  * to look at work in progress, and a visible "[TESTIMONIAL 1 QUOTE]" is honest
  * about being unfinished in a way an invented quote never would be. So the
@@ -52,6 +60,11 @@ for (const [label, re] of guarded) {
   // find bracketed placeholders inside the region
   const brackets = m[0].match(/\[[A-Z][A-Z0-9 ]*\d?\]/g)
   if (brackets) offenders.push(`${label}: ${[...new Set(brackets)].join(', ')}`)
+  // ...and rows explicitly marked as invented, which by design look real
+  const drafts = m[0].match(/draft:\s*true/g)
+  if (drafts) {
+    offenders.push(`${label}: ${drafts.length} row${drafts.length === 1 ? '' : 's'} still marked draft: true`)
+  }
 }
 
 if (offenders.length) {
@@ -63,7 +76,8 @@ if (offenders.length) {
   )
   for (const o of offenders) log('  · ' + o)
   log(
-    '\nReplace the bracketed values in src/content/copy.ts with real client data.' +
+    '\nReplace the bracketed and drafted values in src/content/copy.ts with real' +
+      '\nclient data, and delete the draft flag on each row you finish.' +
       '\n(Never invent testimonials — real values only.)' +
       (warnOnly
         ? '\n'
