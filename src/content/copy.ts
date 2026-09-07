@@ -210,12 +210,10 @@ export const COPY = {
       { label: 'Book a consultation', href: '#booking' },
     ],
     contactLabel: 'CONTACT',
-    // The phone number is Ikram's real one and dials. The email is still
-    // reserved and non routable on purpose: example.com cannot belong to
-    // anyone, so a visitor who tries it reaches nothing rather than reaching a
-    // stranger.
+    // Both are Ikram's real details and both reach him: the number dials and
+    // the address receives.
     contact: {
-      email: 'hello@example.com',
+      email: 'ikramansari@gmail.com',
       phone: '+91 97387 20404',
     },
     followLabel: 'FOLLOW',
