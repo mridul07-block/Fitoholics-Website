@@ -6,9 +6,9 @@ import { initA11yNav } from './motion/a11y'
 import { initStillness } from './motion/stillness'
 import { initGate } from './motion/gate'
 import { initSpine } from './film/useMasterProgress'
+import { initDaylight } from './film/daylight'
 import { SECTIONS, TOTAL_VH } from './film/beats'
 import { FilmLayer } from './film/FilmLayer'
-import { MeasureRail } from './components/MeasureRail'
 import { Nav } from './components/Nav'
 import { SiteFooter } from './components/SiteFooter'
 import { Entrance, Problem, Positioning, Protocol, TableStation, Fit, Proof, Close } from './components/stations'
@@ -85,6 +85,9 @@ export function App() {
     // publishes data-motion, which is what lets the glass surfaces blur only
     // while the film is settled (see motion/stillness.ts)
     initStillness()
+    // writes the palette down the page: night lifting to pre-dawn, then paper
+    // from the cut into the proof (see film/daylight.ts)
+    initDaylight()
 
     // The gate takes over its own markup immediately — it has been painting
     // since the first frame and needs to start reporting real progress, not
@@ -138,12 +141,6 @@ export function App() {
       </main>
 
       <SiteFooter />
-
-      {/* L3 · CHROME — the signature rail down the right edge. The maker's
-          mark used to be fixed to the opposite corner; the masthead occupies
-          that corner now and carries the mark itself, so there is one brand
-          statement up there rather than two overlapping ones. */}
-      <MeasureRail />
     </>
   )
 }

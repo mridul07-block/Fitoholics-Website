@@ -26,6 +26,9 @@ uniform float uCut;
 // where the crop centres horizontally in texture space; matters on narrow
 // viewports, where only part of the frame's width is visible
 uniform float uFocal;
+// 0..1 night to morning across the whole page (see daylight.ts). The page
+// stays one page; this is how much light is in the room, not which theme.
+uniform float uDaylight;
 
 in vec2 vUv;
 out vec4 outColor;
@@ -174,7 +177,11 @@ void main() {
   // through, so the page and the footage share one colour field.
   float vy = smoothstep(0.0, 1.0, vUv.y);
   vec3 ground = mix(uAtmTop, uAtmBottom, vy);
-  col += ground * 1.35;
+  // Additive at night, screen once the air is bright: screen lifts the blacks
+  // to the ground and leaves white at white, so a daylit plate cannot blow out.
+  float airK = smoothstep(0.25, 0.85, uDaylight);
+  vec3 air = ground * mix(1.35, 1.0, airK);
+  col = mix(col + air, 1.0 - (1.0 - col) * (1.0 - air), airK);
 
   // ember bloom rising off the lower edge, strongest in the late acts
   float bloom = smoothstep(1.0, 0.1, vUv.y) * uGlow;
@@ -192,10 +199,13 @@ void main() {
   col += (g - 0.5) * 0.032;
 
   // EFFECT 9 · vignette, then wash. Both fall to the act ground, never to a
-  // neutral black that would sit outside the palette.
+  // neutral black that would sit outside the palette. The rust crush on that
+  // floor eases as the light rises, so the daylight shot at the end is not
+  // dragged back into a rusty shadow, and the vignette loosens with it: a
+  // morning is not ringed in shadow.
   float vig = 1.0 - smoothstep(0.45, 1.05, length(vUv - 0.5) * 1.42);
-  vec3 floorCol = mix(ground, RUST * 0.35, 0.28);
-  col = mix(floorCol, col, mix(0.44, 1.0, vig));
+  vec3 floorCol = mix(ground, RUST * 0.35, 0.28 * (1.0 - 0.6 * uDaylight));
+  col = mix(floorCol, col, mix(mix(0.44, 0.78, uDaylight), 1.0, vig));
   col = mix(floorCol, col, uWash);
 
   // beyond the frame on a zoomed out portrait viewport: the act's own ground,

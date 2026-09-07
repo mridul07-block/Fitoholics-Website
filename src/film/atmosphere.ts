@@ -7,9 +7,15 @@
  * about a third of a second: the colour cuts when the camera cuts, which is the
  * whole idea, but it lands softly enough not to strobe.
  *
+ * The act is not the only thing the field follows. daylight.ts runs a slower
+ * arc under the acts — night to morning across the whole page — and the
+ * targets settled toward here are the act's colours lifted by it, so the film
+ * brightens with the page rather than staying black under a paper ground.
+ *
  * Zero allocation on the hot path — one mutable state object, updated in place.
  */
-import { ACTS, actIndexAtFrame, rgbHex } from './beats'
+import { ACTS, actIndexAtFrame } from './beats'
+import { filmAir, filmGlow, filmGrade } from './daylight'
 import type { Rgb } from './Canvas2DRenderer'
 
 export interface AtmosphereState {
@@ -41,13 +47,16 @@ export class Atmosphere {
   }
 
   private onActChange: ((actIndex: number) => void) | null = null
+  /** settle targets: the act's air, lifted by daylight. Scratch, never allocated. */
+  private readonly tTop: [number, number, number] = [...ACTS[0]!.atmTop] as [number, number, number]
+  private readonly tBottom: [number, number, number] = [...ACTS[0]!.atmBottom] as [number, number, number]
 
   constructor(onActChange?: (actIndex: number) => void) {
     this.onActChange = onActChange ?? null
   }
 
-  /** advance toward the act at `frame`. deltaMs is the tick delta. */
-  step(frame: number, deltaMs: number): void {
+  /** advance toward the act at `frame`. deltaMs is the tick delta; daylight is 0..1, see daylight.ts */
+  step(frame: number, deltaMs: number, daylight: number): void {
     const s = this.state
     const next = actIndexAtFrame(frame)
     if (next !== s.actIndex) {
@@ -57,16 +66,18 @@ export class Atmosphere {
     }
 
     const act = ACTS[s.actIndex]!
+    filmAir(s.actIndex, daylight, this.tTop, this.tBottom)
     const dt = Math.min(deltaMs, 50) / 1000
     const k = 1 - Math.exp(-dt / SETTLE)
     for (let i = 0; i < 3; i++) {
-      s.top[i] = s.top[i]! + (act.atmTop[i]! - s.top[i]!) * k
-      s.bottom[i] = s.bottom[i]! + (act.atmBottom[i]! - s.bottom[i]!) * k
+      s.top[i] = s.top[i]! + (this.tTop[i]! - s.top[i]!) * k
+      s.bottom[i] = s.bottom[i]! + (this.tBottom[i]! - s.bottom[i]!) * k
     }
-    s.glow += (act.glow - s.glow) * k
+    s.glow += (filmGlow(s.actIndex, daylight) - s.glow) * k
     s.focalX += (act.focalX - s.focalX) * k
-    // the plate is pulled further into the ramp as the story warms
-    const gradeTarget = 0.34 + act.glow * 0.22
+    // the plate is pulled further into the ramp as the story warms, and let
+    // go again once the light is real
+    const gradeTarget = filmGrade(s.actIndex, daylight)
     s.grade += (gradeTarget - s.grade) * k
 
     if (s.cut > 0) {
@@ -85,16 +96,14 @@ export class Atmosphere {
 }
 
 /**
- * Push the act colours to the document so CSS scrims, rails and glows follow
- * the same field. Called on act change only, never per frame.
+ * Tell the document which act it is in. Called on act change only, never per
+ * frame. The colours themselves (--atm-top / --atm-bottom / --atm-glow) are
+ * written by daylight.ts, which needs the act and the daylight together.
  */
 export function publishAct(actIndex: number): void {
   const act = ACTS[actIndex]
   if (!act) return
   const root = document.documentElement
-  root.style.setProperty('--atm-top', rgbHex(act.atmTop))
-  root.style.setProperty('--atm-bottom', rgbHex(act.atmBottom))
-  root.style.setProperty('--atm-glow', String(act.glow))
   root.dataset.act = act.id
   // choreography listens for this to fire the cut rule; a DOM event keeps the
   // film engine from having to know anything about the motion layer

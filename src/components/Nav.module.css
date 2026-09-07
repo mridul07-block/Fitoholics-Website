@@ -64,7 +64,7 @@
 .bar[data-plated] {
   background: var(--glass-bg-dense);
   border-color: rgba(var(--bone-rgb), .16);
-  box-shadow: 0 14px 44px rgba(var(--void-rgb), .5), var(--glass-ring);
+  box-shadow: 0 14px 44px rgba(var(--shadow-rgb), .5), var(--glass-ring);
 }
 
 /* The maker's mark and the name, together. The mark used to be fixed to this

@@ -32,11 +32,17 @@ body {
    rasterise on every text layer, and it measured in the frame tail; the wide
    diffuse darkening it provided is the scrim's job anyway. What is left is the
    part that actually earns legibility: a mid halo to separate the glyph from
-   the plate, and a tight one for edge definition. */
+   the plate, and a tight one for edge definition.
+
+   The halo is --shadow-rgb, not --void-rgb: it must stay dark even as the
+   ground lifts. Its whole job is to separate a cream glyph from the plate, and
+   the plate is at its brightest exactly where the ground is lightest — a halo
+   that lifted with the ground would fade out at the one point it is carrying
+   the most weight. */
 .overFilm {
   text-shadow:
-    0 1px 16px rgba(var(--void-rgb), 0.9),
-    0 1px 2px rgba(var(--void-rgb), 0.78);
+    0 1px 16px rgba(var(--shadow-rgb), 0.9),
+    0 1px 2px rgba(var(--shadow-rgb), 0.78);
 }
 
 /* Utility type register (§4.3): body face, medium, uppercase, tracked, stone. */
@@ -115,7 +121,7 @@ body {
   font-weight: 600;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .22),
-    0 6px 20px rgba(var(--void-rgb), .35);
+    0 6px 20px rgba(var(--shadow-rgb), .35);
 }
 
 .btnPrimary:hover {
@@ -140,7 +146,7 @@ body {
   transform: translateY(-2px);
   border-color: rgba(var(--ember-rgb), .75);
   background: rgba(var(--ember-rgb), .12);
-  box-shadow: 0 10px 28px rgba(var(--void-rgb), .45);
+  box-shadow: 0 10px 28px rgba(var(--shadow-rgb), .45);
 }
 
 /* Quiet: text with a rule that draws in. No box at all. */

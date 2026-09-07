@@ -27,7 +27,9 @@
 
 /* L1 · the DOM half of the atmosphere. The shader tints the film itself; this
    carries the same act colours over the top so type sits in the same air.
-   --atm-top / --atm-bottom / --atm-glow are written per act by atmosphere.ts. */
+   --atm-top / --atm-bottom / --atm-glow are written by film/daylight.ts: the
+   act's colours lifted by the daylight arc, quantised to a few dozen writes
+   over the whole scroll, since each one repaints this layer (see below). */
 .atmosphere {
   position: fixed;
   inset: 0;

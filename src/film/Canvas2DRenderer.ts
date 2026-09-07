@@ -58,6 +58,8 @@ export interface FilmRenderState {
   focalX: number
   /** 0..1 impulse fired on a hard cut in the footage */
   cut: number
+  /** 0..1 night to morning, quantised to 1/256 by FilmLayer; see daylight.ts */
+  daylight: number
 }
 
 export const css = (c: Rgb, a = 1): string =>
@@ -83,6 +85,10 @@ export class Canvas2DRenderer {
   private lastBlend = -1
   private lastWash = -1
   private lastCut = 0
+  private lastDaylight = -1
+  /** the grade and overlay are element styles; rebuilt only when this moves */
+  private lastDaylightQ = -1
+  private overlayKey = ''
   private drawCount = 0
   /** cached atmosphere gradient, rebuilt only when the act colours move */
   private atmGrad: CanvasGradient | null = null
@@ -95,9 +101,7 @@ export class Canvas2DRenderer {
     this.canvas.style.inset = '0'
     this.canvas.style.width = '100%'
     this.canvas.style.height = '100%'
-    // grade toward the ramp, compositor side (§7.4). sepia carries the plate
-    // into the warm end, the hue rotation lands it on ember rather than tan.
-    this.canvas.style.filter = 'sepia(0.26) hue-rotate(-14deg) saturate(1.22) contrast(1.06) brightness(0.98)'
+    this.applyGrade(0)
     const ctx = this.canvas.getContext('2d', { alpha: false })
     if (!ctx) throw new Error('2d context unavailable')
     this.ctx = ctx
@@ -105,6 +109,19 @@ export class Canvas2DRenderer {
     host.appendChild(this.canvas)
     this.buildOverlay(host)
     this.resize()
+  }
+
+  /**
+   * Grade toward the ramp, compositor side (§7.4). sepia carries the plate
+   * into the warm end, the hue rotation lands it on ember rather than tan.
+   * As the day comes up the warm cast eases off and the plate is let brighter,
+   * the cheap counterpart of the shader's grade and air (film.frag.glsl).
+   */
+  private applyGrade(daylight: number): void {
+    const f = (v: number) => v.toFixed(3)
+    this.canvas.style.filter =
+      `sepia(${f(0.26 * (1 - 0.5 * daylight))}) hue-rotate(-14deg) saturate(${f(1.22 - 0.12 * daylight)}) ` +
+      `contrast(${f(1.06 - 0.1 * daylight)}) brightness(${f(0.98 + 0.16 * daylight)})`
   }
 
   /**
@@ -117,12 +134,24 @@ export class Canvas2DRenderer {
     el.style.position = 'absolute'
     el.style.inset = '0'
     el.style.pointerEvents = 'none'
-    el.style.backgroundImage = `radial-gradient(120% 88% at 50% 50%, rgba(0,0,0,0) 42%, rgba(0,0,0,.45) 100%), url("${grainTileUri()}")`
     el.style.backgroundRepeat = 'no-repeat, repeat'
     el.style.backgroundSize = 'cover, 128px 128px'
     el.style.opacity = '1'
     this.overlay = el
     host.appendChild(el)
+    this.applyOverlay([0, 0, 0], 0)
+  }
+
+  /**
+   * The vignette falls to the act ground, never to a neutral black that would
+   * sit outside the palette — and it loosens as the light comes up, so a
+   * daylit plate is not ringed by a dark smudge.
+   */
+  private applyOverlay(ground: Rgb, daylight: number): void {
+    if (!this.overlay) return
+    const edge = Number((0.45 - 0.25 * daylight).toFixed(3))
+    this.overlay.style.backgroundImage =
+      `radial-gradient(120% 88% at 50% 50%, ${css(ground, 0)} 42%, ${css(ground, edge)} 100%), url("${grainTileUri()}")`
   }
 
   resize(): void {
@@ -141,8 +170,21 @@ export class Canvas2DRenderer {
       s.index === this.lastDrawnIndex &&
       Math.abs(s.blend - this.lastBlend) < 1 / 512 &&
       Math.abs(s.wash - this.lastWash) < 1e-3 &&
-      Math.abs(s.cut - this.lastCut) < 1e-3
+      Math.abs(s.cut - this.lastCut) < 1e-3 &&
+      Math.abs(s.daylight - this.lastDaylight) < 1 / 256
     if (unchanged) return false
+
+    // element styles, not canvas work: a handful of writes over the whole page
+    const dq = Math.round(s.daylight * 32) / 32
+    if (dq !== this.lastDaylightQ) {
+      this.lastDaylightQ = dq
+      this.applyGrade(dq)
+    }
+    const overlayKey = `${css(s.atmBottom)}|${dq}`
+    if (overlayKey !== this.overlayKey) {
+      this.overlayKey = overlayKey
+      this.applyOverlay(s.atmBottom, dq)
+    }
 
     const a = this.source.get(s.index)
     if (!a) {
@@ -201,7 +243,10 @@ export class Canvas2DRenderer {
       this.atmGrad = g
       this.atmKey = key
     }
-    ctx.globalCompositeOperation = 'lighter'
+    // additive at night; screen once the air is bright, which lifts the blacks
+    // to the ground and leaves white at white, so a daylit plate cannot blow
+    // out (the shader crossfades between the same two)
+    ctx.globalCompositeOperation = s.daylight >= 0.3 ? 'screen' : 'lighter'
     ctx.fillStyle = this.atmGrad!
     ctx.fillRect(0, 0, cw, ch)
 
@@ -240,6 +285,7 @@ export class Canvas2DRenderer {
     this.lastBlend = s.blend
     this.lastWash = s.wash
     this.lastCut = s.cut
+    this.lastDaylight = s.daylight
     this.drawCount++
     return true
   }

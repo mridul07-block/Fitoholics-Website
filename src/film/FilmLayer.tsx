@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react'
 import { FILM, lqipFor, selectTier } from './manifest'
 import { washAtProgress } from './beats'
 import { Atmosphere, publishAct } from './atmosphere'
+import { daylightAtFrame } from './daylight'
 import { entranceDone, filmEntrance } from '../motion/choreography'
 import { FrameLoader, budgetForTier } from './FrameLoader'
 import { Canvas2DRenderer } from './Canvas2DRenderer'
@@ -153,6 +154,7 @@ export function FilmLayer() {
       grade: 0.34,
       focalX: portrait ? 0.5 : atmos.state.focalX,
       cut: 0,
+      daylight: 0,
     }
     const pinScratch: number[] = []
 
@@ -182,9 +184,14 @@ export function FilmLayer() {
       pinScratch.push(c.index, Math.min(c.index + 1, FILM.count - 1))
       if (renderer.lastIndex >= 0) pinScratch.push(renderer.lastIndex)
       loader.pin(pinScratch)
-      atmos.step(c.index, deltaMs)
+      // the same expression daylight.ts evaluates for the DOM, so the plate and
+      // the page are always on the same side of dawn
+      const daylight = daylightAtFrame(c.smoothed * (FILM.count - 1))
+      atmos.step(c.index, deltaMs, daylight)
       renderState.glow = atmos.state.glow
       renderState.grade = atmos.state.grade
+      // quantised so a still page cannot trip the renderers' redraw gates
+      renderState.daylight = Math.round(daylight * 256) / 256
       // The per act focal points exist to rescue a narrow crop of a landscape
       // composition. The vertical plate is composed centred and is barely
       // cropped at all, so applying them would just push it off centre.

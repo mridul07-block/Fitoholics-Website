@@ -7,7 +7,16 @@
      Three families, not seven flat swatches:
        ground  void -> char   the field the page sits on
        ramp    rust -> ember -> flare   one gradient, used as one thing
-       type    bone / stone */
+       type    bone / stone
+
+     The ground values below are the page's opening night, and only its
+     defaults: film/daylight.ts rewrites --void, --char, --stone and their
+     -rgb triples on <html> as the page scrolls, lifting the ground from this
+     cold black to a warm lit brown by the close. Everything derived from the
+     triples further down (scrims, surfaces, hairlines, glass) follows
+     automatically; the ramp never moves, and --bone is never written — the
+     type is the same cream at the top of the page and at the bottom. Write to
+     the names, not the values. */
   --void:  #08060A;   /* violet black, the cold end of the story */
   --char:  #14100E;   /* warm charcoal, surfaces and cards */
   --rust:  #6E2A0C;   /* burnt orange, the shadow end of the ramp */
@@ -22,6 +31,13 @@
   --ember-rgb: 255, 94, 26;
   --flare-rgb: 255, 162, 58;
   --bone-rgb:  247, 241, 233;
+
+  /* shadows never follow the ground: a shadow in a lit room is still dark */
+  --shadow-rgb: 8, 6, 10;
+  /* 0..1 night to morning, written by daylight.ts; read only for CSS.
+     The scrims below read it directly, so the veils over the film thin out as
+     the page lights without any extra work per frame. */
+  --daylight: 0;
 
   /* legacy aliases so nothing referencing the old names silently loses colour */
   --ink: var(--void);
@@ -44,9 +60,10 @@
   );
 
   /* ---------- ATMOSPHERE ----------
-     Written per act by the film clock (see atmosphere.ts). The film sits under
-     this layer, so these are the colours the footage is actually seen through.
-     Defaults are act one: cold, sunless. */
+     Written by film/daylight.ts: the act's colours, lifted by how far into the
+     morning the page is, a few dozen times over the whole scroll. The film
+     sits under this layer, so these are the colours the footage is actually
+     seen through. Defaults are act one: cold, sunless. */
   --atm-top: #0a0710;
   --atm-bottom: #171016;
   --atm-glow: 0;
@@ -54,7 +71,12 @@
   /* ---------- SCRIMS, L1 ONLY ----------
      Transparent through the middle so the film stays legible under type. The
      warm stop at the far edge keeps scrims inside the palette instead of
-     dropping a grey veil over a warm plate. */
+     dropping a grey veil over a warm plate.
+
+     The anchored stops ease off with --daylight. A scrim exists to keep type
+     off a dark plate, and by the close the plate is the daylight shot the
+     whole story has been heading for — holding the night's veil over it would
+     be hiding the payoff. The far stops stay put; only the covered side lifts. */
   --scrim-soft: linear-gradient(
     180deg,
     rgba(var(--void-rgb), 0) 0%,
@@ -64,24 +86,24 @@
   );
   --scrim-heavy: radial-gradient(
     130% 85% at 50% 50%,
-    rgba(var(--void-rgb), .74) 0%,
-    rgba(var(--void-rgb), .46) 52%,
+    rgba(var(--void-rgb), calc(.74 - .26 * var(--daylight))) 0%,
+    rgba(var(--void-rgb), calc(.46 - .16 * var(--daylight))) 52%,
     rgba(var(--void-rgb), .12) 100%
   );
   /* Anchored side is nearly opaque so type is always safe; the far 40% is
      untouched so the footage reads at full strength across most of the frame. */
   --scrim-left: linear-gradient(
     90deg,
-    rgba(var(--void-rgb), .92) 0%,
-    rgba(var(--void-rgb), .78) 26%,
+    rgba(var(--void-rgb), calc(.92 - .2 * var(--daylight))) 0%,
+    rgba(var(--void-rgb), calc(.78 - .18 * var(--daylight))) 26%,
     rgba(var(--rust-rgb), .26) 48%,
     rgba(var(--void-rgb), .04) 74%,
     rgba(var(--void-rgb), 0) 100%
   );
   --scrim-right: linear-gradient(
     270deg,
-    rgba(var(--void-rgb), .92) 0%,
-    rgba(var(--void-rgb), .78) 26%,
+    rgba(var(--void-rgb), calc(.92 - .2 * var(--daylight))) 0%,
+    rgba(var(--void-rgb), calc(.78 - .18 * var(--daylight))) 26%,
     rgba(var(--rust-rgb), .26) 48%,
     rgba(var(--void-rgb), .04) 74%,
     rgba(var(--void-rgb), 0) 100%
@@ -176,12 +198,17 @@
      No backdrop-filter on these. Blurring a live backdrop over a scrubbing
      canvas measured at about half the whole frame budget, so a slightly denser
      flat surface does the same job for free; see the GLASS block for where
-     that cost is affordable and why. */
-  --surface:        rgba(var(--char-rgb), .82);
-  --surface-raised: rgba(var(--char-rgb), .92);
+     that cost is affordable and why.
+
+     Surfaces gain opacity as the page lights. These are translucent so the
+     film reads through them, which is free while the plate behind is dark —
+     but the same 18% of a daylit frame bleeding through a card is enough to
+     wash out the quote sitting on it. The card closes up as the room opens. */
+  --surface:        rgba(var(--char-rgb), calc(.82 + .14 * var(--daylight)));
+  --surface-raised: rgba(var(--char-rgb), calc(.92 + .07 * var(--daylight)));
   /* what a surface becomes once the film has settled and the blur is
      affordable — see motion/stillness.ts */
-  --surface-glass:  rgba(var(--char-rgb), .5);
+  --surface-glass:  rgba(var(--char-rgb), calc(.5 + .28 * var(--daylight)));
   --surface-blur:   blur(16px) saturate(1.3);
   --hairline:       rgba(var(--bone-rgb), .12);
   --hairline-warm:  rgba(var(--ember-rgb), .42);
@@ -192,10 +219,6 @@
 
   /* hover: surfaces lift by this much and gain a ramp edge. Transform only. */
   --lift: 3px;
-
-  /* ---------- THE MEASURE RAIL ---------- */
-  --rail-inset: clamp(10px, 1.6vw, 26px);
-  --rail-width: 26px;
 
   /* ---------- SHAPE ----------
      Radius belongs to the things a hand touches — buttons and the chrome
@@ -217,11 +240,11 @@
   --glass-border: rgba(var(--bone-rgb), .15);
   --glass-highlight: rgba(var(--bone-rgb), .22);
   --glass-blur: blur(24px) saturate(1.5);
-  --glass-shadow: 0 10px 40px rgba(var(--void-rgb), .45);
+  --glass-shadow: 0 10px 40px rgba(var(--shadow-rgb), .45);
   /* the inner ring that makes a pane read as thick rather than as a tint */
   --glass-ring:
     inset 0 1px 0 rgba(var(--bone-rgb), .14),
-    inset 0 -1px 0 rgba(var(--void-rgb), .35);
+    inset 0 -1px 0 rgba(var(--shadow-rgb), .35);
 
   /* ---------- MOTION ---------- */
   --e-out: cubic-bezier(.22, 1, .36, 1);

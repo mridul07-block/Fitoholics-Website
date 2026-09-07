@@ -176,8 +176,13 @@ export const SECTIONS: readonly Section[] = [
   { id: 'protocol', h: 284, wash: 0.8 },
   { id: 'table', h: 100, wash: 0.86 },
   { id: 'fit', h: 180, wash: 0.88 },
-  { id: 'proof', h: 118, wash: 0.8 },
-  { id: 'close', h: 122, wash: 0.72 },
+  // The last two are where the page arrives. The footage ends on its one
+  // daylit shot, and washing it back toward the ground — proof was 0.80 and
+  // close 0.72, the most veiled section on the page — was hiding the payoff
+  // behind the same ink the story started in. The veil opens instead, which
+  // is where the ending gets its light from (see film/daylight.ts).
+  { id: 'proof', h: 118, wash: 0.94 },
+  { id: 'close', h: 122, wash: 0.86 },
 ] as const
 
 export const TOTAL_VH = SECTIONS.reduce((t, s) => t + s.h, 0)
