@@ -18,10 +18,12 @@
     <link rel="preload" href="/fonts/inter-tight-var-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
 
-    <!-- The preloader mark. Preloaded because the preloader is, by definition,
-         the first thing painted, and discovering this image after the bundle
-         parses would show an empty gate for a beat. -->
+    <!-- The preloader's own logo, both halves. Preloaded because the preloader
+         is, by definition, the first thing painted, and discovering these after
+         the bundle parses would show an empty gate for a beat. Both are opaque
+         from the first frame, so both have to be there on it. -->
     <link rel="preload" as="image" fetchpriority="high" href="/brand/mark.webp" />
+    <link rel="preload" as="image" fetchpriority="high" href="/brand/wordmark.webp" />
 
     <!-- Frame zero starts fetching during HTML parse, before any JS executes (§7.3).
          as="image", matched by an Image() in FrameLoader.primeFirstFrame: image
@@ -185,6 +187,26 @@
         width: clamp(170px, 26vw, 320px);
         aspect-ratio: 640 / 578;
       }
+      /* The name, under the figure — the other half of the logo.
+         The gate used to show the runner and nothing else, which meant the one
+         screen every visitor sees in full never said who this was. The image is
+         the real wordmark, not the page's type standing in for it, and it is
+         the relit cut whose strapline is --bone rather than the master's #555
+         (tools/brand-assets.mjs).
+
+         Opaque from the first frame, like .gateDim and unlike the readout and
+         the bar: those two are reporting progress and have nothing to say until
+         there is progress to report, whereas a name that fades in late is a
+         name that was missing. The stage's own exit fades it with everything
+         else.
+
+         The negative margin pulls it up out of the stage's 26px row gap: that
+         gap is spacing between instruments, and these two are one lockup. */
+      .gateWordmark {
+        width: clamp(150px, 23vw, 278px);
+        height: auto;
+        margin-top: -10px;
+      }
       .gateMark img {
         position: absolute;
         inset: 0;
@@ -323,18 +345,6 @@
         opacity: 1;
       }
 
-      .gateTag {
-        margin: 0;
-        font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-        font-size: 10px;
-        font-weight: 500;
-        letter-spacing: 0.32em;
-        text-indent: 0.32em;
-        text-transform: uppercase;
-        color: #a79a90;
-        opacity: 0;
-      }
-
       /* Corner ticks: the same instrument frame the content surfaces use, so
          the gate is already speaking the page's language before the page
          arrives. */
@@ -389,11 +399,19 @@
           <span class="gateEmber ge5"></span>
           <span class="gateEmber ge6"></span>
         </div>
+        <img
+          class="gateWordmark"
+          src="/brand/wordmark.webp"
+          alt=""
+          width="560"
+          height="131"
+          decoding="async"
+          fetchpriority="high"
+        />
         <div class="gateReadout">
           <span class="gateNum">0</span><span class="gatePct">%</span>
         </div>
         <div class="gateBar"><span class="gateFill"></span></div>
-        <p class="gateTag">Fit for life</p>
       </div>
     </div>
 

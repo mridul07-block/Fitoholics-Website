@@ -1,17 +1,3 @@
-/* Local copy of the utility register (base.css §4.3).
-   Composing the global .utility would drop its own colour on these — base.css
-   lands after the modules, so on equal specificity it wins the cascade. A
-   local class is emitted in this file, before the rules below, so the colours
-   here hold. */
-.util {
-  font-family: var(--font-body);
-  font-weight: var(--w-medium);
-  font-size: var(--t-meta);
-  letter-spacing: var(--tr-meta);
-  text-transform: uppercase;
-  color: var(--stone);
-}
-
 /* A pane of glass floating over the film rather than a bar painted across it:
    inset from all three edges, soft cornered, and lit along its top edge so it
    reads as a surface catching the room's light.
@@ -67,41 +53,24 @@
   box-shadow: 0 14px 44px rgba(var(--shadow-rgb), .5), var(--glass-ring);
 }
 
-/* The maker's mark and the name, together. The mark used to be fixed to this
-   corner on its own (components/BrandMark.tsx); with a masthead here that was
-   two brand statements stacked on one another, so the mark moved inside. */
+/* The logo. It used to be a 30px runner beside the coach's name set in the
+   page's display face; it is the real lockup now, at a size where its own
+   strapline is actually readable rather than decorative.
+   Sized by width, because that is the dimension a lockup this wide is
+   constrained by — the pane takes whatever height that implies and republishes
+   it as --nav-h, so nothing downstream has to be told. */
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--s-3);
   margin-right: auto;
 }
 
-.brandMark {
-  width: 30px;
+.brandLockup {
+  width: clamp(136px, 16vw, 172px);
   height: auto;
-  opacity: .92;
-}
-
-.brandText {
-  display: grid;
-  gap: 1px;
-}
-
-.brandName {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1rem;
-  letter-spacing: -.02em;
-  line-height: 1.15;
-  color: var(--bone);
-}
-
-.brandMeta {
-  composes: util;
-  font-size: 9.5px;
-  letter-spacing: .18em;
-  line-height: 1.15;
+  /* not quite full strength: the mark is the loudest thing on a pane that is
+     otherwise all quiet stone, and at this size it no longer needs to shout */
+  opacity: .95;
 }
 
 .links {

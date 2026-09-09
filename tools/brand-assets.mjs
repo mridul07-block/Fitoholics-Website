@@ -35,28 +35,128 @@ const LOCKUP = path.join(ROOT, 'FITOHOLIX LOGO Removed Background.png')
 /** the ground the icon sits on where alpha is not honoured (iOS home screen) */
 const GROUND = { r: 10, g: 7, b: 16, alpha: 1 }
 
+/** --bone from tokens.css, the one type colour that holds the whole arc */
+const BONE = [0xf7, 0xf1, 0xe9]
+
+/**
+ * Anything below this saturation is the strapline, not the brand.
+ * The master holds exactly two kinds of ink: the runner and FITOHOLIX are
+ * saturated orange (measured 0.8–1.0), and "FIT FOR LIFE" is a flat #555555
+ * at 0.0. There is nothing in between, so the split is unambiguous.
+ */
+const NEUTRAL_MAX_SAT = 0.18
+
 const webp = (out, quality) => ({ out, quality })
+
+/**
+ * Relight the lockup for a dark ground, and report where its parts are.
+ *
+ * The master was drawn for white stationery: "FIT FOR LIFE" is #555555, which
+ * lands at about 1.6:1 on this page's ground and simply is not there. Every
+ * dark-ground variant recolours that line and leaves alpha untouched, so the
+ * antialiased edges stay smooth and the letterforms do not thicken.
+ *
+ * It is recoloured to --bone, and the reason is the daylight arc. This page has
+ * no single ground: it travels from #08060A at the top to #5E4C40 at the close
+ * (film/daylight.ts), and the footer lockup sits at the lit end, where the
+ * bright film also reads through the glass — the ground behind it measures
+ * about #705445 in practice. A baked image cannot follow --daylight the way the
+ * CSS tokens do, so it has to pick one value that survives both ends. --stone
+ * does not: it is comfortable at the top (≈7.4:1) and gone at the bottom
+ * (measured 2.5:1, which is what the strapline looked like). --bone is the
+ * colour this page defines as constant for exactly this reason, and it clears
+ * the floor everywhere the lockup appears — ≈18:1 in the masthead, ≈6.2:1 in
+ * the footer.
+ *
+ * Only low-saturation pixels move. The runner contains none — measured, its
+ * darkest shading still reads 0.6 saturation — so the figure and the orange
+ * wordmark come through bit for bit.
+ *
+ * It also returns the two bounding boxes, measured rather than hardcoded, so
+ * the wordmark crop below survives the client redrawing the file.
+ */
+async function relight(src) {
+  const { data, info } = await sharp(src).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+  const { width, height, channels } = info
+
+  // column coverage first, to find the gutter between the runner and the words
+  const cols = new Float64Array(width)
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) cols[x] += data[(y * width + x) * channels + 3]
+  }
+  const peak = Math.max(...cols)
+  // the first empty gutter wide enough to be a gap and not a letter space
+  let split = 0
+  for (let x = 0, run = 0; x < width; x++) {
+    if (cols[x] / peak < 0.005) {
+      if (++run > 12) { split = x - run + 1; break }
+    } else run = 0
+  }
+  if (!split) throw new Error('brand-assets: no gutter found between the mark and the wordmark')
+
+  // repaint the strapline and measure the wordmark half in one pass
+  let x0 = width, x1 = 0, y0 = height, y1 = 0
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * channels
+      const a = data[i + 3]
+      if (a < 8) continue
+      if (x >= split) {
+        if (x < x0) x0 = x
+        if (x > x1) x1 = x
+        if (y < y0) y0 = y
+        if (y > y1) y1 = y
+      }
+      const r = data[i], g = data[i + 1], b = data[i + 2]
+      const mx = Math.max(r, g, b)
+      if (mx === 0 || (mx - Math.min(r, g, b)) / mx >= NEUTRAL_MAX_SAT) continue
+      data[i] = BONE[0]
+      data[i + 1] = BONE[1]
+      data[i + 2] = BONE[2]
+    }
+  }
+
+  return {
+    raw: { data, info: { width, height, channels } },
+    wordmark: { left: x0, top: y0, width: x1 - x0 + 1, height: y1 - y0 + 1 },
+  }
+}
+
+/** a fresh sharp over the relit pixels — the buffer is reused, the pipeline is not */
+const lit = (r) => sharp(r.data, { raw: { width: r.info.width, height: r.info.height, channels: r.info.channels } })
 
 async function main() {
   await fs.mkdir(BRAND, { recursive: true })
 
-  // ---- display assets, WebP with alpha ----
-  const display = [
-    // the preloader draws the mark at up to ~280 css px, so 640 covers 2x
-    { src: MARK, width: 640, ...webp(path.join(BRAND, 'mark.webp'), 86) },
-    // the fixed corner mark is ~34 css px; its own file keeps the big one out
-    // of the critical path on small screens
-    { src: MARK, width: 96, ...webp(path.join(BRAND, 'mark-sm.webp'), 88) },
-    // the footer lockup renders at ~260 css px wide
-    { src: LOCKUP, width: 720, ...webp(path.join(BRAND, 'lockup.webp'), 88) },
-  ]
+  const relitLockup = await relight(LOCKUP)
 
-  for (const d of display) {
-    await sharp(d.src)
-      .resize({ width: d.width, withoutEnlargement: true })
-      .webp({ quality: d.quality, effort: 6, alphaQuality: 100 })
-      .toFile(d.out)
-  }
+  // ---- display assets, WebP with alpha ----
+  // The runner alone, for the preloader, which draws it three times over to
+  // light it from the feet up. It is the only place the figure appears without
+  // the words: the masthead used to carry a 96px crop of it beside type, and
+  // now carries the real lockup instead, so that size is no longer built.
+  await sharp(MARK)
+    .resize({ width: 640, withoutEnlargement: true })
+    .webp({ quality: 86, effort: 6, alphaQuality: 100 })
+    .toFile(path.join(BRAND, 'mark.webp'))
+
+  // The full lockup. It carries the masthead now as well as the footer, and the
+  // masthead is the larger of the two at ~200 css px, so 720 still covers 2x.
+  await lit(relitLockup.raw)
+    .resize({ width: 720, withoutEnlargement: true })
+    .webp({ quality: 88, effort: 6, alphaQuality: 100 })
+    .toFile(path.join(BRAND, 'lockup.webp'))
+
+  // The wordmark alone, for the preloader — which already draws the runner
+  // itself, three times over, to light it from the feet up. Cropping to the
+  // measured box rather than reusing the lockup keeps the gate from paying for
+  // a figure it is compositing separately, and lets the two sit at the sizes
+  // the gate wants rather than at the ratio the stationery wants.
+  await lit(relitLockup.raw)
+    .extract(relitLockup.wordmark)
+    .resize({ width: 560, withoutEnlargement: true })
+    .webp({ quality: 88, effort: 6, alphaQuality: 100 })
+    .toFile(path.join(BRAND, 'wordmark.webp'))
 
   // ---- favicons ----
   // PNG rather than ICO: every browser in support has taken PNG favicons for a
@@ -82,8 +182,8 @@ async function main() {
   const rows = []
   for (const f of [
     'brand/mark.webp',
-    'brand/mark-sm.webp',
     'brand/lockup.webp',
+    'brand/wordmark.webp',
     'favicon-16.png',
     'favicon-32.png',
     'favicon-48.png',

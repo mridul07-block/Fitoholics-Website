@@ -245,7 +245,13 @@ export const COPY = {
 
   nav: {
     brand: 'Ikram Ansari',
-    brandMeta: 'Transformation Coach',
+    /**
+     * The masthead logo's accessible name — the words the logo itself sets, so
+     * a screen reader hears what a sighted visitor reads rather than a
+     * description of the picture. It is also the link's accessible name, since
+     * the anchor has no text of its own.
+     */
+    brandAlt: 'Fitoholix — fit for life',
     links: [
       { label: 'The method', href: '#protocol' },
       { label: 'Nutrition', href: '#nutrition' },

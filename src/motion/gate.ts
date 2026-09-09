@@ -36,7 +36,6 @@ export function initGate(): Promise<void> {
   const lit = gate.querySelector<HTMLElement>('.gateLit')
   const fill = gate.querySelector<HTMLElement>('.gateFill')
   const bar = gate.querySelector<HTMLElement>('.gateBar')
-  const tag = gate.querySelector<HTMLElement>('.gateTag')
   const num = gate.querySelector<HTMLElement>('.gateNum')
   const readout = gate.querySelector<HTMLElement>('.gateReadout')
   const glow = gate.querySelector<HTMLElement>('.gateGlow')
@@ -104,9 +103,6 @@ export function initGate(): Promise<void> {
           }
         },
       })
-      if (tag && p > 0.45 && soft) {
-        gsap.to(tag, { opacity: 1, duration: 0.8, ease: 'power2.out', overwrite: 'auto' })
-      }
     }
 
     const dismiss = () => {

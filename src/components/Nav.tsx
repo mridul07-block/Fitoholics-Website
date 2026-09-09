@@ -125,12 +125,24 @@ export function Nav() {
 
   return (
     <header ref={barRef} className={clsx(s.bar, open && s.barOpen)} data-nav="">
+      {/* The logo itself, not a redrawing of it. The masthead used to set the
+          coach's name in the page's own display face beside a cropped runner,
+          which is a lockup the brand does not own — the real one already pairs
+          the figure with FITOHOLIX and its strapline, and it is the thing
+          people recognise. Explicit dimensions so it reserves its box before it
+          decodes; the pane measures its own height into --nav-h afterwards.
+          No priority hint: the gate holds the page for at least MIN_VISIBLE_MS
+          and usually far longer, and this is the same file the footer asks for,
+          so it is warm by the time the masthead is ever looked at. */}
       <a className={s.brand} href="#top">
-        <img className={s.brandMark} src="/brand/mark-sm.webp" alt="" width={34} height={31} decoding="async" />
-        <span className={s.brandText}>
-          <span className={s.brandName}>{c.brand}</span>
-          <span className={s.brandMeta}>{c.brandMeta}</span>
-        </span>
+        <img
+          className={s.brandLockup}
+          src="/brand/lockup.webp"
+          alt={c.brandAlt}
+          width={720}
+          height={214}
+          decoding="async"
+        />
       </a>
 
       <nav className={s.links} aria-label={c.brand}>
