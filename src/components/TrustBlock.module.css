@@ -133,52 +133,6 @@
   vertical-align: middle;
 }
 
-.legal {
-  grid-column: 1 / 13;
-  display: grid;
-  gap: var(--s-4);
-  padding-top: var(--s-8);
-  border-top: 1px solid var(--hairline);
-}
-
-.label {
-  composes: utility from '../styles/base.css';
-}
-
-.legalLead {
-  max-width: var(--measure);
-  color: var(--bone);
-  opacity: .88;
-}
-
-.legalLinks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-3) var(--s-6);
-}
-
-.legalLink {
-  color: var(--bone);
-  font-size: var(--t-small);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-decoration-color: rgba(var(--ember-rgb), .8);
-  text-underline-offset: 3px;
-  transition: color var(--d-hover) var(--e-out), text-decoration-color var(--d-hover) var(--e-out);
-}
-
-.legalLink:hover {
-  color: var(--flare);
-  text-decoration-color: var(--flare);
-}
-
-.disclaimer {
-  max-width: var(--measure);
-  font-size: var(--t-small);
-  line-height: 1.5;
-  color: var(--stone);
-}
-
 @media (max-width: 900px) {
   .trust {
     padding-block: var(--s-8);
@@ -191,8 +145,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .mark::before,
-  .mark::after,
-  .legalLink {
+  .mark::after {
     transition: none;
   }
 }

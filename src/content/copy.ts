@@ -470,58 +470,43 @@ export const COPY = {
   trust: {
     eyebrow: 'BEFORE YOU ASK',
     title: 'Questions people ask before they message.',
+    /**
+     * Five, deliberately. Ten made a wall nobody reads, and every question
+     * answered here is one the audit found a visitor leaving with: how long,
+     * what it costs, whether a gym is needed, how often you are seen, and
+     * whether a body with a history is welcome.
+     *
+     * Two questions it used to carry are gone because the page answers them
+     * in better places. What happens after you message is in the close, next
+     * to the button that sends it. The refund policy is a page of its own,
+     * linked from the footer.
+     *
+     * None of these is flagged draft. The length and cost answers describe
+     * how the practice decides rather than quoting a figure nobody has
+     * confirmed, which is both true today and the position the whole page
+     * takes: no template plan, therefore no template price.
+     */
     faq: [
       {
         q: 'How long does the program run?',
-        a: 'Twelve weeks to start, and most clients continue on a maintenance plan after that. The consultation confirms the right length for your goal.',
-        draft: true,
+        a: 'As long as your goal actually needs. The assessment sets a timeline against your target, your schedule and where you are starting from, rather than selling you a fixed number of weeks before anyone has looked at you.',
       },
       {
         q: 'What does it cost?',
-        a: 'The investment is shared at the consultation, once the assessment shows what your plan needs. There is no template price because there is no template plan.',
+        a: 'The investment is shared at the consultation, once the assessment shows what your plan needs. There is no template price because there is no template plan, and nothing is ever charged through this website.',
       },
       {
-        q: 'Do I need a gym?',
-        a: 'No. Training is built for the equipment you have, at home, in a hotel or in a gym, and it changes when your week does.',
+        q: 'Do I need a gym? I travel most weeks.',
+        a: 'No gym required, and travel is planned for rather than worked around. Training is built for the equipment you actually have, at home, in a hotel or in a gym, and what to order and how to train on the road are part of the plan from the first week.',
       },
       {
         q: 'How often do we check in?',
-        a: 'Every week. Weight, measurements, photos, strength, energy, hunger and adherence, reviewed together, and the plan adjusted against them.',
+        a: 'Every week. Weight, measurements, photos, strength, energy, hunger and adherence, reviewed together, and the plan adjusted against what actually happened rather than what was supposed to.',
       },
       {
-        q: 'I travel most weeks. Does that work?',
-        a: 'It is designed for it. Travel, eating out and hotel training are part of the plan from day one, not an exception to it.',
+        q: 'I have a medical condition or an injury. Can I still be coached?',
+        a: 'Tell Ikram at the assessment. Medical history, injuries and blood work where you have it are part of it, and the plan is built around them. Coaching is not medical advice, and where your doctor’s clearance is needed, it comes first.',
       },
-      {
-        q: 'Is the consultation free?',
-        a: 'Yes. About 15 minutes on WhatsApp, a call or a chat, and no obligation either way.',
-        draft: true,
-      },
-      {
-        q: 'What happens after I message?',
-        a: 'Ikram replies himself, usually within one working day, to arrange the consultation. If it fits, the next step is the deep assessment. If it does not, you leave with a straight answer.',
-      },
-      {
-        q: 'Can my partner and I do this together?',
-        a: 'Yes. Two assessments and two plans, because two bodies are never one case, with the accountability shared and one consultation for both of you.',
-        draft: true,
-      },
-      {
-        q: 'I have a medical condition. Can I still be coached?',
-        a: 'Tell Ikram at the assessment. Medical history, injuries and blood work where available are part of it, and the plan works around them. Coaching is not medical advice, and where your doctor’s clearance is needed, it comes first.',
-      },
-      {
-        q: 'Can I cancel, or get a refund?',
-        a: 'The terms are in the refunds and cancellations policy linked below, and Ikram walks you through them before anything is paid.',
-      },
-    ],
-    legalLabel: 'THE SMALL PRINT',
-    legalLead:
-      'How your details are handled, what the coaching does and does not promise, and how cancellations work.',
-    legal: [
-      { label: 'Privacy', href: '/privacy' },
-      { label: 'Terms', href: '/terms' },
-      { label: 'Refunds and cancellations', href: '/refunds' },
     ],
     disclaimer:
       'Individual results vary. Every plan follows an assessment of the person it is for, and nothing on this page is medical advice.',
