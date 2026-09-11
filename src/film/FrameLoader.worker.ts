@@ -30,7 +30,10 @@ self.onmessage = async (e: MessageEvent<FetchMsg>) => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const blob = await res.blob()
     const bitmap = await createImageBitmap(blob, {
-      imageOrientation: 'none',
+      // 'from-image', not the deprecated 'none': the plates carry no EXIF
+      // orientation, so the two decode identically and this one is not
+      // flagged by the browser
+      imageOrientation: 'from-image',
       premultiplyAlpha: 'none',
       colorSpaceConversion: 'none',
     })

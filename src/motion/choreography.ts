@@ -122,6 +122,23 @@ export function initChoreography(): void {
   const q = (sel: string) => document.querySelector<HTMLElement>(sel)
   const qa = (sel: string) => Array.from(document.querySelectorAll<HTMLElement>(sel))
 
+  // Everything below the first screen is set up in idle slices, one station
+  // or so per slice, rather than in one block on the critical path. Each
+  // slice hides its own elements and wires their reveal; if a reader has
+  // already scrolled past a station when its slice runs, the trigger fires on
+  // creation and the copy is simply there. Measured on a throttled phone,
+  // the single block was a 150ms task at exactly the moment the page was
+  // trying to become interactive.
+  const tasks: (() => void)[] = []
+  const later = (fn: () => void) => tasks.push(fn)
+  const drain = () => {
+    const next = tasks.shift()
+    if (!next) return
+    next()
+    if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(drain, { timeout: 600 })
+    else window.setTimeout(drain, 16)
+  }
+
   // ---------------------------------------------------------------
   // The cut rule. When the footage hard cuts between camera setups, a line of
   // ramp light crosses the top of the viewport. The page cuts when the film
@@ -170,6 +187,7 @@ export function initChoreography(): void {
   // measured at about half the frame budget. Depth is already carried by the
   // perspective translate, the rotation and opacity, and the film behind has
   // its own defocus in the shader — the blur was the accessory to remove.
+  later(() => {
   for (const g of GEOMETRY) {
     if (!g.zTravel) continue
     const section = q(station(g.key))
@@ -212,6 +230,7 @@ export function initChoreography(): void {
       .to(panel, { z: 0, duration: 0.72 })
       .to(panel, { z: 150, rotationX: -3, autoAlpha: 0, duration: 0.14, ease: 'power2.in' })
   }
+  })
 
   // ---------------------------------------------------------------
   // One shot reveals, latched, fired as each station reaches 75% vh.
@@ -243,12 +262,15 @@ export function initChoreography(): void {
   // headline line reveals: every station marks the one element that is its
   // headline (an h2, or the positioning quote) with data-headline, so a new
   // station gets the reveal without an entry here
+  // one slice per headline: SplitText measures line boxes, which is layout
   for (const el of qa('[data-station-key] [data-headline]')) {
-    const split = SplitText.create(el, { type: 'lines', mask: 'lines' })
-    reveal(el, (tl) => {
-      tl.fromTo(split.lines, { yPercent: 110 }, { yPercent: 0, duration: 0.9, stagger: 0.09 })
-      // a band of the room's light crosses the headline as it lands
-      tl.fromTo(el, { '--sweep': -1 }, { '--sweep': 1, duration: 1.05, ease: 'power2.inOut' } as gsap.TweenVars, 0.12)
+    later(() => {
+      const split = SplitText.create(el, { type: 'lines', mask: 'lines' })
+      reveal(el, (tl) => {
+        tl.fromTo(split.lines, { yPercent: 110 }, { yPercent: 0, duration: 0.9, stagger: 0.09 })
+        // a band of the room's light crosses the headline as it lands
+        tl.fromTo(el, { '--sweep': -1 }, { '--sweep': 1, duration: 1.05, ease: 'power2.inOut' } as gsap.TweenVars, 0.12)
+      })
     })
   }
 
@@ -256,13 +278,15 @@ export function initChoreography(): void {
   // pain list, the coach's credentials and the "what you receive" list all
   // share the shape, one gesture per station.
   for (const sel of ['[data-pain-row]', '[data-credential]', '[data-receive-row]']) {
-    const rows = qa(`[data-station-key] ${sel}`)
-    if (!rows.length) continue
-    gsap.set(rows, { autoAlpha: 0, '--ruleScale': 0 } as gsap.TweenVars)
-    reveal(rows[0]!, (tl) => {
-      rows.forEach((row, i) => {
-        tl.to(row, { '--ruleScale': 1, duration: 0.42, ease: 'power2.inOut' } as gsap.TweenVars, i * 0.06)
-          .to(row, { autoAlpha: 1, duration: 0.5 }, i * 0.06 + 0.1)
+    later(() => {
+      const rows = qa(`[data-station-key] ${sel}`)
+      if (!rows.length) return
+      gsap.set(rows, { autoAlpha: 0, '--ruleScale': 0 } as gsap.TweenVars)
+      reveal(rows[0]!, (tl) => {
+        rows.forEach((row, i) => {
+          tl.to(row, { '--ruleScale': 1, duration: 0.42, ease: 'power2.inOut' } as gsap.TweenVars, i * 0.06)
+            .to(row, { autoAlpha: 1, duration: 0.5 }, i * 0.06 + 0.1)
+        })
       })
     })
   }
@@ -271,6 +295,7 @@ export function initChoreography(): void {
   // the numeral counts at the same time, so the card reads like an instrument
   // settling rather than like text appearing. Per station, because the coach
   // and the "what you receive" facts each have their own set.
+  later(() => {
   for (const g of GEOMETRY) {
     const statCards = qa(`${station(g.key)} [data-stat-card]`)
     if (!statCards.length) continue
@@ -311,8 +336,10 @@ export function initChoreography(): void {
       })
     })
   }
+  })
 
   // nutrition: myth pairs — strike draws, truth follows 0.18s later (§8 S5)
+  later(() => {
   const myths = qa(`${station('nutrition')} [data-myth-pair]`)
   if (myths.length) {
     const strikes = qa(`${station('nutrition')} [data-myth-strike]`)
@@ -351,10 +378,12 @@ export function initChoreography(): void {
       })
     })
   }
+  })
 
   // pathways: the aspirations are chips, so they arrive as objects rather
   // than as rules that draw. Transform and opacity only, staggered tightly
   // enough to read as one gesture instead of eight separate events.
+  later(() => {
   const aspirations = qa(`${station('pathways')} [data-aspiration]`)
   if (aspirations.length) {
     gsap.set(aspirations, { autoAlpha: 0, y: 14, scale: 0.96 })
@@ -369,8 +398,10 @@ export function initChoreography(): void {
       })
     })
   }
+  })
 
   // the footer assembles rather than appearing: rule draws, then the columns
+  later(() => {
   const footRule = q('[data-footer-rule]')
   const footCols = qa('[data-footer-col]')
   if (footRule && footCols.length) {
@@ -384,16 +415,21 @@ export function initChoreography(): void {
       .to(footRule, { '--ruleScale': 1, duration: 0.7, ease: 'power2.inOut' } as gsap.TweenVars)
       .to(footCols, { autoAlpha: 1, y: 0, duration: 0.65, stagger: 0.09 }, 0.18)
   }
+  })
 
   // Cards stagger in with depth (§8 S7): the case studies, clips and
   // testimonials under the results, and the three paths under "who it is
   // for". One gesture per station, in document order.
   for (const key of ['transformations', 'pathways'] as const) {
-    const cards = qa(`${station(key)} [data-case], ${station(key)} [data-video], ${station(key)} [data-card], ${station(key)} [data-path]`)
-    if (!cards.length) continue
-    gsap.set(cards, { autoAlpha: 0, y: 40, z: -120 })
-    reveal(cards[0]!, (tl) => {
-      tl.to(cards, { autoAlpha: 1, y: 0, z: 0, duration: 0.8, stagger: 0.12 })
+    later(() => {
+      const cards = qa(`${station(key)} [data-case], ${station(key)} [data-video], ${station(key)} [data-card], ${station(key)} [data-path]`)
+      if (!cards.length) return
+      gsap.set(cards, { autoAlpha: 0, y: 40, z: -120 })
+      reveal(cards[0]!, (tl) => {
+        tl.to(cards, { autoAlpha: 1, y: 0, z: 0, duration: 0.8, stagger: 0.12 })
+      })
     })
   }
+
+  drain()
 }

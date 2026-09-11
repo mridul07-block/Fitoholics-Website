@@ -1,4 +1,4 @@
-import { useEffect, type CSSProperties } from 'react'
+import { Suspense, useEffect, type CSSProperties } from 'react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from './content/copy'
 import { initChoreography, initEntrance } from './motion/choreography'
@@ -117,15 +117,31 @@ export function App() {
             id={st.anchor}
             style={{ '--h': `${st.h}svh`, '--h-md': `${st.hMd}svh`, '--h-sm': `${st.hSm}svh` } as CSSProperties}
           >
-            <st.Component />
+            {/* Every station after the first hydrates inside its own Suspense
+                boundary. Nothing in them suspends; the boundary is there so
+                React 18 attaches to the prerendered markup one station at a
+                time, yielding between them, instead of in one long task at
+                the moment the page is trying to become interactive. The hero
+                stays outside so its buttons are live first. */}
+            {i === 0 ? (
+              <st.Component />
+            ) : (
+              <Suspense fallback={null}>
+                <st.Component />
+              </Suspense>
+            )}
           </section>
         ))}
 
         {/* after the film: the questions and the small print, on solid ground */}
-        <TrustBlock />
+        <Suspense fallback={null}>
+          <TrustBlock />
+        </Suspense>
       </main>
 
-      <SiteFooter />
+      <Suspense fallback={null}>
+        <SiteFooter />
+      </Suspense>
 
       {/* the analytics line, only when analytics exist and until dismissed */}
       <Notice />

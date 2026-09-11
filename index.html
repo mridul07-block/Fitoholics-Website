@@ -37,6 +37,11 @@
          media picks a single tier, mirroring the thresholds in selectTier(), so
          exactly one file is ever fetched.
 
+         Low priority, not high: the largest thing on the first screen is the
+         headline, and on a slow connection the fonts it is set in were losing
+         the line to a 43 KB frame that nobody sees until it crossfades in over
+         the blurred ground anyway. The frame still starts now; it just yields.
+
          The aspect split has to appear on every one of these: without it a
          phone matches (max-width: 999px), preloads the landscape crop, and then
          requests the portrait plate instead — a wasted fetch and the "preloaded
@@ -49,28 +54,28 @@
     <link
       rel="preload"
       as="image"
-      fetchpriority="high"
+      fetchpriority="low"
       href="/film/810/f_000.webp"
       media="(max-aspect-ratio: 65/100)"
     />
     <link
       rel="preload"
       as="image"
-      fetchpriority="high"
+      fetchpriority="low"
       href="/film/854/f_000.webp"
       media="(min-aspect-ratio: 651/1000) and (max-width: 999px)"
     />
     <link
       rel="preload"
       as="image"
-      fetchpriority="high"
+      fetchpriority="low"
       href="/film/1280/f_000.webp"
       media="(min-aspect-ratio: 651/1000) and (min-width: 1000px) and (max-width: 1599px)"
     />
     <link
       rel="preload"
       as="image"
-      fetchpriority="high"
+      fetchpriority="low"
       href="/film/1920/f_000.webp"
       media="(min-aspect-ratio: 651/1000) and (min-width: 1600px)"
     />
