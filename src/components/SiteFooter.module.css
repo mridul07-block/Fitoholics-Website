@@ -90,9 +90,11 @@
   color: var(--stone);
 }
 
+/* .62, not .45: the lower alpha measured 4.05:1 on the void, under the 4.5
+   floor for text this small */
 .label {
   composes: util;
-  color: rgba(var(--bone-rgb), .45);
+  color: rgba(var(--bone-rgb), .62);
   margin-bottom: var(--s-2);
 }
 

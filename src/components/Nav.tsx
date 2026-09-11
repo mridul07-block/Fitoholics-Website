@@ -29,6 +29,8 @@ const RETREAT_DELTA = 6
 
 export function Nav() {
   const barRef = useRef<HTMLElement>(null)
+  const toggleRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   // read inside the scroll listener, which is installed once and must not be
   // torn down and rebuilt every time the menu toggles
@@ -107,13 +109,44 @@ export function Nav() {
     return () => ro.disconnect()
   }, [])
 
+  /**
+   * The open menu owns the keyboard. Focus moves onto its first link when it
+   * opens, Tab cycles through the toggle and the panel's links without
+   * escaping into the page behind, Escape closes it, and focus returns to
+   * the toggle on close so a keyboard user is back where they started.
+   */
   useEffect(() => {
     if (!open) return
+    const toggle = toggleRef.current
+    const panel = panelRef.current
+    const focusables = (): HTMLElement[] => [
+      ...(toggle ? [toggle] : []),
+      ...Array.from(panel?.querySelectorAll<HTMLElement>('a[href], button') ?? []),
+    ]
+    focusables()[1]?.focus()
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') {
+        setOpen(false)
+        return
+      }
+      if (e.key !== 'Tab') return
+      const f = focusables()
+      const first = f[0]
+      const last = f[f.length - 1]
+      if (!first || !last) return
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      toggle?.focus()
+    }
   }, [open])
 
   const c = COPY.nav
@@ -159,6 +192,7 @@ export function Nav() {
       </a>
 
       <button
+        ref={toggleRef}
         type="button"
         className={s.toggle}
         aria-expanded={open}
@@ -170,7 +204,7 @@ export function Nav() {
         <span className={s.toggleBar} aria-hidden="true" />
       </button>
 
-      <div id="nav-panel" className={s.panel} hidden={!open}>
+      <div id="nav-panel" ref={panelRef} className={s.panel} hidden={!open}>
         {c.links.map((l) => (
           <a key={l.href} className={s.panelLink} href={l.href} onClick={() => setOpen(false)}>
             {l.label}

@@ -11,6 +11,8 @@ import { FilmLayer } from './film/FilmLayer'
 import { Nav } from './components/Nav'
 import { SiteFooter } from './components/SiteFooter'
 import { TrustBlock } from './components/TrustBlock'
+import { Notice } from './components/Notice'
+import { initAnalytics } from './analytics/track'
 import { STATIONS } from './stations/registry'
 import s from './App.module.css'
 
@@ -72,6 +74,9 @@ export function App() {
     // is decided inside by how long the visitor has already been looking.
     initEntrance()
 
+    // measurement, after load and in idle time, and only if configured
+    initAnalytics()
+
     // The scroll choreography waits for the fonts, because it splits headlines
     // into lines and a split before the face resolves would re-wrap. Nothing
     // is hidden until it runs, so a font that never resolves costs no content.
@@ -121,6 +126,9 @@ export function App() {
       </main>
 
       <SiteFooter />
+
+      {/* the analytics line, only when analytics exist and until dismissed */}
+      <Notice />
     </>
   )
 }

@@ -573,6 +573,12 @@ export const COPY = {
     skipLink: 'Skip to content',
     /** the tag on a drafted row, on builds that show drafts */
     draft: 'Draft',
+    /** the analytics line, only on builds where analytics are configured */
+    notice: {
+      text: 'This site uses analytics cookies to see what gets read.',
+      link: 'Privacy',
+      dismiss: 'OK',
+    },
   },
 
   a11y: {

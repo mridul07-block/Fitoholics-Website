@@ -279,7 +279,7 @@
    run out of its own card. */
 .statCardLabel {
   composes: utility from '../styles/base.css';
-  font-size: clamp(8px, .62vw, 11px);
+  font-size: clamp(11px, .72vw, 12px);
   letter-spacing: .06em;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -681,7 +681,7 @@
      wrapping guarantees that if a label ever does outgrow its card it breaks at
      a space instead of inventing a hyphenless split. */
   .statCardLabel {
-    font-size: clamp(8px, 2.3vw, 10px);
+    font-size: 11px;
     letter-spacing: .04em;
     overflow-wrap: normal;
   }

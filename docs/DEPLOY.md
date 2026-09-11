@@ -69,3 +69,19 @@ counts what is left.
   on a casing difference that Windows tolerates
 - the built artifact was served from `dist` and verified end to end: film
   renders, scroll scrubs, zero console errors
+
+## Environment variables
+
+None are required. Each one adds something when set (Vercel → Settings →
+Environment Variables; see `.env.example`):
+
+| Variable | Scope | Effect |
+|---|---|---|
+| `SITE_URL` | Production | The public origin (`https://fitoholix.in`). Written into the canonical link, `og:url`, `og:image`, `sitemap.xml` and `robots.txt` at build time. Unset, the build uses Vercel's own `VERCEL_PROJECT_PRODUCTION_URL`, which is the `*.vercel.app` name until a domain is attached. **Set it once the real domain is live.** |
+| `VITE_GA4_ID` | Production | Loads Google Analytics 4 with this measurement ID (`G-XXXXXXX`). Unset, no GA script is ever loaded. |
+| `VITE_META_PIXEL_ID` | Production | Loads the Meta Pixel with this ID. Unset, no Pixel is ever loaded. |
+| `SHOW_DRAFTS` | never in production | `1` shows drafted copy, tagged, in a production style build. Previews show drafts without it. |
+| `ALLOW_PLACEHOLDERS` | never in production | `1` lets a build through with literal `[PLACEHOLDER]` values. Should not be needed any more; remove it if it is still set. |
+
+`docs/ANALYTICS.md` covers the events and how to mark the WhatsApp click as a
+conversion in each tool.

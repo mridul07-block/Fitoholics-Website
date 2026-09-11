@@ -97,7 +97,10 @@ export function daylightAtFrame(f: number): number {
 const VOID = '#08060A'
 const GROUND = ['#08060A', '#5E4C40'] as const
 const SURFACE = ['#14100E', '#6E5A4C'] as const
-const STONE = ['#A79A90', '#D5C9BD'] as const
+// stone ends lighter than the ground's rise alone would put it: on the lit
+// card surface (#6E5A4C) the earlier #D5C9BD was 4.0:1, under the floor for
+// the small text that uses it, and #E2D8CD clears it at about 4.8:1
+const STONE = ['#A79A90', '#E2D8CD'] as const
 
 const hexToRgb = (hex: string): Vec3 => {
   const n = parseInt(hex.slice(1), 16)

@@ -138,7 +138,10 @@
   --t-lead:  clamp(1.02rem, 1.15vw, 1.18rem);
   --t-body:  clamp(.95rem, 1vw, 1.0625rem);
   --t-small: .9375rem;
-  --t-meta:  .6875rem;
+  /* 12px to 13px, up from a fixed 11: the audit's readers lost the small
+     uppercase labels over detailed footage, and a label that is only ever
+     eleven pixels was the floor of the whole type system */
+  --t-meta:  clamp(.75rem, .55vw + .5rem, .8125rem);
   --t-act:   clamp(3rem, 9vw, 8rem);
 
   --lh-hero: 1.06;
