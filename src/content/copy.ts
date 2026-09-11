@@ -68,14 +68,16 @@ export const COPY = {
      */
     a11y: 'Book a consultation on WhatsApp (opens in a new tab)',
     /**
-     * What the click commits a visitor to. The audit's first question before
-     * the button was "is it free, how long, is it a call". Only what the
-     * button verifiably does is stated here: it opens WhatsApp, and Ikram is
-     * the person on the other end. Whether it is free and how long it runs
-     * are his to confirm and live in close.details, flagged until he does.
+     * What the click commits a visitor to, in one line, at the point of the
+     * click. The audit's first question in front of the button was "is it
+     * free, how long, is it a call", and until Ikram set the terms on
+     * 2026-09-12 this line could only answer the third. It answers all three
+     * now, in that order, because free is what removes the hesitation and
+     * fifteen minutes is what removes the rest of it. The same three facts are
+     * set out again in full under close.details.
      */
     detail: {
-      line: 'A conversation on WhatsApp, with Ikram himself. No obligation.',
+      line: 'Free, about 15 minutes, on WhatsApp with Ikram himself.',
     },
   },
 
@@ -452,17 +454,15 @@ export const COPY = {
     hero: 'Start once. Properly.',
     lead: 'A short consultation. A real assessment. No pressure, no template and no promises anyone should not make.',
     /**
-     * The four answers a visitor wants before the click. Format, length and
-     * cost are the client's to confirm; what happens afterwards describes the
-     * protocol's own first step and stands.
+     * The four answers a visitor wants before the click, and the audit's first
+     * question in front of the button: is it free, how long, and is it a call.
+     * All four are answered now. Length and cost are commercial terms, set by
+     * Ikram on 12 September 2026; change them only on his word.
      */
     details: [
-      // Format and what it covers describe what the button does and what the
-      // protocol's own first step is, so both stand. Length and cost are
-      // commercial terms only Ikram can set, and they wait for him.
       { label: 'Format', value: 'A chat on WhatsApp, with Ikram himself' },
-      { label: 'Length', value: 'About 15 minutes', draft: true },
-      { label: 'Cost', value: 'Free', draft: true },
+      { label: 'Length', value: 'About 15 minutes' },
+      { label: 'Cost', value: 'Free' },
       { label: 'What it covers', value: 'Your goal, your schedule, your history, and whether this is the right fit.' },
       { label: 'Afterwards', value: 'If it fits, the deep assessment. If it does not, you leave with a straight answer.' },
     ],
