@@ -2,11 +2,18 @@
  * The legal pages: privacy, terms, refunds and cancellations.
  *
  * Each is a document, not a station: plain sections of prose on their own
- * page, no film, no motion. They are DRAFTS, written in the site's voice so
- * there is something concrete to review, and flagged as such at the page
- * level. On builds that omit drafts (production), a drafted page renders the
- * holding note below instead of unreviewed terms presented as binding. To
- * finish one: have it reviewed, correct it, and delete `draft: true`.
+ * page, no film, no motion.
+ *
+ * All three are in force. Privacy describes what the code on this site
+ * actually does, so it has always been true; terms and refunds carry the
+ * commercial rules Ikram set on 12 September 2026, and their every number is
+ * his, not a suggestion. Do not adjust a fee, a window or a refund rule here
+ * because it reads better. People act on this page and may have paid on the
+ * strength of it.
+ *
+ * The draft machinery below is kept for the next document that needs it: a
+ * page flagged `draft: true` is omitted from production and shows the holding
+ * note instead of unreviewed terms presented as binding.
  *
  * Voice: no em dashes, en dashes or hyphens in prose.
  */
@@ -117,9 +124,14 @@ export const LEGAL: readonly LegalDoc[] = [
     path: '/terms',
     title: 'Terms',
     summary: 'What the coaching is, what it is not, and what each of us agrees to.',
-    updated: '11 September 2026',
-    draft: true,
+    updated: '12 September 2026',
     sections: [
+      {
+        h: 'Who you are agreeing with',
+        p: [
+          `Fitoholix Fitness & Nutrition, a coaching practice run by Ikram Ansari in India. Anything on this page that says "we" means that practice, and anything that needs a person to answer it reaches him at ${CONTACT_EMAIL}. Using this website, or being coached by Fitoholix, means these terms apply.`,
+        ],
+      },
       {
         h: 'The service',
         p: [
@@ -145,7 +157,8 @@ export const LEGAL: readonly LegalDoc[] = [
       {
         h: 'Payment',
         p: [
-          'The consultation is without charge. Coaching fees, what they cover and when they are due are agreed in writing at the consultation, before anything is paid. Refunds and cancellations are covered by the policy of that name.',
+          'The consultation is free and lasts about fifteen minutes. Nothing is charged through this website and no payment details are ever taken on it.',
+          'Coaching fees, what they cover, when they are due and what is refundable are agreed in writing at the consultation, before anything is paid. There is no template price because there is no template plan. You will be told the refund position before you pay, not afterwards, and it is set out in full in Refunds and cancellations.',
         ],
       },
       {
@@ -169,34 +182,57 @@ export const LEGAL: readonly LegalDoc[] = [
     path: '/refunds',
     title: 'Refunds and cancellations',
     summary: 'What happens to your payment if you change your mind, need to pause, or cannot continue.',
-    updated: '11 September 2026',
-    draft: true,
+    updated: '12 September 2026',
     sections: [
       {
-        h: 'The consultation',
-        p: ['The consultation is free. Cancelling or rescheduling it costs nothing.'],
-      },
-      {
-        h: 'Before the assessment',
-        p: ['If you pay and then change your mind before the deep assessment has taken place, you receive a full refund within seven days of asking.'],
-      },
-      {
-        h: 'After coaching has started',
+        h: 'The short version',
         p: [
-          'Within the first fourteen days after the assessment, you may stop and receive the remainder of your fee back, less the assessment and the weeks already delivered. After fourteen days, fees for the agreed term are not refundable, because the plan has been built and the coaching time reserved for you.',
+          'Before your assessment, you can have every rupee back for any reason. After your assessment, you cannot, because by then the work has been done. There is one line and this page is about being clear where it falls.',
         ],
       },
       {
-        h: 'Pausing',
-        p: ['Illness, injury and travel happen. Coaching can be paused for up to four weeks in a term without losing any of it. Ask before the pause, not after.'],
+        h: 'The consultation',
+        p: [
+          'The consultation is free and nothing is charged through this website. Cancelling or rescheduling it costs nothing, and you can do it by replying to the same WhatsApp chat you booked it in.',
+        ],
+      },
+      {
+        h: 'Before the assessment',
+        p: [
+          'If you have paid and then change your mind at any point before the deep assessment has taken place, you receive all of it back. No reason is needed and none will be asked for. Write to the address below and the refund is returned the way the payment came, within seven working days.',
+        ],
+      },
+      {
+        h: 'After the assessment',
+        p: [
+          'The assessment and the plan built from it are the work. They are not a deposit against future sessions: they are hours of Ikram reading your history, your bloods, your schedule and your training, and then writing something that exists only for you. Once the assessment has taken place, fees for the agreed term are not refundable, whether or not you go on to follow the plan.',
+          'This is the strictest term on this page, so it is the one said earliest: it is put to you in writing, before you pay, at the consultation. If it is not something you want to agree to, the right time to say so is then, and saying so costs you nothing.',
+        ],
+      },
+      {
+        h: 'Pausing, which is usually the real answer',
+        p: [
+          'Illness, injury, surgery, a work crisis, a bereavement, travel. These happen inside a term and they are not a reason to lose it. Coaching can be paused for up to four weeks in a term and picked up where it stopped, with the plan rebuilt around where your body actually is by then rather than where it was.',
+          'Ask before the pause rather than after, so the time is held for you. If four weeks is not going to be enough, say so anyway; that is a conversation, not a refusal.',
+        ],
       },
       {
         h: 'If Fitoholix cancels',
-        p: ['If Ikram cannot deliver the coaching you have paid for, you receive a refund for the part not delivered, in full and without conditions.'],
+        p: [
+          'If Ikram cannot deliver coaching you have paid for, you are refunded for the part not delivered, in full, without conditions and without being asked to accept credit instead.',
+        ],
       },
       {
         h: 'How to ask',
-        p: [`Write to ${CONTACT_EMAIL}. Refunds go back the way the payment came, within seven working days of being agreed.`],
+        p: [
+          `Write to ${CONTACT_EMAIL}, or say it in the WhatsApp chat you already have with Ikram. Either is enough and neither needs a form. Refunds go back the way the payment came, within seven working days of being agreed.`,
+        ],
+      },
+      {
+        h: 'Your rights',
+        p: [
+          'Nothing on this page takes away a right you have under the Consumer Protection Act, 2019 or any other law that applies to you. Where this page and the law disagree, the law wins.',
+        ],
       },
     ],
   },
