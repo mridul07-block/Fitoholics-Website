@@ -101,6 +101,9 @@ export class Canvas2DRenderer {
     this.canvas.style.inset = '0'
     this.canvas.style.width = '100%'
     this.canvas.style.height = '100%'
+    // decorative: the host is already aria-hidden, and the canvas says so itself
+    this.canvas.setAttribute('aria-hidden', 'true')
+    this.canvas.setAttribute('role', 'presentation')
     this.applyGrade(0)
     const ctx = this.canvas.getContext('2d', { alpha: false })
     if (!ctx) throw new Error('2d context unavailable')
@@ -131,6 +134,8 @@ export class Canvas2DRenderer {
   private buildOverlay(host: HTMLElement): void {
     const el = document.createElement('div')
     el.setAttribute('aria-hidden', 'true')
+    // fades in with the canvas (App.module.css .film[data-film-ready])
+    el.dataset.filmOverlay = ''
     el.style.position = 'absolute'
     el.style.inset = '0'
     el.style.pointerEvents = 'none'

@@ -9,6 +9,21 @@
   background-position: center;
 }
 
+/* The plate crossfades in over the LQIP ground on its first drawn frame
+   (FilmLayer.tsx sets data-film-ready on the host). The Canvas 2D path adds
+   a grain and vignette overlay beside its canvas; it fades with it, or it
+   would show as a veil over the blurred ground before the picture arrived. */
+.film > canvas,
+.film > [data-film-overlay] {
+  opacity: 0;
+  transition: opacity 260ms var(--e-out);
+}
+
+.film[data-film-ready] > canvas,
+.film[data-film-ready] > [data-film-overlay] {
+  opacity: 1;
+}
+
 /* 1px loading rule across the bottom of the viewport (§7.3).
    scaleX driven from loader phase; transform only, never width (CLS 0). */
 .loadingRule {

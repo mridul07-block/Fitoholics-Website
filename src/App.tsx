@@ -1,10 +1,9 @@
 import { useEffect, type CSSProperties } from 'react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from './content/copy'
-import { initChoreography } from './motion/choreography'
+import { initChoreography, initEntrance } from './motion/choreography'
 import { initA11yNav } from './motion/a11y'
 import { initStillness } from './motion/stillness'
-import { initGate } from './motion/gate'
 import { initSpine } from './film/useMasterProgress'
 import { initDaylight } from './film/daylight'
 import { SECTIONS, TOTAL_VH } from './film/beats'
@@ -68,15 +67,15 @@ export function App() {
     // from the cut into the proof (see film/daylight.ts)
     initDaylight()
 
-    // The gate takes over its own markup immediately — it has been painting
-    // since the first frame and needs to start reporting real progress, not
-    // wait on fonts it does not use.
-    const gateLifted = initGate()
+    // The entrance runs now. It waits for nothing: the hero is the first
+    // paint, and whether the timed sequence plays or the page is simply there
+    // is decided inside by how long the visitor has already been looking.
+    initEntrance()
 
-    // The entrance waits for BOTH: the fonts, because it splits lines and a
-    // split before the face resolves would re-wrap; and the gate, because an
-    // entrance played behind a full screen overlay is an entrance nobody sees.
-    void Promise.all([document.fonts.ready, gateLifted]).then(() => {
+    // The scroll choreography waits for the fonts, because it splits headlines
+    // into lines and a split before the face resolves would re-wrap. Nothing
+    // is hidden until it runs, so a font that never resolves costs no content.
+    void document.fonts.ready.then(() => {
       initChoreography()
       if (import.meta.env.DEV) assertSectionGeometry()
     })

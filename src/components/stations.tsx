@@ -29,11 +29,11 @@ function DraftTag() {
 }
 
 /** the line under a primary call to action: what the click commits you to */
-function BookingDetail({ className }: { className?: string }) {
+function BookingDetail({ className, ...rest }: { className?: string; 'data-s1-detail'?: string }) {
   const d = liveOne(COPY.booking.detail)
   if (!d) return null
   return (
-    <p className={clsx(s.bookingDetail, className)} data-placeholder={isDraft(d) ? '' : undefined}>
+    <p className={clsx(s.bookingDetail, className)} data-placeholder={isDraft(d) ? '' : undefined} {...rest}>
       {d.line}
       {isDraft(d) && <DraftTag />}
     </p>
@@ -74,7 +74,7 @@ export function Entrance() {
               {c.cta2}
             </a>
           </div>
-          <BookingDetail className={s.heroDetail} />
+          <BookingDetail className={s.heroDetail} data-s1-detail="" />
         </div>
       </div>
       <div className={s.scrollCue} aria-hidden="true" data-scroll-cue>

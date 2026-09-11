@@ -6,8 +6,13 @@
  * (§9 law 5). Easing vocabulary: power2.out, power2.inOut, power3.out,
  * linear — nothing else (§9 law 3).
  *
- * Under prefers-reduced-motion this module resolves the entrance gate and
- * does nothing else: content is fully visible, counters show final values.
+ * Two entry points, because they wait for different things. initEntrance()
+ * runs the moment the page mounts: it needs no fonts (the headline is never
+ * split or hidden) and the hero is the first paint. initChoreography() runs
+ * once the fonts are in, because it splits headlines into lines.
+ *
+ * Under prefers-reduced-motion both resolve immediately and hide nothing:
+ * content is fully visible, counters show final values.
  */
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -21,8 +26,14 @@ gsap.registerPlugin(ScrollTrigger, SplitText)
 /** a station's root, by the stable key App.tsx writes as data-station-key */
 const station = (key: StationKey) => `[data-station-key="${key}"]`
 
-/** FilmLayer multiplies its wash by this during the entrance ramp. */
-export const filmEntrance = { wash: 0 }
+/**
+ * Past this the CSS fallback in index.html has begun revealing the hero's
+ * supporting elements on its own, and a visitor may already be reading them.
+ * Hiding them again to play a sequence would be a flash, so the timed
+ * entrance only plays if the bundle got here first. Mirrors the 800ms delay
+ * on the s1Reveal animation in index.html; the two must move together.
+ */
+const ENTRANCE_LATEST_MS = 800
 
 /** Resolves when the entrance sequence completes (or immediately, reduced). */
 let resolveEntrance: () => void = () => {}
@@ -30,64 +41,86 @@ export const entranceDone: Promise<void> = new Promise((res) => {
   resolveEntrance = res
 })
 
+let entranceStarted = false
+
+/**
+ * The hero's arrival, ~0.8s (§8 S1). The headline is never touched: it is the
+ * LCP element and it is already on screen. Only the eyebrow, the lead, the
+ * buttons and the cue take part, and the buttons are usable from 0.35s.
+ */
+export function initEntrance(): void {
+  if (entranceStarted) return
+  entranceStarted = true
+  performance.mark('entrance:start')
+
+  const done = () => {
+    performance.mark('entrance:done')
+    resolveEntrance()
+  }
+
+  const s1 = document.querySelector<HTMLElement>(station('hero'))
+  const cue = s1?.querySelector<HTMLElement>('[data-scroll-cue]') ?? null
+  const cueFadesOnScroll = () => {
+    if (!cue) return
+    cue.classList.add('cueRunning')
+    // the cue fades permanently after 40px of scroll and never returns
+    ScrollTrigger.create({
+      start: 40,
+      once: true,
+      onEnter: () => gsap.to(cue, { autoAlpha: 0, duration: 0.4, ease: 'power2.out' }),
+    })
+  }
+
+  if (!s1 || prefersReducedMotion()) {
+    done()
+    return
+  }
+  if (performance.now() > ENTRANCE_LATEST_MS) {
+    // the CSS fallback is already showing the page; leave it alone
+    cueFadesOnScroll()
+    done()
+    return
+  }
+
+  const eyebrow = s1.querySelector<HTMLElement>('[data-s1-eyebrow]')
+  const hero = s1.querySelector<HTMLElement>('h1')
+  const lead = s1.querySelector<HTMLElement>('[data-s1-lead]')
+  const actions = s1.querySelector<HTMLElement>('[data-s1-actions]')
+  const detail = s1.querySelector<HTMLElement>('[data-s1-detail]')
+  const parts = [eyebrow, lead, actions, detail, cue].filter((el): el is HTMLElement => !!el)
+
+  // Hide first, then take over from the CSS fallback. While its animation is
+  // in its delay it holds these at opacity 0 above any inline style, so the
+  // inline hide is in place before the animation is cancelled and there is
+  // no frame in which the elements are visible.
+  gsap.set(parts, { autoAlpha: 0 })
+  document.documentElement.dataset.entrance = ''
+
+  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+  if (eyebrow) tl.fromTo(eyebrow, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.35 }, 0)
+  // a band of the room's light crosses the headline instead of the headline
+  // rising: it was there already, so it is lit rather than delivered
+  if (hero) tl.fromTo(hero, { '--sweep': -1 }, { '--sweep': 1, duration: 0.9, ease: 'power2.inOut' } as gsap.TweenVars, 0.05)
+  if (lead) tl.fromTo(lead, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.2)
+  if (actions) tl.fromTo(actions, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 0.35)
+  if (detail) tl.fromTo(detail, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 0.5)
+  tl.add(done, 0.8)
+  if (cue) {
+    tl.fromTo(cue, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 0.8)
+    tl.add(cueFadesOnScroll, 0.8)
+  }
+}
+
 let initialized = false
 
 export function initChoreography(): void {
   if (initialized) return
   initialized = true
 
-  if (prefersReducedMotion()) {
-    filmEntrance.wash = 1
-    resolveEntrance()
-    return
-  }
+  if (prefersReducedMotion()) return
 
   const q = (sel: string) => document.querySelector<HTMLElement>(sel)
   const qa = (sel: string) => Array.from(document.querySelectorAll<HTMLElement>(sel))
-
-  // ---------------------------------------------------------------
-  // Station 1 · entrance, timed, 2.1s total (§8 S1 table)
-  // ---------------------------------------------------------------
-  const s1 = q(station('hero'))
-  if (s1) {
-    const eyebrow = s1.querySelector<HTMLElement>('[data-s1-eyebrow]')
-    const hero = s1.querySelector<HTMLElement>('h1')
-    const lead = s1.querySelector<HTMLElement>('[data-s1-lead]')
-    const actions = s1.querySelector<HTMLElement>('[data-s1-actions]')
-    const cue = s1.querySelector<HTMLElement>('[data-scroll-cue]')
-    gsap.set([eyebrow, lead, actions, cue].filter(Boolean), { autoAlpha: 0 })
-
-    const tl = gsap.timeline({
-      defaults: { ease: 'power3.out' },
-      onComplete: () => resolveEntrance(),
-    })
-    tl.to(filmEntrance, { wash: 1, duration: 1.2, ease: 'power2.out' }, 0)
-    if (eyebrow) tl.fromTo(eyebrow, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.35)
-    if (hero) {
-      const split = SplitText.create(hero, { type: 'lines', mask: 'lines' })
-      tl.fromTo(
-        split.lines,
-        { yPercent: 110 },
-        { yPercent: 0, duration: 0.9, stagger: 0.13 },
-        0.55,
-      )
-    }
-    if (lead) tl.fromTo(lead, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.7 }, 1.3)
-    if (actions) tl.fromTo(actions, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5 }, 1.55)
-    if (cue) {
-      tl.fromTo(cue, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 2.1)
-      tl.add(() => cue.classList.add('cueRunning'), 2.1)
-      // the cue fades permanently after 40px of scroll and never returns
-      ScrollTrigger.create({
-        start: 40,
-        once: true,
-        onEnter: () => gsap.to(cue, { autoAlpha: 0, duration: 0.4, ease: 'power2.out' }),
-      })
-    }
-  } else {
-    filmEntrance.wash = 1
-    resolveEntrance()
-  }
 
   // ---------------------------------------------------------------
   // The cut rule. When the footage hard cuts between camera setups, a line of
@@ -335,18 +368,6 @@ export function initChoreography(): void {
         stagger: 0.045,
       })
     })
-  }
-
-  // the masthead lands after the headline has, so the film reads first. Its
-  // hidden start is set in Nav.tsx before first paint, which is what keeps
-  // this from blinking (nothing to hide here, only to resolve).
-  const nav = q('[data-nav]')
-  if (nav) {
-    const items = Array.from(nav.children).filter((c) => !c.hasAttribute('hidden'))
-    gsap
-      .timeline({ delay: 0.9, defaults: { ease: 'power3.out' } })
-      .to(nav, { autoAlpha: 1, y: 0, duration: 0.75 })
-      .fromTo(items, { autoAlpha: 0, y: -6 }, { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.07 }, 0.15)
   }
 
   // the footer assembles rather than appearing: rule draws, then the columns
