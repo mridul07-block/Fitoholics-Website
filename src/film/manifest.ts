@@ -23,24 +23,105 @@ export interface TierSpec {
   readonly avgBytes: number
 }
 
+/**
+ * The edit, as shown.
+ *
+ * The plates are encoded in the order they were shot: six shots, hard cuts at
+ * FILM_GEN.cuts. The page shows them in a different order. The copy was
+ * rebuilt around the audit's commercial principle (say who it is for, prove
+ * it, explain what they receive, then ask) and the picture has to follow the
+ * words, so the coach appears under the credibility copy and the transformed
+ * pair under the case studies. Every frame index the rest of the app uses is
+ * a LOGICAL index into this order; the one place a file path is formatted
+ * maps it to the physical file. Nothing is re-encoded, and logical frame 0 is
+ * still physical frame 0, so the frame zero preloads in index.html hold.
+ *
+ * Per orientation, because the two plates' cuts differ by a frame on four of
+ * the six shots. A logical shot has the landscape shot's length: a physical
+ * shot one frame shorter repeats its last frame, one frame longer drops its
+ * last, so both orientations cut on the same logical frame.
+ */
+export type ShotId = 'mirror' | 'arrival' | 'assessment' | 'work' | 'standard' | 'proof'
+
+/** the shots as encoded */
+const ENCODED: readonly ShotId[] = ['mirror', 'arrival', 'assessment', 'work', 'standard', 'proof']
+/** the shots as shown */
+export const SHOT_ORDER: readonly ShotId[] = ['mirror', 'assessment', 'standard', 'arrival', 'work', 'proof']
+
+interface PhysicalShot {
+  readonly p0: number
+  readonly p1: number
+}
+
+const physicalShots = (cuts: readonly number[]): Record<ShotId, PhysicalShot> => {
+  const starts = [0, ...cuts]
+  const out = {} as Record<ShotId, PhysicalShot>
+  ENCODED.forEach((id, k) => {
+    out[id] = { p0: starts[k]!, p1: (starts[k + 1] ?? FILM_GEN.count) - 1 }
+  })
+  return out
+}
+
+const PHYSICAL: Record<Orientation, Record<ShotId, PhysicalShot>> = {
+  landscape: physicalShots(FILM_GEN.cuts),
+  portrait: physicalShots(FILM_GEN.cutsPortrait),
+}
+
+export interface Shot {
+  readonly id: ShotId
+  /** inclusive logical frame range */
+  readonly n0: number
+  readonly n1: number
+  /** the reduced motion keyframe, logical */
+  readonly heroFrame: number
+}
+
+/** the shots in the order shown, in logical frame space */
+export const SHOTS: readonly Shot[] = (() => {
+  let n = 0
+  return SHOT_ORDER.map((id) => {
+    const p = PHYSICAL.landscape[id]
+    const len = p.p1 - p.p0 + 1
+    const heroPhysical = FILM_GEN.heroFrames[ENCODED.indexOf(id)]!
+    const shot: Shot = { id, n0: n, n1: n + len - 1, heroFrame: n + (heroPhysical - p.p0) }
+    n += len
+    return shot
+  })
+})()
+
+const inShownOrder = <T>(list: readonly T[]): readonly T[] => SHOT_ORDER.map((id) => list[ENCODED.indexOf(id)]!)
+
 export const FILM = {
   count: FILM_GEN.count,
   padding: FILM_GEN.padding,
   ext: FILM_GEN.ext,
   startIndex: 0,
   tiers: FILM_GEN.tiers as readonly TierSpec[],
-  cuts: FILM_GEN.cuts as readonly number[],
-  heroFrames: FILM_GEN.heroFrames as readonly number[],
-  lqip: FILM_GEN.lqip as readonly string[],
-  lqipPortrait: FILM_GEN.lqipPortrait as readonly string[],
+  /** first logical frame of each shot after the first */
+  cuts: SHOTS.slice(1).map((s) => s.n0) as readonly number[],
+  heroFrames: SHOTS.map((s) => s.heroFrame) as readonly number[],
+  lqip: inShownOrder(FILM_GEN.lqip as readonly string[]),
+  lqipPortrait: inShownOrder(FILM_GEN.lqipPortrait as readonly string[]),
 } as const
 
 export const clampIndex = (i: number): number =>
   Math.min(Math.max(i, 0), FILM.count - 1)
 
+/** logical frame -> the physical frame of that orientation's plate */
+export function toPhysical(orientation: Orientation, i: number): number {
+  const li = clampIndex(i)
+  for (const s of SHOTS) {
+    if (li <= s.n1) {
+      const p = PHYSICAL[orientation][s.id]
+      return Math.min(p.p0 + (li - s.n0), p.p1)
+    }
+  }
+  return FILM.count - 1
+}
+
 /** The only place in the app that formats a frame path. */
 export const framePath = (tier: TierSpec, i: number): string =>
-  `${tier.dir}/f_${String(clampIndex(i)).padStart(FILM.padding, '0')}.${FILM.ext}`
+  `${tier.dir}/f_${String(toPhysical(tier.orientation, i)).padStart(FILM.padding, '0')}.${FILM.ext}`
 
 /** LQIP grounds the film host before frame zero decodes, so it must match the
  *  shape of the plate that is about to cover it. */

@@ -626,7 +626,8 @@
    second rule doing the same job. */
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* three real facts; a fourth (the client count) joins on previews */
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
   gap: var(--s-4);
   margin-bottom: var(--s-7);
 }
@@ -658,7 +659,7 @@
    band into a third of a screen, so they stay side by side and shrink. */
 @media (max-width: 720px) {
   .stats {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
     gap: var(--s-4);
     margin-bottom: var(--s-6);
   }
@@ -1097,3 +1098,418 @@
 
 /* The footer moved out of this station into components/SiteFooter.tsx, which
    sits after <main> on its own pane and carries the brand lockup with it. */
+
+/* The four answers before the click, in one row above the button. */
+.closeDetails {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-3) var(--s-7);
+  margin: 0 0 var(--s-7);
+}
+
+.closeDetail {
+  position: relative;
+  display: grid;
+  gap: var(--s-1);
+  justify-items: center;
+}
+
+.closeDetailLabel {
+  composes: utility from '../styles/base.css';
+}
+
+.closeDetailValue {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--bone);
+  max-width: 28ch;
+}
+
+/* ============================================================
+   Shared: drafted rows, the honest empty state, the disclaimer
+   ============================================================ */
+
+/* A drafted row on a build that shows drafts. Dimmed, so an invented client
+   never presents itself with the confidence of a real one, and tagged. */
+[data-placeholder] {
+  color: var(--stone);
+}
+
+.draftTag {
+  composes: utility from '../styles/base.css';
+  position: absolute;
+  top: var(--s-2);
+  right: var(--s-2);
+  padding: 2px var(--s-2);
+  font-size: .625rem;
+  letter-spacing: .14em;
+  color: var(--void);
+  background: var(--flare);
+  pointer-events: none;
+}
+
+/* text rows have no box for the tag to sit in, so it rides inline */
+p .draftTag,
+li .draftTag,
+dd .draftTag {
+  position: static;
+  display: inline-block;
+  margin-left: var(--s-2);
+  vertical-align: middle;
+}
+
+.emptyNote {
+  grid-column: 1 / 13;
+  max-width: var(--measure);
+  color: var(--stone);
+  font-size: var(--t-small);
+}
+
+.disclaimer {
+  composes: utility from '../styles/base.css';
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  max-width: var(--measure);
+  margin-top: var(--s-6);
+}
+
+/* the line under a primary call to action */
+.bookingDetail {
+  composes: utility from '../styles/base.css';
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--t-small);
+  color: var(--bone);
+  opacity: .82;
+}
+
+.heroDetail {
+  margin-top: var(--s-4);
+}
+
+.fullRow {
+  grid-column: 1 / 13;
+  display: grid;
+  row-gap: 0;
+}
+
+/* ============================================================
+   Station 3 · RESULTS — case studies, clips, then the words
+   ============================================================ */
+
+.cases {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-6);
+}
+
+.case {
+  composes: surface;
+  padding: var(--s-4);
+  display: grid;
+  align-content: start;
+  gap: var(--s-4);
+  transform-style: preserve-3d;
+}
+
+/* the pair, side by side and the same size, never animated between */
+.casePair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+
+.caseShot {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  display: grid;
+  place-items: center;
+  background: rgba(var(--void-rgb), .45);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+}
+
+.caseShot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.caseShotLabel {
+  composes: utility from '../styles/base.css';
+}
+
+.caseResult {
+  composes: display from '../styles/base.css';
+  font-weight: 400;
+  font-size: var(--t-body);
+  line-height: var(--lh-h2);
+  color: var(--bone);
+}
+
+.case[data-placeholder] .caseResult {
+  color: var(--stone);
+}
+
+.caseMeta {
+  composes: utility from '../styles/base.css';
+}
+
+.videos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-6);
+}
+
+.video {
+  composes: surface;
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.videoPoster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.videoPlay {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid var(--flare);
+  background: rgba(var(--void-rgb), .55);
+}
+
+.videoPlay::after {
+  content: '';
+  position: absolute;
+  left: 22px;
+  top: 18px;
+  border-left: 16px solid var(--bone);
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+}
+
+.videoTitle {
+  composes: utility from '../styles/base.css';
+  position: absolute;
+  left: var(--s-4);
+  bottom: var(--s-4);
+  color: var(--bone);
+}
+
+.videoFrame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ============================================================
+   Station 4 · WHAT YOU RECEIVE
+   ============================================================ */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-4);
+  margin: var(--s-6) 0 0;
+}
+
+.fact {
+  composes: surface;
+  position: relative;
+  padding: var(--s-4) var(--s-5);
+  display: grid;
+  gap: var(--s-1);
+}
+
+.factLabel {
+  composes: utility from '../styles/base.css';
+}
+
+.factValue {
+  composes: display from '../styles/base.css';
+  margin: 0;
+  font-size: var(--t-h3);
+  line-height: 1.2;
+}
+
+.fact[data-placeholder] .factValue {
+  color: var(--stone);
+}
+
+/* six inclusions in two columns, so the list is a block beside the copy
+   rather than a column twice its height */
+.receiveList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--s-6);
+}
+
+.receiveRow {
+  display: grid;
+  gap: var(--s-1);
+  padding-block: var(--s-4);
+}
+
+.receiveLabel {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h3);
+  line-height: var(--lh-h2);
+}
+
+.receiveBody {
+  color: var(--bone);
+  opacity: .88;
+  max-width: var(--measure);
+}
+
+.appBlock {
+  composes: surface;
+  position: relative;
+  margin-top: var(--s-7);
+  padding: var(--s-6);
+  display: grid;
+  gap: var(--s-3);
+}
+
+.appTitle {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h3);
+  line-height: var(--lh-h2);
+}
+
+.appBody {
+  color: var(--bone);
+  opacity: .88;
+  max-width: var(--measure);
+}
+
+.appBlock[data-placeholder] .appTitle,
+.appBlock[data-placeholder] .appBody {
+  color: var(--stone);
+  opacity: 1;
+}
+
+.appScreens {
+  display: grid;
+  grid-auto-flow: column;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+}
+
+.appScreens img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--hairline);
+}
+
+/* ============================================================
+   Station 5 · WHO IT IS FOR — three paths under the copy
+   ============================================================ */
+
+.paths {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-6);
+}
+
+.path {
+  composes: surface;
+  position: relative;
+  padding: var(--s-6);
+  display: grid;
+  align-content: start;
+  gap: var(--s-3);
+}
+
+.pathTitle {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h3);
+  line-height: var(--lh-h2);
+}
+
+.pathWho {
+  color: var(--stone);
+  font-size: var(--t-small);
+}
+
+.pathLine {
+  color: var(--bone);
+  opacity: .88;
+}
+
+.pathGets {
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--hairline);
+}
+
+.path[data-placeholder] .pathTitle,
+.path[data-placeholder] .pathLine {
+  color: var(--stone);
+  opacity: 1;
+}
+
+@media (max-width: 1024px) {
+  .cases,
+  .videos,
+  .paths {
+    grid-template-columns: 1fr 1fr;
+  }
+  .receiveList {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* On a phone the case studies and the paths take the same snap carousel the
+   testimonial cards do (see .cards above), for the same reason: three stacked
+   cards outgrow the section and silently move everything after them. */
+@media (max-width: 720px) {
+  .cases,
+  .paths,
+  .videos {
+    display: flex;
+    max-width: none;
+    gap: var(--s-4);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-inline: calc(var(--page-margin) * -1);
+    padding-inline: var(--page-margin);
+    padding-bottom: var(--s-3);
+  }
+  .cases::-webkit-scrollbar,
+  .paths::-webkit-scrollbar,
+  .videos::-webkit-scrollbar {
+    display: none;
+  }
+  .case,
+  .path,
+  .video {
+    flex: 0 0 84%;
+    scroll-snap-align: center;
+  }
+  .facts {
+    grid-template-columns: 1fr 1fr;
+  }
+  .closeDetails {
+    gap: var(--s-3) var(--s-5);
+  }
+}

@@ -219,30 +219,36 @@ export function initChoreography(): void {
     })
   }
 
-  // problem: pain list rules draw, text follows (§8 S2)
-  const painRows = qa(`${station('problem')} [data-pain-row]`)
-  if (painRows.length) {
-    gsap.set(painRows, { autoAlpha: 0, '--ruleScale': 0 } as gsap.TweenVars)
-    reveal(painRows[0]!, (tl) => {
-      painRows.forEach((row, i) => {
+  // Rule rows: the hairline draws, the text follows (§8 S2). The problem's
+  // pain list, the coach's credentials and the "what you receive" list all
+  // share the shape, one gesture per station.
+  for (const sel of ['[data-pain-row]', '[data-credential]', '[data-receive-row]']) {
+    const rows = qa(`[data-station-key] ${sel}`)
+    if (!rows.length) continue
+    gsap.set(rows, { autoAlpha: 0, '--ruleScale': 0 } as gsap.TweenVars)
+    reveal(rows[0]!, (tl) => {
+      rows.forEach((row, i) => {
         tl.to(row, { '--ruleScale': 1, duration: 0.42, ease: 'power2.inOut' } as gsap.TweenVars, i * 0.06)
           .to(row, { autoAlpha: 1, duration: 0.5 }, i * 0.06 + 0.1)
       })
     })
   }
 
-  // positioning: the stat cards arrive as objects, then take their reading —
-  // the bar fills and the numeral counts at the same time, so the card reads
-  // like an instrument settling rather than like text appearing.
-  const statCards = qa(`${station('positioning')} [data-stat-card]`)
-  if (statCards.length) {
+  // Stat cards arrive as objects, then take their reading — the bar fills and
+  // the numeral counts at the same time, so the card reads like an instrument
+  // settling rather than like text appearing. Per station, because the coach
+  // and the "what you receive" facts each have their own set.
+  for (const g of GEOMETRY) {
+    const statCards = qa(`${station(g.key)} [data-stat-card]`)
+    if (!statCards.length) continue
     gsap.set(statCards, { autoAlpha: 0, y: 20 })
     reveal(statCards[0]!, (tl) => {
       tl.to(statCards, { autoAlpha: 1, y: 0, duration: 0.55, stagger: 0.09 })
       statCards.forEach((card, i) => {
         const bar = card.querySelector<HTMLElement>('[data-stat-bar]')
         if (!bar) return
-        // a placeholder value has no reading to give, so its bar stays empty
+        // a value with nothing to count has no reading to give, so its bar
+        // stays nearly empty
         const filled = card.querySelector('[data-count-to]') ? 1 : 0.12
         tl.fromTo(
           bar,
@@ -254,8 +260,8 @@ export function initChoreography(): void {
     })
   }
 
-  // positioning: stat numerals count up (literal text for placeholders, §8 S3)
-  const stats = qa(`${station('positioning')} [data-count-to]`)
+  // stat numerals count up (§8 S3)
+  const stats = qa('[data-station-key] [data-count-to]')
   for (const stat of stats) {
     const target = Number(stat.dataset.countTo)
     const suffix = stat.dataset.countSuffix ?? ''
@@ -273,11 +279,11 @@ export function initChoreography(): void {
     })
   }
 
-  // table: myth pairs — strike draws, truth follows 0.18s later (§8 S5)
-  const myths = qa(`${station('table')} [data-myth-pair]`)
+  // nutrition: myth pairs — strike draws, truth follows 0.18s later (§8 S5)
+  const myths = qa(`${station('nutrition')} [data-myth-pair]`)
   if (myths.length) {
-    const strikes = qa(`${station('table')} [data-myth-strike]`)
-    const truths = qa(`${station('table')} [data-myth-truth]`)
+    const strikes = qa(`${station('nutrition')} [data-myth-strike]`)
+    const truths = qa(`${station('nutrition')} [data-myth-truth]`)
     // the strike line arrives after the words: text-decoration-color is
     // animatable and stays correct on wrapped lines
     gsap.set(strikes, { autoAlpha: 0, y: 10, textDecorationColor: 'rgba(255, 94, 26, 0)' })
@@ -313,10 +319,10 @@ export function initChoreography(): void {
     })
   }
 
-  // fit: the aspirations are chips now, so they arrive as objects rather
+  // pathways: the aspirations are chips, so they arrive as objects rather
   // than as rules that draw. Transform and opacity only, staggered tightly
   // enough to read as one gesture instead of eight separate events.
-  const aspirations = qa(`${station('fit')} [data-aspiration]`)
+  const aspirations = qa(`${station('pathways')} [data-aspiration]`)
   if (aspirations.length) {
     gsap.set(aspirations, { autoAlpha: 0, y: 14, scale: 0.96 })
     reveal(aspirations[0]!, (tl) => {
@@ -358,12 +364,15 @@ export function initChoreography(): void {
       .to(footCols, { autoAlpha: 1, y: 0, duration: 0.65, stagger: 0.09 }, 0.18)
   }
 
-  // proof: testimonial cards stagger in with depth (§8 S7)
-  const cards = qa(`${station('proof')} [data-card]`)
-  if (cards.length) {
+  // Cards stagger in with depth (§8 S7): the case studies, clips and
+  // testimonials under the results, and the three paths under "who it is
+  // for". One gesture per station, in document order.
+  for (const key of ['transformations', 'pathways'] as const) {
+    const cards = qa(`${station(key)} [data-case], ${station(key)} [data-video], ${station(key)} [data-card], ${station(key)} [data-path]`)
+    if (!cards.length) continue
     gsap.set(cards, { autoAlpha: 0, y: 40, z: -120 })
     reveal(cards[0]!, (tl) => {
-      tl.to(cards, { autoAlpha: 1, y: 0, z: 0, duration: 0.8, stagger: 0.16 })
+      tl.to(cards, { autoAlpha: 1, y: 0, z: 0, duration: 0.8, stagger: 0.12 })
     })
   }
 }

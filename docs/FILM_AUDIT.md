@@ -81,3 +81,29 @@ page changes subject at the same instant the camera does.
 
 Total 1200 vh, about 4 vh of scroll per frame. `assertFilmCoverage()` throws in
 DEV if a height edit moves a boundary off its cut.
+
+## Re-sequenced for the audit release (2026-09)
+
+The September audit asked for the page to prove before it explains. The copy
+was reordered to do that, and a film whose shots stayed in shooting order
+would then have put the case studies over the coach's tablet and the method
+over the transformed pair. So the shots are shown in a different order from
+the one they were encoded in. Nothing was re-encoded: `src/film/manifest.ts`
+holds `SHOT_ORDER` and maps every logical frame index to the physical file in
+`framePath()`, per orientation, so the two plates cut on the same logical
+frame even where their physical cuts differ by one.
+
+| Shown | Shot (physical frames) | Logical frames | Under |
+|---|---|---|---|
+| 1 | THE MIRROR (0–54) | 0–54 | hero, problem |
+| 2 | THE ASSESSMENT (99–139) | 55–95 | the coach |
+| 3 | THE STANDARD (195–239) | 96–140 | results |
+| 4 | THE ARRIVAL (55–98) | 141–184 | what you receive, who it is for |
+| 5 | THE WORK (140–194) | 185–239 | the method |
+| 6 | THE PROOF (240–299) | 240–299 | nutrition, close |
+
+Logical cuts `55, 96, 141, 185, 240`; `assertFilmCoverage()` now requires all
+five on section boundaries. The daylight stops in `daylight.ts` sit on the
+same frames, and the ember glow in `beats.ts` is graded to rise in the order
+shown. Section heights and the boundary arithmetic live in
+`src/stations/geometry.ts`.

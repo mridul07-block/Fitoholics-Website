@@ -8,40 +8,36 @@ exits 1 while `src/content/copy.ts` still contains bracketed values. Vercel runs
 exactly what it was built to do — the original brief requires that a bracketed
 testimonial can never reach production by accident.
 
-The guard is now environment aware instead of unconditional:
+The guard is environment aware instead of unconditional, and since the
+audit release (2026-09) it distinguishes two kinds of unfinished value:
 
-| Environment | Behaviour |
-|---|---|
-| `VERCEL_ENV=preview` (branch and PR deploys) | warns, build succeeds |
-| `VERCEL_ENV=production` | **fails** |
-| `VERCEL_ENV=production` + `ALLOW_PLACEHOLDERS=1` | warns, build succeeds |
-| local `npm run build` | fails |
+- **Literal placeholders** (`[CLIENT COUNT]`, `TBC`) render as themselves, so
+  they block a production build.
+- **Drafts** (rows flagged `draft: true`: case studies, testimonials, the
+  client count, program length, consultation format, the app) are written to
+  look finished. They never block a build because they never reach one:
+  `src/content/drafts.ts` omits every drafted row from any build that is not
+  the dev server, a Vercel preview, or `SHOW_DRAFTS=1`. Previews show them
+  with a visible DRAFT tag. The guard reports how many remain.
 
-A preview deploy exists to look at unfinished work, and a visible
-`[TESTIMONIAL 1 QUOTE]` is honest about being unfinished in a way an invented
-quote never would be. Production still refuses by default.
+| Environment | Literal placeholders | Drafts |
+|---|---|---|
+| `vite` dev server | build proceeds | shown, tagged |
+| `VERCEL_ENV=preview` (branch and PR deploys) | warns, build succeeds | shown, tagged |
+| `VERCEL_ENV=production` | **fails** | omitted |
+| `VERCEL_ENV=production` + `ALLOW_PLACEHOLDERS=1` | warns, build succeeds | omitted |
+| local `npm run build` | fails | omitted |
 
-## To deploy right now, with placeholders
+So production deploys need no environment variable at all. **If
+`ALLOW_PLACEHOLDERS=1` is still set on the Vercel project from before, remove
+it**, so the guard protects the live site again.
 
-Vercel dashboard, Project → Settings → Environment Variables:
+## To finish the content
 
-```
-ALLOW_PLACEHOLDERS = 1        scope: Production
-```
-
-Redeploy. Remove that variable once the real testimonials, client count and
-contact details are in `src/content/copy.ts`, so the guard protects the live
-site again.
-
-## To deploy properly
-
-Replace every bracketed value in `src/content/copy.ts`:
-
-- `testimonials` — three real quotes, names, professions, durations
-- `footer.contact` — email, Instagram, phone
-- `positioning.stats` clientCount — the real number
-
-Then no environment variable is needed at all.
+`docs/CONTENT_REQUEST.md` lists what the client has to supply. As each item
+arrives: replace the drafted row in `src/content/copy.ts` with the real
+value and delete its `draft: true`, together. `node tools/check-placeholders.mjs`
+counts what is left.
 
 ## What else was fixed
 

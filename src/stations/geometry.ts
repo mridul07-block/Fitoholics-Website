@@ -15,15 +15,41 @@
  *
  * `key` is the stable name everything else selects by (data-station-key), so
  * reordering or inserting a station never renumbers a selector.
+ *
+ * The order is the audit's commercial principle: say who it is for, prove it
+ * works, explain what they receive, then ask. The film's shots are shown in
+ * the same order (manifest.ts SHOT_ORDER), and the arithmetic below lands all
+ * five cuts exactly, with boundary = round(cumulative / 1600 × 299):
+ *
+ *   station           h   cum   frame   shot under it
+ *   hero            134   134     25    THE MIRROR
+ *   problem         160   294     55 ←  cut, THE ASSESSMENT
+ *   credibility     220   514     96 ←  cut, THE STANDARD
+ *   transformations 240   754    141 ←  cut, THE ARRIVAL
+ *   receive         118   872    163
+ *   pathways        118   990    185 ←  cut, THE WORK
+ *   method          294  1284    240 ←  cut, THE PROOF
+ *   nutrition       180  1464    274
+ *   close           136  1600    299
+ *
+ * About 5.4 vh per frame in every act, so the scrub is uniform. The total is
+ * set by the two stations that share THE ARRIVAL: at 1440×900 "what you
+ * receive" measures 115 vh of content and the paths 117, and a cut fixes
+ * their combined room, so the whole page scales rather than one act rushing.
+ *
+ * The phone floors are the content heights measured at 390×844, so the DEV
+ * pacing check stays quiet there; the film re-pins to the measured tops, and
+ * a section that stretches further only slows the act under it.
  */
 export type StationKey =
   | 'hero'
   | 'problem'
-  | 'positioning'
-  | 'protocol'
-  | 'table'
-  | 'fit'
-  | 'proof'
+  | 'credibility'
+  | 'transformations'
+  | 'receive'
+  | 'pathways'
+  | 'method'
+  | 'nutrition'
   | 'close'
 
 export interface StationGeometry {
@@ -44,18 +70,18 @@ export interface StationGeometry {
 
 export const GEOMETRY: readonly StationGeometry[] = [
   // the entrance owns its own motion, so no z travel
-  { key: 'hero', h: 110, hMd: 100, hSm: 100, wash: 0.78, zTravel: false },
-  { key: 'problem', h: 110, hMd: 115, hSm: 125, wash: 0.84, zTravel: true },
-  { key: 'positioning', h: 176, hMd: 110, hSm: 110, wash: 0.9, zTravel: true },
+  { key: 'hero', h: 134, hMd: 100, hSm: 100, wash: 0.78, zTravel: false },
+  { key: 'problem', h: 160, hMd: 120, hSm: 136, wash: 0.84, zTravel: true },
+  { key: 'credibility', h: 220, hMd: 125, hSm: 130, wash: 0.9, anchor: 'coach', zTravel: true },
+  { key: 'transformations', h: 240, hMd: 165, hSm: 170, wash: 0.9, anchor: 'results', zTravel: true },
+  { key: 'receive', h: 118, hMd: 150, hSm: 220, wash: 0.86, anchor: 'receive', zTravel: true },
+  { key: 'pathways', h: 118, hMd: 140, hSm: 177, wash: 0.88, anchor: 'pathways', zTravel: true },
   // pinned, so the panel cannot also travel
-  { key: 'protocol', h: 284, hMd: 250, hSm: 240, wash: 0.8, anchor: 'protocol', zTravel: false },
-  { key: 'table', h: 100, hMd: 125, hSm: 135, wash: 0.86, anchor: 'nutrition', zTravel: true },
-  { key: 'fit', h: 180, hMd: 120, hSm: 125, wash: 0.88, anchor: 'fit', zTravel: true },
+  { key: 'method', h: 294, hMd: 250, hSm: 240, wash: 0.8, anchor: 'method', zTravel: false },
   // The last two are where the page arrives. The footage ends on its one
-  // daylit shot, and washing it back toward the ground — proof was 0.80 and
-  // close 0.72, the most veiled section on the page — was hiding the payoff
+  // daylit shot, and washing it back toward the ground was hiding the payoff
   // behind the same ink the story started in. The veil opens instead, which
   // is where the ending gets its light from (see film/daylight.ts).
-  { key: 'proof', h: 118, hMd: 110, hSm: 110, wash: 0.94, anchor: 'proof', zTravel: true },
-  { key: 'close', h: 122, hMd: 115, hSm: 120, wash: 0.86, anchor: 'booking', zTravel: true },
+  { key: 'nutrition', h: 180, hMd: 135, hSm: 172, wash: 0.94, anchor: 'nutrition', zTravel: true },
+  { key: 'close', h: 136, hMd: 115, hSm: 120, wash: 0.86, anchor: 'booking', zTravel: true },
 ]

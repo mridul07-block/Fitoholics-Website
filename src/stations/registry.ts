@@ -7,17 +7,28 @@
  */
 import type { ReactNode } from 'react'
 import { COPY } from '../content/copy'
-import { Entrance, Problem, Positioning, Protocol, TableStation, Fit, Proof, Close } from '../components/stations'
+import {
+  Entrance,
+  Problem,
+  Credibility,
+  Transformations,
+  Receive,
+  Pathways,
+  Method,
+  Nutrition,
+  Close,
+} from '../components/stations'
 import { GEOMETRY, type StationGeometry, type StationKey } from './geometry'
 
 const COMPONENTS: Record<StationKey, () => ReactNode> = {
   hero: Entrance,
   problem: Problem,
-  positioning: Positioning,
-  protocol: Protocol,
-  table: TableStation,
-  fit: Fit,
-  proof: Proof,
+  credibility: Credibility,
+  transformations: Transformations,
+  receive: Receive,
+  pathways: Pathways,
+  method: Method,
+  nutrition: Nutrition,
   close: Close,
 }
 

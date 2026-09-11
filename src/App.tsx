@@ -83,7 +83,7 @@ export function App() {
 
   return (
     <>
-      <a href="#booking" className={s.skipLink}>
+      <a href="#top" className={s.skipLink}>
         {COPY.chrome.skipLink}
       </a>
 
