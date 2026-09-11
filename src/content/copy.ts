@@ -117,22 +117,24 @@ export const COPY = {
     quote:
       'For busy professionals tired of failed diets and unsustainable routines, Ikram Ansari builds lifelong habits, not temporary fixes, because he treats every client as a unique case, not a template.',
     /**
-     * Only claims with evidence behind them render in production. Ten years,
-     * eight steps and zero fad diets are facts about the practice; the client
-     * count is the number the audit flagged as "TBC", and it stays a draft
-     * until the client supplies a figure and how it was counted.
+     * Only claims with evidence behind them. The transformation count is the
+     * figure the client supplied on 2026-09-12, replacing the "TBC" the audit
+     * flagged as its P0 release blocker; the rest are facts about the
+     * practice. If the number is ever questioned, the answer is Ikram's own
+     * client records, so it is stated as "100+" rather than to a false
+     * precision nobody can defend.
      */
     stats: [
       { value: '10+', label: 'Years coaching', countTo: 10, suffix: '+' },
+      { value: '100+', label: 'Transformations', countTo: 100, suffix: '+' },
       { value: '8', label: 'Steps, every client', countTo: 8, suffix: '' },
       { value: '0', label: 'Fad diets, ever', countTo: 0, suffix: '' },
-      { value: '300+', label: 'Transformations', countTo: 300, suffix: '+', draft: true },
     ],
     credentialsLabel: 'CREDENTIALS',
     credentials: [
       { text: 'Founder of fitoholix Fitness & Nutrition' },
       { text: 'Ten plus years coaching working professionals, in person and online' },
-      { text: 'Certified in personal training and sports nutrition', draft: true },
+      { text: 'Certified in personal training and sports nutrition' },
     ],
     foot: 'Calm authority in a loud market. No shortcuts promised, none needed.',
   },
@@ -264,6 +266,13 @@ export const COPY = {
     /**
      * The basic delivery model the audit found missing. Length and price are
      * the client's to state; the rest is how the protocol already works.
+     *
+     * There is no app, and no app block. The audit assumed one ("App access
+     * with exercise guidance", "How does the app work?") on the strength of a
+     * tablet appearing in the footage; the client confirmed on 2026-09-12
+     * that none exists. Coaching runs on WhatsApp, which is where the check
+     * ins already happen, so nothing on this page offers a product that
+     * would have to be built to keep the promise.
      */
     facts: [
       { label: 'Program length', value: '12 weeks', draft: true },
@@ -297,18 +306,6 @@ export const COPY = {
         body: 'Reading labels, managing cravings, understanding your own numbers, so you can run this yourself for life.',
       },
     ],
-    /**
-     * DRAFT. The audit asks how the app works. Whether there is one, and what
-     * it does, is for the client to confirm; `screens` takes real product
-     * screenshots under public/app/ when they exist.
-     */
-    app: {
-      label: 'IN THE APP',
-      title: 'Your plan, in your pocket.',
-      body: 'Workouts with exercise guidance, meals, check ins and progress photos, in one place on your phone. Ikram sees what you log, and the plan moves with it.',
-      screens: [] as readonly { readonly src: string; readonly alt: string }[],
-      draft: true,
-    },
   },
 
   pathways: {

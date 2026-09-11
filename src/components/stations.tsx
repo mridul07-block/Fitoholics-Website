@@ -353,7 +353,6 @@ export function Transformations() {
 
 export function Receive() {
   const c = COPY.receive
-  const app = liveOne(c.app)
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimLeft)} aria-hidden="true" />
@@ -391,21 +390,6 @@ export function Receive() {
               </li>
             ))}
           </ul>
-          {app && (
-            <div className={s.appBlock} data-placeholder={isDraft(app) ? '' : undefined}>
-              <span className={s.listLabel}>{app.label}</span>
-              <p className={s.appTitle}>{app.title}</p>
-              <p className={s.appBody}>{app.body}</p>
-              {app.screens.length > 0 && (
-                <div className={s.appScreens}>
-                  {app.screens.map((sc) => (
-                    <img key={sc.src} src={sc.src} alt={sc.alt} loading="lazy" decoding="async" />
-                  ))}
-                </div>
-              )}
-              {isDraft(app) && <DraftTag />}
-            </div>
-          )}
         </div>
       </div>
     </div>

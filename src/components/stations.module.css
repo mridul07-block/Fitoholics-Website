@@ -273,16 +273,17 @@
   color: var(--stone);
 }
 
-/* Three cards inside a five column rail leaves each about 145px wide, and
-   TRANSFORMATIONS at the standard meta tracking is wider than that. The label
-   scales with the viewport and keeps a last resort break, so no label can ever
-   run out of its own card. */
+/* Tighter tracking than the utility register, because these labels are the
+   longest words on the page in the narrowest boxes. Never `overflow-wrap:
+   anywhere`: it broke TRANSFORMATIONS into TRANSFORMATIO / NS, which reads as
+   a bug rather than as a wrap. The grid above guarantees the width instead. */
 .statCardLabel {
   composes: utility from '../styles/base.css';
   font-size: clamp(11px, .72vw, 12px);
-  letter-spacing: .06em;
+  letter-spacing: .04em;
   line-height: 1.35;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  hyphens: none;
 }
 
 /* the bar under the value fills on reveal — the "reading" of the instrument */
@@ -624,10 +625,14 @@
 /* Three surfaces, equal columns. The old hairline dividers between bare
    numbers are gone: each stat now has its own edge, so a divider would be a
    second rule doing the same job. */
+/* Four facts, two by two. Fixed rather than auto-fit: the rail is five of
+   twelve columns, which is wide enough for three cards and not for four, so
+   auto-fit produced a row of three and an orphan. Two by two also gives
+   TRANSFORMATIONS, the longest label on the page, a box it fits in on one
+   line at every width. */
 .stats {
   display: grid;
-  /* three real facts; a fourth (the client count) joins on previews */
-  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--s-4);
   margin-bottom: var(--s-7);
 }
@@ -658,9 +663,10 @@
 /* Three short facts. Stacking them one per row on a phone turned a compact
    band into a third of a screen, so they stay side by side and shrink. */
 @media (max-width: 720px) {
+  /* two by two on a phone as well, for the same reason */
   .stats {
-    grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
-    gap: var(--s-4);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-3);
     margin-bottom: var(--s-6);
   }
   .statCard {
@@ -682,8 +688,7 @@
      a space instead of inventing a hyphenless split. */
   .statCardLabel {
     font-size: 11px;
-    letter-spacing: .04em;
-    overflow-wrap: normal;
+    letter-spacing: .03em;
   }
   .statCardBar {
     margin-top: var(--s-2);
@@ -1363,11 +1368,19 @@ dd .draftTag {
    Station 4 · WHAT YOU RECEIVE
    ============================================================ */
 
+/* One per row, not two: three of the five facts are the client's to confirm,
+   so this list is three long today and five later, and both of those leave an
+   orphan in a two column grid. A single column is right at every length. */
 .facts {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--s-4);
+  gap: var(--s-3);
   margin: var(--s-6) 0 0;
+}
+
+.facts .fact {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: var(--s-5);
 }
 
 .fact {
@@ -1387,6 +1400,7 @@ dd .draftTag {
   margin: 0;
   font-size: var(--t-h3);
   line-height: 1.2;
+  text-align: right;
 }
 
 .fact[data-placeholder] .factValue {
@@ -1417,46 +1431,6 @@ dd .draftTag {
   color: var(--bone);
   opacity: .88;
   max-width: var(--measure);
-}
-
-.appBlock {
-  composes: surface;
-  position: relative;
-  margin-top: var(--s-7);
-  padding: var(--s-6);
-  display: grid;
-  gap: var(--s-3);
-}
-
-.appTitle {
-  composes: display from '../styles/base.css';
-  font-size: var(--t-h3);
-  line-height: var(--lh-h2);
-}
-
-.appBody {
-  color: var(--bone);
-  opacity: .88;
-  max-width: var(--measure);
-}
-
-.appBlock[data-placeholder] .appTitle,
-.appBlock[data-placeholder] .appBody {
-  color: var(--stone);
-  opacity: 1;
-}
-
-.appScreens {
-  display: grid;
-  grid-auto-flow: column;
-  gap: var(--s-3);
-  margin-top: var(--s-3);
-}
-
-.appScreens img {
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--hairline);
 }
 
 /* ============================================================
@@ -1544,9 +1518,6 @@ dd .draftTag {
   .video {
     flex: 0 0 84%;
     scroll-snap-align: center;
-  }
-  .facts {
-    grid-template-columns: 1fr 1fr;
   }
   .closeDetails {
     gap: var(--s-3) var(--s-5);

@@ -73,8 +73,10 @@ export const GEOMETRY: readonly StationGeometry[] = [
   { key: 'hero', h: 134, hMd: 100, hSm: 100, wash: 0.78, zTravel: false },
   { key: 'problem', h: 160, hMd: 120, hSm: 136, wash: 0.84, zTravel: true },
   { key: 'credibility', h: 220, hMd: 125, hSm: 130, wash: 0.9, anchor: 'coach', zTravel: true },
-  { key: 'transformations', h: 240, hMd: 165, hSm: 170, wash: 0.9, anchor: 'results', zTravel: true },
-  { key: 'receive', h: 118, hMd: 150, hSm: 220, wash: 0.86, anchor: 'receive', zTravel: true },
+  { key: 'transformations', h: 240, hMd: 165, hSm: 158, wash: 0.9, anchor: 'results', zTravel: true },
+  // 185, not 220: the app block that made this the tallest section on a phone
+  // is gone, and the floor was leaving 41vh of empty room under the list
+  { key: 'receive', h: 118, hMd: 140, hSm: 185, wash: 0.86, anchor: 'receive', zTravel: true },
   { key: 'pathways', h: 118, hMd: 140, hSm: 177, wash: 0.88, anchor: 'pathways', zTravel: true },
   // pinned, so the panel cannot also travel
   { key: 'method', h: 294, hMd: 250, hSm: 240, wash: 0.8, anchor: 'method', zTravel: false },

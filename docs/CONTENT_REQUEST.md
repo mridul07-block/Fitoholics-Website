@@ -32,15 +32,18 @@ Goes into `booking.detail`, `close.details` and two FAQ answers.
 - **Price.** Stated on the page, or shared at the consultation? The page
   currently says "shared at the consultation", which is honest and stays
   unless you want a figure shown.
-- **The app.** Is there one? What is it called, and what does a client do in
-  it (log workouts, meals, photos, check ins)? Three or four real screenshots,
-  PNG, phone sized, with no client data visible. They go in `public/app/`.
 
-## 3. The number (removed the "TBC" the audit flagged)
+## Received on 12 September 2026, and now live
 
-- How many people has Ikram coached through a transformation, and how was it
-  counted (clients completed, clients ever, this year)? A round figure with a
-  basis is fine ("300+", counted from client records since 2016).
+- **100+ transformations.** Replaces the "TBC" card the audit called its P0
+  release blocker. Stated as "100+" rather than an exact figure so it can be
+  defended from client records without arguing about a precise number.
+- **Certified in personal training and sports nutrition.** If the issuing
+  bodies are worth naming (NASM, ISSA, ACE, K11), send them and the line gets
+  more specific, which is worth more than the general claim.
+- **There is no app.** The audit assumed one from a tablet in the footage and
+  asked for an app walkthrough. Every mention has been removed rather than
+  promised. If one is ever built, the section comes back with real screens.
 
 ## 4. Case studies (the audit wants six)
 
