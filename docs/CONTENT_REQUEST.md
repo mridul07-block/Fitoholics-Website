@@ -62,6 +62,9 @@ For each client, all of the following, or the case does not go up:
 Spread across the audience if possible: a corporate man, a working woman, a
 frequent traveller, and a couple if couples are coached.
 
+There is a ready-to-send message for asking past clients for all of this at
+the end of this document.
+
 ## 5. Testimonials (three drafts on the page now)
 
 The client's own words, as sent, with name, profession and months of
@@ -104,3 +107,67 @@ point. Once approved, the "Draft for review" band comes off.
   URL (`docs/DEPLOY.md`, `SITE_URL`).
 - Google Analytics and Meta Pixel IDs, if measurement is wanted
   (`docs/ANALYTICS.md`).
+
+---
+
+## Appendix: how to collect items 4, 5 and 6 in one evening
+
+Items 4, 5 and 6 are the only ones on this list that cannot be answered from
+memory, and they are the ones the audit scored 4/10. They do not need new
+clients. With 100+ transformations behind him, Ikram needs roughly ten people
+to reply to get six usable case studies.
+
+Pick ten past clients who finished, whose result held, and who parted on good
+terms. Send the message below on WhatsApp, one at a time, not a broadcast.
+Six replies is a full page; three is enough to publish.
+
+### The message
+
+> Hi [name] — hope you are doing well.
+>
+> I am putting together a new website, and I want the results on it to belong
+> to actual clients rather than being stock photos like most coaching sites
+> use. Yours is one I would be proud to show.
+>
+> Would you be okay with me putting up:
+>
+> • your before and after photos
+> • your first name (or just initials, your choice)
+> • your age and what you do for work
+> • how many months we worked together
+> • one line about what changed
+>
+> If any of that is too much, tell me which parts to leave out and I will use
+> only the rest. And if you would rather not at all, that is completely fine —
+> say no and it changes nothing between us.
+>
+> If yes, please reply with the words "Yes, you can publish this on your
+> website" so I have it in writing, along with the two photos and a couple of
+> lines in your own words about what was different this time.
+>
+> Thank you either way.
+
+### What to keep
+
+- **The reply itself.** Screenshot it, or export the chat. That message saying
+  "yes, you can publish this" is the consent record. Keep it as long as the
+  photo is on the site, and take the photo down if they ever ask.
+- **The photos as sent**, not screenshots of them. Portrait, at least 1200px
+  tall. Same pose and distance in both if possible; if not, use them anyway
+  and do not retouch either one.
+- **Their words as sent.** Fix spelling, nothing else. A quote that reads like
+  marketing copy will be read as marketing copy.
+
+### Anyone who says no to photos
+
+Ask for just the quote instead (item 5). A named testimonial with no photo is
+worth more than a photo pair with an invented name, and several clients who
+refuse photos will happily give a line.
+
+### What happens next
+
+Send whatever comes back. Each case study is a five-minute change: the row in
+`src/content/copy.ts` is replaced with the real values, `consent` is set to
+true, `draft: true` is deleted, the photo pair is derived into WebP, and it is
+live on the next deploy. There is no need to wait until all six have arrived —
+they can go up one at a time.
