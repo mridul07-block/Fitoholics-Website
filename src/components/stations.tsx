@@ -73,7 +73,7 @@ export function Problem() {
         <div className={clsx(s.railLeft, over)}>
           <span className={s.index}>{c.index}</span>
           <p className={s.eyebrow}>{c.eyebrow}</p>
-          <h2 className={s.h1}>
+          <h2 className={s.h1} data-headline="">
             {c.h1Lines.map((line) => (
               <span key={line}>{line}</span>
             ))}
@@ -109,7 +109,9 @@ export function Positioning() {
             <span className={s.quoteGlyph} aria-hidden="true">
               &ldquo;
             </span>
-            <blockquote className={s.quote}>{c.quote}</blockquote>
+            <blockquote className={s.quote} data-headline="">
+              {c.quote}
+            </blockquote>
           </figure>
           <div className={s.stats}>
             {c.stats.map((stat) => (
@@ -298,7 +300,9 @@ export function Protocol() {
           <header className={clsx(s.protocolHead, over)}>
             <span className={s.index}>{c.index}</span>
             <p className={s.eyebrow}>{c.eyebrow}</p>
-            <h2 className={s.h1}>{c.h1}</h2>
+            <h2 className={s.h1} data-headline="">
+              {c.h1}
+            </h2>
             <p className={s.protocolLead}>{c.lead}</p>
           </header>
           <ol className={clsx(s.steps, over)}>
@@ -327,7 +331,9 @@ export function Protocol() {
           <header className={clsx(s.protoHead, over)}>
             <span className={s.index}>{c.index}</span>
             <p className={s.eyebrow}>{c.eyebrow}</p>
-            <h2 className={s.protoTitle}>{c.h1}</h2>
+            <h2 className={s.protoTitle} data-headline="">
+              {c.h1}
+            </h2>
             <p className={s.protocolLead}>{c.lead}</p>
           </header>
         </div>
@@ -386,7 +392,7 @@ export function TableStation() {
         <div className={clsx(s.railLeft, over)}>
           <span className={s.index}>{c.index}</span>
           <p className={s.eyebrow}>{c.eyebrow}</p>
-          <h2 className={s.h1}>
+          <h2 className={s.h1} data-headline="">
             {c.h1Lines.map((line) => (
               <span key={line}>{line}</span>
             ))}
@@ -425,7 +431,7 @@ export function Fit() {
         <div className={clsx(s.railRight, over)}>
           <span className={s.index}>{c.index}</span>
           <p className={s.eyebrow}>{c.eyebrow}</p>
-          <h2 className={s.h1}>
+          <h2 className={s.h1} data-headline="">
             {c.h1Lines.map((line) => (
               <span key={line}>{line}</span>
             ))}
@@ -454,7 +460,7 @@ export function Proof() {
         <div className={clsx(s.railLeft, over)}>
           <span className={s.index}>{c.index}</span>
           <p className={s.eyebrow}>{c.eyebrow}</p>
-          <h2 className={s.h1}>
+          <h2 className={s.h1} data-headline="">
             {c.h1Lines.map((line) => (
               <span key={line}>{line}</span>
             ))}
@@ -495,7 +501,9 @@ export function Close() {
       <div className={s.grid} data-panel="">
         <div className={clsx(s.railCentre, over)}>
           <p className={s.eyebrow}>{c.eyebrow}</p>
-          <h2 className={clsx(s.hero, s.heroClose)}>{c.hero}</h2>
+          <h2 className={clsx(s.hero, s.heroClose)} data-headline="">
+            {c.hero}
+          </h2>
           <p className={s.lead}>{c.lead}</p>
           <a
             className={s.closeCta}

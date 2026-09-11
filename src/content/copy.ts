@@ -309,16 +309,17 @@ export const COPY = {
   },
 
   a11y: {
-    stations: [
-      'Introduction',
-      'The problem with quick fixes',
-      'Positioning and credibility',
-      'The Total Transformation Protocol',
-      'Nutrition philosophy',
-      'Who this coaching is for',
-      'Client testimonials',
-      'Book a consultation',
-    ],
+    /** one accessible name per station, keyed as src/stations/geometry.ts is */
+    stations: {
+      hero: 'Introduction',
+      problem: 'The problem with quick fixes',
+      positioning: 'Positioning and credibility',
+      protocol: 'The Total Transformation Protocol',
+      table: 'Nutrition philosophy',
+      fit: 'Who this coaching is for',
+      proof: 'Client testimonials',
+      close: 'Book a consultation',
+    },
   },
 } as const
 

@@ -14,8 +14,12 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { bindMagnetic, bindTilt } from './pointer'
 import { SplitText } from 'gsap/SplitText'
 import { prefersReducedMotion } from '../film/useMasterProgress'
+import { GEOMETRY, type StationKey } from '../stations/geometry'
 
 gsap.registerPlugin(ScrollTrigger, SplitText)
+
+/** a station's root, by the stable key App.tsx writes as data-station-key */
+const station = (key: StationKey) => `[data-station-key="${key}"]`
 
 /** FilmLayer multiplies its wash by this during the entrance ramp. */
 export const filmEntrance = { wash: 0 }
@@ -44,7 +48,7 @@ export function initChoreography(): void {
   // ---------------------------------------------------------------
   // Station 1 · entrance, timed, 2.1s total (§8 S1 table)
   // ---------------------------------------------------------------
-  const s1 = q('[data-station="1"]')
+  const s1 = q(station('hero'))
   if (s1) {
     const eyebrow = s1.querySelector<HTMLElement>('[data-s1-eyebrow]')
     const hero = s1.querySelector<HTMLElement>('h1')
@@ -125,15 +129,17 @@ export function initChoreography(): void {
   // ---------------------------------------------------------------
   // Z travel (§7.7) — panels move through a real perspective context.
   // Enter from depth, rest >= 70% of range, exit TOWARD the camera.
-  // Station 1 (entrance owns it) and station 4 (pinned) are excluded.
+  // The entrance (it owns its own motion) and the pinned protocol opt out in
+  // geometry.ts.
   // ---------------------------------------------------------------
   // No filter: blur() on the travelling panels. Animating a blur re-rasterises
   // the whole panel every frame while the film is also being drawn, and it
   // measured at about half the frame budget. Depth is already carried by the
   // perspective translate, the rotation and opacity, and the film behind has
   // its own defocus in the shader — the blur was the accessory to remove.
-  for (const n of [2, 3, 5, 6, 7, 8]) {
-    const section = q(`[data-station="${n}"]`)
+  for (const g of GEOMETRY) {
+    if (!g.zTravel) continue
+    const section = q(station(g.key))
     const panel = section?.querySelector<HTMLElement>('[data-panel]')
     if (!section || !panel) continue
     // Measured at the viewport midline, so the window length is the section's
@@ -201,18 +207,10 @@ export function initChoreography(): void {
     build(tl)
   }
 
-  // headline line reveals for stations 2, 3, 5, 6, 7 and the close hero
-  for (const sel of [
-    '[data-station="2"] h2',
-    '[data-station="3"] blockquote',
-    '[data-station="4"] h2',
-    '[data-station="5"] h2',
-    '[data-station="6"] h2',
-    '[data-station="7"] h2',
-    '[data-station="8"] h2',
-  ]) {
-    const el = q(sel)
-    if (!el) continue
+  // headline line reveals: every station marks the one element that is its
+  // headline (an h2, or the positioning quote) with data-headline, so a new
+  // station gets the reveal without an entry here
+  for (const el of qa('[data-station-key] [data-headline]')) {
     const split = SplitText.create(el, { type: 'lines', mask: 'lines' })
     reveal(el, (tl) => {
       tl.fromTo(split.lines, { yPercent: 110 }, { yPercent: 0, duration: 0.9, stagger: 0.09 })
@@ -221,8 +219,8 @@ export function initChoreography(): void {
     })
   }
 
-  // station 2: pain list rules draw, text follows (§8 S2)
-  const painRows = qa('[data-station="2"] [data-pain-row]')
+  // problem: pain list rules draw, text follows (§8 S2)
+  const painRows = qa(`${station('problem')} [data-pain-row]`)
   if (painRows.length) {
     gsap.set(painRows, { autoAlpha: 0, '--ruleScale': 0 } as gsap.TweenVars)
     reveal(painRows[0]!, (tl) => {
@@ -233,10 +231,10 @@ export function initChoreography(): void {
     })
   }
 
-  // station 3: the stat cards arrive as objects, then take their reading —
+  // positioning: the stat cards arrive as objects, then take their reading —
   // the bar fills and the numeral counts at the same time, so the card reads
   // like an instrument settling rather than like text appearing.
-  const statCards = qa('[data-station="3"] [data-stat-card]')
+  const statCards = qa(`${station('positioning')} [data-stat-card]`)
   if (statCards.length) {
     gsap.set(statCards, { autoAlpha: 0, y: 20 })
     reveal(statCards[0]!, (tl) => {
@@ -256,8 +254,8 @@ export function initChoreography(): void {
     })
   }
 
-  // station 3: stat numerals count up (literal text for placeholders, §8 S3)
-  const stats = qa('[data-station="3"] [data-count-to]')
+  // positioning: stat numerals count up (literal text for placeholders, §8 S3)
+  const stats = qa(`${station('positioning')} [data-count-to]`)
   for (const stat of stats) {
     const target = Number(stat.dataset.countTo)
     const suffix = stat.dataset.countSuffix ?? ''
@@ -275,11 +273,11 @@ export function initChoreography(): void {
     })
   }
 
-  // station 5: myth pairs — strike draws, truth follows 0.18s later (§8 S5)
-  const myths = qa('[data-station="5"] [data-myth-pair]')
+  // table: myth pairs — strike draws, truth follows 0.18s later (§8 S5)
+  const myths = qa(`${station('table')} [data-myth-pair]`)
   if (myths.length) {
-    const strikes = qa('[data-station="5"] [data-myth-strike]')
-    const truths = qa('[data-station="5"] [data-myth-truth]')
+    const strikes = qa(`${station('table')} [data-myth-strike]`)
+    const truths = qa(`${station('table')} [data-myth-truth]`)
     // the strike line arrives after the words: text-decoration-color is
     // animatable and stays correct on wrapped lines
     gsap.set(strikes, { autoAlpha: 0, y: 10, textDecorationColor: 'rgba(255, 94, 26, 0)' })
@@ -315,10 +313,10 @@ export function initChoreography(): void {
     })
   }
 
-  // station 6: the aspirations are chips now, so they arrive as objects rather
+  // fit: the aspirations are chips now, so they arrive as objects rather
   // than as rules that draw. Transform and opacity only, staggered tightly
   // enough to read as one gesture instead of eight separate events.
-  const aspirations = qa('[data-station="6"] [data-aspiration]')
+  const aspirations = qa(`${station('fit')} [data-aspiration]`)
   if (aspirations.length) {
     gsap.set(aspirations, { autoAlpha: 0, y: 14, scale: 0.96 })
     reveal(aspirations[0]!, (tl) => {
@@ -360,8 +358,8 @@ export function initChoreography(): void {
       .to(footCols, { autoAlpha: 1, y: 0, duration: 0.65, stagger: 0.09 }, 0.18)
   }
 
-  // station 7: testimonial cards stagger in with depth (§8 S7)
-  const cards = qa('[data-station="7"] [data-card]')
+  // proof: testimonial cards stagger in with depth (§8 S7)
+  const cards = qa(`${station('proof')} [data-card]`)
   if (cards.length) {
     gsap.set(cards, { autoAlpha: 0, y: 40, z: -120 })
     reveal(cards[0]!, (tl) => {

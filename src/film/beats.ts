@@ -10,6 +10,7 @@
  * page changes subject at the same instant the camera does.
  */
 import { FILM } from './manifest'
+import { GEOMETRY } from '../stations/geometry'
 
 export interface Act {
   readonly id: string
@@ -151,10 +152,9 @@ export function actIndexAtFrame(index: number): number {
 }
 
 /**
- * Section geometry. `h` is the scroll height in vh and is the single source of
- * truth: the CSS custom properties are generated from it, and the progress
- * ranges below are derived from the same numbers, so a height edit can never
- * drift out of sync with the beat anchoring.
+ * Section geometry. The heights live in src/stations/geometry.ts, which is
+ * also what App.tsx renders from, so the scroll geometry and the film
+ * arithmetic are the same numbers by construction and cannot drift apart.
  *
  * Heights are picked so each cut frame lands within one frame of a boundary:
  *   cut  55 -> positioning starts   cut  99 -> protocol starts
@@ -169,21 +169,7 @@ export interface Section {
   readonly wash: number
 }
 
-export const SECTIONS: readonly Section[] = [
-  { id: 'hero', h: 110, wash: 0.78 },
-  { id: 'problem', h: 110, wash: 0.84 },
-  { id: 'positioning', h: 176, wash: 0.9 },
-  { id: 'protocol', h: 284, wash: 0.8 },
-  { id: 'table', h: 100, wash: 0.86 },
-  { id: 'fit', h: 180, wash: 0.88 },
-  // The last two are where the page arrives. The footage ends on its one
-  // daylit shot, and washing it back toward the ground — proof was 0.80 and
-  // close 0.72, the most veiled section on the page — was hiding the payoff
-  // behind the same ink the story started in. The veil opens instead, which
-  // is where the ending gets its light from (see film/daylight.ts).
-  { id: 'proof', h: 118, wash: 0.94 },
-  { id: 'close', h: 122, wash: 0.86 },
-] as const
+export const SECTIONS: readonly Section[] = GEOMETRY.map(({ key, h, wash }) => ({ id: key, h, wash }))
 
 export const TOTAL_VH = SECTIONS.reduce((t, s) => t + s.h, 0)
 
