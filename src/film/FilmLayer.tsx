@@ -6,8 +6,9 @@
  * same seam in Phase 5. The LQIP ground stays as the host background so
  * there is never a blank viewport (CLS 0, §7.3).
  */
-import { useEffect, useRef, useState } from 'react'
-import { FILM, lqipFor, selectTier } from './manifest'
+import { useEffect, useRef } from 'react'
+import { useIsoLayoutEffect } from '../lib/useIsoLayoutEffect'
+import { FILM, lqipFor, selectTier, type TierSpec } from './manifest'
 import { washAtProgress } from './beats'
 import { Atmosphere, publishAct } from './atmosphere'
 import { daylightAtFrame } from './daylight'
@@ -66,15 +67,25 @@ declare global {
 export function FilmLayer() {
   const hostRef = useRef<HTMLDivElement>(null)
   const ruleRef = useRef<HTMLDivElement>(null)
-  // Resolved once, in render, because the LQIP ground below has to match the
-  // shape of the set that is about to cover it. Stable for the component's
-  // life, which is what lets the effect below keep its empty dependency list.
-  const [tier] = useState(selectTier)
-  const portrait = tier.orientation === 'portrait'
+  // Resolved once, before the first paint, never in render: selectTier reads
+  // the viewport and the connection, which do not exist where this tree is
+  // prerendered (entry-server.tsx). The LQIP ground has to match the shape of
+  // the set that is about to cover it, so it is written here too; on a
+  // prerendered page the same image is already in a <style> from the build,
+  // and this only confirms it. Stable for the component's life, which is what
+  // lets the effect below keep its empty dependency list.
+  const tierRef = useRef<TierSpec | null>(null)
+  useIsoLayoutEffect(() => {
+    const tier = selectTier()
+    tierRef.current = tier
+    if (hostRef.current) hostRef.current.style.backgroundImage = `url("${lqipFor(tier)[0]}")`
+  }, [])
 
   useEffect(() => {
     const host = hostRef.current
-    if (!host) return
+    const tier = tierRef.current
+    if (!host || !tier) return
+    const portrait = tier.orientation === 'portrait'
 
     const loader = new FrameLoader(tier, budgetForTier(tier))
     let renderer: AnyRenderer = pickRenderer(host, loader, tier)
@@ -272,13 +283,7 @@ export function FilmLayer() {
   }, [])
 
   return (
-    <div
-      ref={hostRef}
-      className={s.film}
-      aria-hidden="true"
-      data-film-host
-      style={{ backgroundImage: `url("${lqipFor(tier)[0]}")` }}
-    >
+    <div ref={hostRef} className={s.film} aria-hidden="true" data-film-host>
       <div ref={ruleRef} className={s.loadingRule} />
     </div>
   )

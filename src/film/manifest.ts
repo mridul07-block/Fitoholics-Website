@@ -144,7 +144,7 @@ interface NavigatorExtras {
  * on the frame zero preload; changing one without the other makes a phone
  * preload a frame it will never request.
  */
-const PORTRAIT_MAX_ASPECT = 0.65
+export const PORTRAIT_MAX_ASPECT = 0.65
 
 /** Selected once on mount, never on resize (§3.4) — a tier change would restart
  *  the load, so a rotated phone keeps the set it started with and the shader

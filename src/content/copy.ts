@@ -44,6 +44,20 @@ export const COPY = {
     name: PRODUCT_NAME,
   },
 
+  /**
+   * The document head. Written into dist/index.html by tools/prerender.mjs
+   * and mirrored statically in index.html for the dev server. The title
+   * leads with the business, which is what people search for and share.
+   */
+  meta: {
+    siteName: 'Fitoholix',
+    title: 'Fitoholix | Personalised Transformation Coaching for Busy Professionals',
+    description:
+      'The Total Transformation Protocol by Ikram Ansari: personalised nutrition, training and weekly coaching for busy professionals who are done with quick fixes. Ten plus years. Zero fad diets.',
+    ogImageAlt: 'Fitoholix. Fit for life.',
+    locale: 'en_IN',
+  },
+
   booking: {
     href: BOOKING_HREF,
     /**

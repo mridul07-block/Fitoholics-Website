@@ -8,6 +8,7 @@
  * rows through it, so the rule cannot be forgotten one section at a time.
  */
 import { useEffect, useRef, useState } from 'react'
+import { useIsoLayoutEffect } from '../lib/useIsoLayoutEffect'
 import clsx from 'clsx'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -463,7 +464,13 @@ export function Method() {
   const railRef = useRef<HTMLDivElement>(null)
   /** the pin trigger, so the stepper reads the same mapping the pin uses */
   const triggerRef = useRef<ScrollTrigger | null>(null)
-  const reduced = prefersReducedMotion()
+  // State rather than a read in render: the tree is prerendered where there
+  // is no media query to ask, and the first client render has to match that
+  // markup. The static list swaps in before paint for anyone on reduced motion.
+  const [reduced, setReduced] = useState(false)
+  useIsoLayoutEffect(() => {
+    if (prefersReducedMotion()) setReduced(true)
+  }, [])
 
   useEffect(() => {
     if (reduced) return

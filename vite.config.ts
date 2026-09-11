@@ -39,23 +39,32 @@ const env: Record<string, string | undefined> =
 const vercelEnv = env.VERCEL_ENV ?? ''
 const showDrafts = vercelEnv === 'preview' || vercelEnv === 'development' || env.SHOW_DRAFTS === '1'
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   plugins: [react(), cleanUrls()],
   assetsInclude: ['**/*.glsl'],
   define: {
     __SHOW_DRAFTS__: JSON.stringify(showDrafts),
   },
+  // The server build (tools/prerender.mjs) renders the same components in
+  // Node. gsap and lenis ship ESM without package exports Node can resolve
+  // as modules, so they are bundled into it rather than imported at run time.
+  ssr: {
+    noExternal: ['gsap', 'lenis'],
+  },
   build: {
     target: 'es2020',
     sourcemap: false,
-    // the legal documents are their own pages: no film, no motion, one column
-    rollupOptions: {
-      input: {
-        main: 'index.html',
-        privacy: 'privacy.html',
-        terms: 'terms.html',
-        refunds: 'refunds.html',
-      },
-    },
+    // the legal documents are their own pages: no film, no motion, one column.
+    // The server build takes its single entry from the command line instead.
+    rollupOptions: isSsrBuild
+      ? undefined
+      : {
+          input: {
+            main: 'index.html',
+            privacy: 'privacy.html',
+            terms: 'terms.html',
+            refunds: 'refunds.html',
+          },
+        },
   },
-})
+}))
