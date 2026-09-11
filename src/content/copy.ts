@@ -423,7 +423,66 @@ export const COPY = {
     note: 'Usually a reply within one working day.',
   },
 
+  /**
+   * The trust floor, after the film ends: the questions a visitor has before
+   * they message, and the small print under every claim on the page.
+   */
   trust: {
+    eyebrow: 'BEFORE YOU ASK',
+    title: 'Questions people ask before they message.',
+    faq: [
+      {
+        q: 'How long does the program run?',
+        a: 'Twelve weeks to start, and most clients continue on a maintenance plan after that. The consultation confirms the right length for your goal.',
+        draft: true,
+      },
+      {
+        q: 'What does it cost?',
+        a: 'The investment is shared at the consultation, once the assessment shows what your plan needs. There is no template price because there is no template plan.',
+      },
+      {
+        q: 'Do I need a gym?',
+        a: 'No. Training is built for the equipment you have, at home, in a hotel or in a gym, and it changes when your week does.',
+      },
+      {
+        q: 'How often do we check in?',
+        a: 'Every week. Weight, measurements, photos, strength, energy, hunger and adherence, reviewed together, and the plan adjusted against them.',
+      },
+      {
+        q: 'I travel most weeks. Does that work?',
+        a: 'It is designed for it. Travel, eating out and hotel training are part of the plan from day one, not an exception to it.',
+      },
+      {
+        q: 'Is the consultation free?',
+        a: 'Yes. About 15 minutes on WhatsApp, a call or a chat, and no obligation either way.',
+        draft: true,
+      },
+      {
+        q: 'What happens after I message?',
+        a: 'Ikram replies himself, usually within one working day, to arrange the consultation. If it fits, the next step is the deep assessment. If it does not, you leave with a straight answer.',
+      },
+      {
+        q: 'Can my partner and I do this together?',
+        a: 'Yes. Two assessments and two plans, because two bodies are never one case, with the accountability shared and one consultation for both of you.',
+        draft: true,
+      },
+      {
+        q: 'I have a medical condition. Can I still be coached?',
+        a: 'Tell Ikram at the assessment. Medical history, injuries and blood work where available are part of it, and the plan works around them. Coaching is not medical advice, and where your doctor’s clearance is needed, it comes first.',
+      },
+      {
+        q: 'Can I cancel, or get a refund?',
+        a: 'The terms are in the refunds and cancellations policy linked below, and Ikram walks you through them before anything is paid.',
+      },
+    ],
+    legalLabel: 'THE SMALL PRINT',
+    legalLead:
+      'How your details are handled, what the coaching does and does not promise, and how cancellations work.',
+    legal: [
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Terms', href: '/terms' },
+      { label: 'Refunds and cancellations', href: '/refunds' },
+    ],
     disclaimer:
       'Individual results vary. Every plan follows an assessment of the person it is for, and nothing on this page is medical advice.',
   },
@@ -477,6 +536,13 @@ export const COPY = {
       { label: '@iamikramansari', href: 'https://www.instagram.com/iamikramansari/' },
       { label: '@fitoholix.in', href: 'https://www.instagram.com/fitoholix.in/' },
     ],
+    legalLabel: 'LEGAL',
+    legal: [
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Terms', href: '/terms' },
+      { label: 'Refunds', href: '/refunds' },
+      { label: 'Questions', href: '#faq' },
+    ],
     // The agency credit, stated beside the copyright where a credit belongs,
     // rather than competing with the client's own contact details.
     credits: [
@@ -508,6 +574,7 @@ export const COPY = {
       nutrition: 'Nutrition philosophy',
       close: 'Book a consultation',
     },
+    trust: 'Questions and the small print',
   },
 } as const
 

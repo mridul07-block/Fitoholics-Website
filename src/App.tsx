@@ -11,6 +11,7 @@ import { SECTIONS, TOTAL_VH } from './film/beats'
 import { FilmLayer } from './film/FilmLayer'
 import { Nav } from './components/Nav'
 import { SiteFooter } from './components/SiteFooter'
+import { TrustBlock } from './components/TrustBlock'
 import { STATIONS } from './stations/registry'
 import s from './App.module.css'
 
@@ -115,6 +116,9 @@ export function App() {
             <st.Component />
           </section>
         ))}
+
+        {/* after the film: the questions and the small print, on solid ground */}
+        <TrustBlock />
       </main>
 
       <SiteFooter />

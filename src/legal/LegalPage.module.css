@@ -1,0 +1,125 @@
+.page {
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: var(--void);
+  color: var(--bone);
+}
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+  max-width: var(--content-max);
+  width: min(100% - 2 * var(--page-margin), var(--content-max));
+  margin: 0 auto;
+  padding-block: var(--s-6);
+}
+
+.brand img {
+  display: block;
+  width: clamp(136px, 16vw, 172px);
+  height: auto;
+  opacity: .95;
+}
+
+.back {
+  composes: utility from '../styles/base.css';
+  color: var(--bone);
+}
+
+.doc {
+  width: min(100% - 2 * var(--page-margin), 68ch);
+  margin: 0 auto;
+  padding-block: var(--s-8) var(--s-11);
+}
+
+.eyebrow {
+  composes: utility from '../styles/base.css';
+  margin-bottom: var(--s-4);
+}
+
+.title {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--tr-h1);
+  margin-bottom: var(--s-4);
+  text-wrap: balance;
+}
+
+.summary {
+  font-size: var(--t-lead);
+  line-height: var(--lh-lead);
+  margin-bottom: var(--s-3);
+}
+
+.updated {
+  composes: utility from '../styles/base.css';
+  margin-bottom: var(--s-8);
+}
+
+.band {
+  composes: utility from '../styles/base.css';
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--t-small);
+  color: var(--void);
+  background: var(--flare);
+  padding: var(--s-3) var(--s-4);
+  margin-bottom: var(--s-8);
+}
+
+.section {
+  display: grid;
+  gap: var(--s-4);
+  padding-block: var(--s-6);
+  border-top: 1px solid var(--hairline);
+}
+
+.h2 {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h3);
+  line-height: var(--lh-h2);
+}
+
+.section p {
+  max-width: var(--measure);
+  opacity: .9;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-4) var(--s-6);
+  width: min(100% - 2 * var(--page-margin), var(--content-max));
+  margin: 0 auto;
+  padding-block: var(--s-6);
+  border-top: 1px solid rgba(var(--bone-rgb), .07);
+}
+
+.label,
+.meta {
+  composes: utility from '../styles/base.css';
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3) var(--s-5);
+}
+
+.link {
+  color: var(--bone);
+  font-size: var(--t-small);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(var(--ember-rgb), .8);
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  color: var(--flare);
+}

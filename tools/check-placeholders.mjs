@@ -27,7 +27,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const copyPath = path.resolve(__dirname, '..', 'src', 'content', 'copy.ts')
+/** every content deck: the page copy and the legal documents */
+const decks = ['copy.ts', 'legal.ts'].map((f) => path.resolve(__dirname, '..', 'src', 'content', f))
 
 const allow = process.env.ALLOW_PLACEHOLDERS === '1'
 const vercelEnv = process.env.VERCEL_ENV ?? ''
@@ -42,7 +43,9 @@ if (allow) {
 }
 
 /** comments stripped first: a comment may legitimately mention a bracket or TBC */
-const src = readFileSync(copyPath, 'utf8')
+const src = decks
+  .map((p) => readFileSync(p, 'utf8'))
+  .join('\n')
   .replace(/\/\*[\s\S]*?\*\//g, '')
   .replace(/^\s*\/\/.*$/gm, '')
 
@@ -61,7 +64,7 @@ const drafts = (src.match(/draft:\s*true/g) ?? []).length
 
 if (drafts) {
   console.warn(
-    `[check-placeholders] ${drafts} drafted row${drafts === 1 ? '' : 's'} remain in copy.ts` +
+    `[check-placeholders] ${drafts} drafted row${drafts === 1 ? '' : 's'} remain in the content decks` +
       (showDrafts
         ? ' — this build SHOWS them, tagged, because it is a preview.'
         : ' — omitted from this build (drafts render on previews only).'),
@@ -77,7 +80,7 @@ if (offenders.size) {
   )
   for (const o of offenders) log('  · ' + o)
   log(
-    '\nReplace them in src/content/copy.ts with real client data, or flag the' +
+    '\nReplace them in src/content with real client data, or flag the' +
       '\nrow `draft: true` so it is omitted from production instead of rendered.' +
       '\n(Never invent testimonials, results or numbers as real values.)' +
       (warnOnly ? '\n' : '\nTo deploy anyway, set ALLOW_PLACEHOLDERS=1 in the environment.\n'),
@@ -85,4 +88,4 @@ if (offenders.size) {
   if (!warnOnly) process.exit(1)
   process.exit(0)
 }
-console.log('[check-placeholders] OK — no literal placeholders in copy.ts.')
+console.log('[check-placeholders] OK — no literal placeholders in the content decks.')
