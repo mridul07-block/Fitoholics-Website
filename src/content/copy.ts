@@ -69,13 +69,13 @@ export const COPY = {
     a11y: 'Book a consultation on WhatsApp (opens in a new tab)',
     /**
      * What the click commits a visitor to. The audit's first question before
-     * the button was "is it free, how long, is it a call". Drafted until the
-     * client confirms the format; the line under every primary CTA reads
-     * from here so the answer is the same everywhere it is given.
+     * the button was "is it free, how long, is it a call". Only what the
+     * button verifiably does is stated here: it opens WhatsApp, and Ikram is
+     * the person on the other end. Whether it is free and how long it runs
+     * are his to confirm and live in close.details, flagged until he does.
      */
     detail: {
-      line: 'A free 15 minute assessment over WhatsApp. No obligation.',
-      draft: true,
+      line: 'A conversation on WhatsApp, with Ikram himself. No obligation.',
     },
   },
 
@@ -142,6 +142,27 @@ export const COPY = {
     eyebrow: 'RESULTS',
     h1Lines: ['Results that outlast', 'the coaching.'],
     lead: 'Not a highlight reel. Ordinary weeks, real timelines, and what stayed changed afterwards.',
+    /**
+     * The station's own argument, and the one that does not wait on anybody.
+     *
+     * This industry sells on before and after photos, a great many of which
+     * belong to nobody. Saying plainly that nothing goes up without the
+     * client's written consent is both true and the strongest thing this
+     * section can say while the consented material is still being gathered:
+     * it turns the thin spot into the brand's position rather than an
+     * apology for it. Every line here is supported by copy the client has
+     * already approved (the eight steps, the brand brief's claims rule).
+     */
+    policy: {
+      label: 'HOW RESULTS ARE SHOWN HERE',
+      title: 'Nothing on this page belongs to a stranger.',
+      body: 'Every transformation you will see here was published because the client read it and agreed to it. That takes longer than lifting photographs off the internet, and it means there is less to show than on most coaching sites. It also means what is here is real.',
+      points: [
+        'Measured every week: weight, measurements, photos, strength, energy, hunger and adherence',
+        'Judged a year later, not at the end of the coaching',
+        'References available at the consultation, from clients who offered',
+      ],
+    },
     casesLabel: 'CASE STUDIES',
     beforeLabel: 'Before',
     afterLabel: 'After',
@@ -188,9 +209,8 @@ export const COPY = {
         draft: true,
       },
     ],
-    /** production, when no real case has been published yet */
-    emptyNote:
-      'Case studies are being prepared with each client’s written consent. References are available at the consultation.',
+    /** production, while the consented case studies are still being gathered */
+    emptyNote: 'The first consented case studies are being prepared now.',
     testimonialsLabel: 'IN THEIR WORDS',
     /**
      * DRAFTS. Not real client words. Written at true length, in the register a
@@ -312,14 +332,19 @@ export const COPY = {
         gets: 'About four hours a week, split how your calendar allows. Home or gym. A plan that travels with you.',
         offered: true,
       },
+      // Not a second service: the same protocol, described for the reader the
+      // brief already names ("men and women, 25 to 45"). Every line traces to
+      // approved copy — family routine and budget are in step 03, schedule and
+      // equipment in step 04, and the brand brief forbids before and after
+      // body talk outright. Nothing clinical is claimed, because nothing
+      // clinical has been confirmed.
       {
         key: 'woman',
         title: 'The working woman',
-        who: 'A career, a household, and no room for a program that assumes you have neither.',
-        connects: 'Flexible nutrition that fits family meals, and coaching that respects privacy and life stage.',
-        gets: 'Training around your schedule and your body, with no before and after body talk, ever.',
+        who: 'A career, a household, and no room for a plan that assumes you have neither.',
+        connects: 'Nutrition built around family meals, a real budget and the week you actually have.',
+        gets: 'Training that fits the time and the equipment you have, at home or in a gym, and no before and after body talk, ever.',
         offered: true,
-        draft: true,
       },
       {
         key: 'couple',
@@ -428,9 +453,13 @@ export const COPY = {
      * protocol's own first step and stands.
      */
     details: [
-      { label: 'Format', value: 'A call or a chat on WhatsApp, your choice', draft: true },
+      // Format and what it covers describe what the button does and what the
+      // protocol's own first step is, so both stand. Length and cost are
+      // commercial terms only Ikram can set, and they wait for him.
+      { label: 'Format', value: 'A chat on WhatsApp, with Ikram himself' },
       { label: 'Length', value: 'About 15 minutes', draft: true },
       { label: 'Cost', value: 'Free', draft: true },
+      { label: 'What it covers', value: 'Your goal, your schedule, your history, and whether this is the right fit.' },
       { label: 'Afterwards', value: 'If it fits, the deep assessment. If it does not, you leave with a straight answer.' },
     ],
     cta: 'Book a consultation',

@@ -47,8 +47,14 @@ export const LEGAL: readonly LegalDoc[] = [
     path: '/privacy',
     title: 'Privacy',
     summary: 'What this site and the coaching collect about you, why, and what you can ask for.',
-    updated: '11 September 2026',
-    draft: true,
+    updated: '12 September 2026',
+    // Not drafted, unlike the other two: every statement here describes what
+    // this site actually does, read off the code (no forms, no accounts, the
+    // WhatsApp handover, the analytics that load only when configured), plus
+    // what the coaching asks for, which is the eight steps. There are no
+    // commercial terms in it to get wrong, and a site running analytics with
+    // no privacy policy at all is the worse position. Ikram should still read
+    // it; corrections are edits, not a rewrite.
     sections: [
       {
         h: 'Who we are',

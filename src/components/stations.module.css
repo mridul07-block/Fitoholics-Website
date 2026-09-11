@@ -1200,6 +1200,45 @@ dd .draftTag {
    Station 3 · RESULTS — case studies, clips, then the words
    ============================================================ */
 
+/* The proof policy, opposite the headline: the section's argument while the
+   consented material is still being collected, and its warrant afterwards. */
+.policy {
+  align-self: start;
+}
+
+.policyTitle {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h3);
+  line-height: var(--lh-h2);
+  margin-bottom: var(--s-4);
+  text-wrap: balance;
+}
+
+.policyPoints {
+  display: grid;
+  margin-top: var(--s-5);
+}
+
+.policyPoint {
+  position: relative;
+  padding-block: var(--s-4);
+  font-size: var(--t-small);
+  color: var(--bone);
+  opacity: .88;
+}
+
+.policyPoint::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(var(--ember-rgb), .7), rgba(var(--bone-rgb), .18) 60%, transparent);
+  transform: scaleX(var(--ruleScale, 1));
+  transform-origin: left;
+}
+
 .cases {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

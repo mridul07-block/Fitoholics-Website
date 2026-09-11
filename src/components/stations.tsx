@@ -255,6 +255,23 @@ export function Transformations() {
           <p className={s.body}>{c.lead}</p>
         </div>
 
+        {/* The station's own argument, independent of whose photographs are
+            ready. It carries the section on its own while the consented case
+            studies are still being gathered, and stays afterwards as the
+            reason to believe the ones that are there. */}
+        <div className={clsx(s.railRight, s.policy, over)}>
+          <span className={s.listLabel}>{c.policy.label}</span>
+          <p className={s.policyTitle}>{c.policy.title}</p>
+          <p className={s.body}>{c.policy.body}</p>
+          <ul className={s.policyPoints}>
+            {c.policy.points.map((p) => (
+              <li key={p} className={s.policyPoint} data-pain-row="">
+                {p}
+              </li>
+            ))}
+          </ul>
+        </div>
+
         {cases.length > 0 ? (
           <div className={clsx(s.fullRow, over)}>
             <span className={s.listLabel}>{c.casesLabel}</span>
