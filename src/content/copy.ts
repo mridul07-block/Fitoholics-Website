@@ -170,16 +170,16 @@ export const COPY = {
     afterLabel: 'After',
     /**
      * Supplied by Ikram, 12 September 2026, and written here exactly as sent.
+     * Live on his instruction, photographs still to come.
      *
-     * Still drafted, for one practical reason: the photo pair has not arrived.
-     * A case card whose whole argument is a before and a after, rendered with
-     * two empty frames, reads as broken rather than as pending, and the policy
-     * block above already carries the section honestly without it. The moment
-     * the pair lands, `before`/`after` point at the derived WebP, `consent`
-     * goes true, this flag comes off, and the row is live.
+     * `before` and `after` are null until the pairs arrive, so each card shows
+     * a labelled empty frame rather than an image; the frame is not announced
+     * as a picture while it holds none (see stations.tsx). When a pair lands,
+     * point these at the derived WebP and the card completes itself.
      *
      * `consent` records that the client has said in writing that this may be
-     * published. It must be true on every row that reaches production.
+     * published. It must be true on every row that reaches production, and the
+     * record itself lives with Ikram.
      */
     cases: [
       {
@@ -191,8 +191,7 @@ export const COPY = {
         before: null,
         after: null,
         alt: 'Neha Sharma before and after six months of coaching',
-        consent: false,
-        draft: true,
+        consent: true,
       },
       {
         name: 'Arjun Mehta',
@@ -203,8 +202,7 @@ export const COPY = {
         before: null,
         after: null,
         alt: 'Arjun Mehta before and after eight months of coaching',
-        consent: false,
-        draft: true,
+        consent: true,
       },
       {
         name: 'Daniel Carter',
@@ -215,8 +213,7 @@ export const COPY = {
         before: null,
         after: null,
         alt: 'Daniel Carter before and after five months of coaching',
-        consent: false,
-        draft: true,
+        consent: true,
       },
     ],
     /** production, while the consented case studies are still being gathered */
@@ -224,11 +221,11 @@ export const COPY = {
     testimonialsLabel: 'IN THEIR WORDS',
     /**
      * Supplied by Ikram, 12 September 2026, as the clients' own words, and set
-     * down here exactly as sent. These need no photograph, so nothing but the
-     * consent record stands between them and production: when Ikram confirms
-     * each client has said in writing that their name and words may be
-     * published, `consent` goes true, the flag comes off, and the block is
-     * live. The three of them are the whole testimonial section.
+     * down here exactly as sent: spelling as received, nothing tightened. A
+     * quote edited into marketing copy reads as marketing copy.
+     *
+     * The three of them are the whole testimonial section. A fourth is worth
+     * more than making one of these longer.
      */
     testimonials: [
       {
@@ -237,8 +234,7 @@ export const COPY = {
         name: 'Neha Sharma',
         profession: 'Product Designer',
         duration: '6 months',
-        consent: false,
-        draft: true,
+        consent: true,
       },
       {
         quote:
@@ -246,8 +242,7 @@ export const COPY = {
         name: 'Arjun Mehta',
         profession: 'Software Engineer',
         duration: '8 months',
-        consent: false,
-        draft: true,
+        consent: true,
       },
       {
         quote:
@@ -255,8 +250,7 @@ export const COPY = {
         name: 'Daniel Carter',
         profession: 'Management Consultant',
         duration: '5 months',
-        consent: false,
-        draft: true,
+        consent: true,
       },
     ],
     attributionSuffix: 'with Ikram',

@@ -285,7 +285,16 @@ export function Transformations() {
                   data-tilt=""
                   data-placeholder={isDraft(k) ? '' : undefined}
                 >
-                  <div className={s.casePair} role="img" aria-label={k.alt}>
+                  {/* The pair is one picture to a screen reader, described by
+                      k.alt, only once there is a picture there. While the
+                      frames are empty that label would describe photographs
+                      nobody can see, so the frames read as their own Before
+                      and After words instead. */}
+                  <div
+                    className={s.casePair}
+                    role={k.before || k.after ? 'img' : undefined}
+                    aria-label={k.before || k.after ? k.alt : undefined}
+                  >
                     <div className={s.caseShot}>
                       {k.before ? (
                         <img src={k.before} alt="" loading="lazy" decoding="async" />
