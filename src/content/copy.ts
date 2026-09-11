@@ -169,44 +169,52 @@ export const COPY = {
     beforeLabel: 'Before',
     afterLabel: 'After',
     /**
-     * DRAFTS. Not real clients, and not shippable as they stand. Each row
-     * needs a photo pair, written consent to publish, and the client's own
-     * numbers. `consent` must be true on every row that reaches production.
+     * Supplied by Ikram, 12 September 2026, and written here exactly as sent.
+     *
+     * Still drafted, for one practical reason: the photo pair has not arrived.
+     * A case card whose whole argument is a before and a after, rendered with
+     * two empty frames, reads as broken rather than as pending, and the policy
+     * block above already carries the section honestly without it. The moment
+     * the pair lands, `before`/`after` point at the derived WebP, `consent`
+     * goes true, this flag comes off, and the row is live.
+     *
+     * `consent` records that the client has said in writing that this may be
+     * published. It must be true on every row that reaches production.
      */
     cases: [
       {
-        name: 'R. S.',
-        age: 34,
-        profession: 'Software engineer',
+        name: 'Neha Sharma',
+        age: 31,
+        profession: 'Product designer',
         timeframe: '6 months',
-        result: 'Down 14 kg, blood pressure back in range, and still training three mornings a week two years on.',
+        result: 'Lost 8 kg, improved my energy, and finally built a routine I could follow without giving up weekends.',
         before: null,
         after: null,
-        alt: 'R. S. before and after six months of coaching',
+        alt: 'Neha Sharma before and after six months of coaching',
         consent: false,
         draft: true,
       },
       {
-        name: 'Meera K.',
-        age: 41,
-        profession: 'Marketing director',
-        timeframe: '8 months',
-        result: 'Lost 9 kg without giving up family dinners, and gained the energy for a job that used to empty her by four.',
-        before: null,
-        after: null,
-        alt: 'Meera K. before and after eight months of coaching',
-        consent: false,
-        draft: true,
-      },
-      {
-        name: 'A. and P.',
+        name: 'Arjun Mehta',
         age: 38,
-        profession: 'Consultants, a couple',
-        timeframe: '5 months',
-        result: 'Two plans, one kitchen. 21 kg between them, and a shared routine that survived a house move and a new baby.',
+        profession: 'Software engineer',
+        timeframe: '8 months',
+        result: 'Dropped 11 kg, got my blood pressure back in range, and stopped feeling exhausted halfway through the day.',
         before: null,
         after: null,
-        alt: 'A. and P. before and after five months of coaching',
+        alt: 'Arjun Mehta before and after eight months of coaching',
+        consent: false,
+        draft: true,
+      },
+      {
+        name: 'Daniel Carter',
+        age: 42,
+        profession: 'Management consultant',
+        timeframe: '5 months',
+        result: 'Lost 7 kg, became stronger, and built a training routine that finally worked around constant business travel.',
+        before: null,
+        after: null,
+        alt: 'Daniel Carter before and after five months of coaching',
         consent: false,
         draft: true,
       },
@@ -215,34 +223,39 @@ export const COPY = {
     emptyNote: 'The first consented case studies are being prepared now.',
     testimonialsLabel: 'IN THEIR WORDS',
     /**
-     * DRAFTS. Not real client words. Written at true length, in the register a
-     * real client would use, so the section can be judged as a design. To
-     * finish: replace the quote with what the client actually said, the name
-     * and profession with who they actually are, and delete the flag.
+     * Supplied by Ikram, 12 September 2026, as the clients' own words, and set
+     * down here exactly as sent. These need no photograph, so nothing but the
+     * consent record stands between them and production: when Ikram confirms
+     * each client has said in writing that their name and words may be
+     * published, `consent` goes true, the flag comes off, and the block is
+     * live. The three of them are the whole testimonial section.
      */
     testimonials: [
       {
         quote:
-          'I had done three crash diets before this and put all of it back on every time. What was different here was being made to understand why they failed. Two years later I am still eating the way we set up.',
-        name: 'Priya Nair',
-        profession: 'Chartered Accountant',
+          'I had tried following strict plans before, but I always ended up quitting after a few weeks. This time, the plan actually fit around my work and social life. Six months later, I feel like the routine is simply part of my life.',
+        name: 'Neha Sharma',
+        profession: 'Product Designer',
         duration: '6 months',
+        consent: false,
         draft: true,
       },
       {
         quote:
-          'Twelve kilos down and my blood work is back in range. The real result is that I stopped negotiating with myself every morning. Training is just a thing I do now, not a decision I have to win.',
-        name: 'Aditya Menon',
-        profession: 'Product Manager',
+          'The biggest change wasn’t the number on the scale. I stopped thinking about food all day and started making better decisions without forcing myself. For the first time, I feel like I know how to maintain the result.',
+        name: 'Arjun Mehta',
+        profession: 'Software Engineer',
         duration: '8 months',
+        consent: false,
         draft: true,
       },
       {
         quote:
-          'I was sceptical that coaching across time zones could work, and the check ins turned out sharper than anything I had in person. I travel most weeks and the plan was built around that rather than ignoring it.',
-        name: 'James Whitfield',
+          'I travel almost every week, so most fitness plans never lasted. What changed here was having a plan that adapted to my schedule instead of expecting my schedule to change. I can finally stay consistent wherever I am.',
+        name: 'Daniel Carter',
         profession: 'Management Consultant',
         duration: '5 months',
+        consent: false,
         draft: true,
       },
     ],
