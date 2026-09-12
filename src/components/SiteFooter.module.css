@@ -184,3 +184,24 @@ a.credit:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* On a finger, every one of these was a 26px tall target with a 12px dead gap
+   under it: eighteen links, all of them under the 44px a thumb needs, and the
+   legal column is exactly where somebody goes when they are already unsure.
+   The row pitch is the same as before; the gap is inside the target now
+   instead of beside it, so neighbouring links touch and there is nothing left
+   to miss. Pointer devices keep the tighter list. */
+@media (pointer: coarse) {
+  .column {
+    gap: 0;
+  }
+
+  .link {
+    padding-block: calc((44px - 1.7em) / 2);
+  }
+
+  .credit {
+    display: inline-block;
+    padding-block: var(--s-3);
+  }
+}
