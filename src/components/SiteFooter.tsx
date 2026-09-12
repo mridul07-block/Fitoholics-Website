@@ -55,8 +55,14 @@ export function SiteFooter() {
 
         <div className={s.column} data-footer-col="">
           <span className={s.label}>{f.contactLabel}</span>
+          {/* The one unbreakable string in the footer. Left whole it sets the
+              minimum width of its column, which on a phone means the other
+              column gets whatever is left and the two stop being halves. A
+              break opportunity after the @ is where an address is read as
+              breaking anyway. */}
           <a className={s.link} href={`mailto:${f.contact.email}`}>
-            {f.contact.email}
+            {f.contact.email.split('@')[0]}@<wbr />
+            {f.contact.email.split('@')[1]}
           </a>
           <a className={s.link} href={`tel:${f.contact.phone.replace(/\s+/g, '')}`}>
             {f.contact.phone}
