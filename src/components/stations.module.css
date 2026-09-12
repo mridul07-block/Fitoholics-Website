@@ -328,9 +328,12 @@
 
 /* ---------- Station 6 · aspiration chips ---------- */
 
+/* One per row, at the column's width. These are sentences, not tags: every one
+   of them already took a line to itself, and sizing each to its own text left
+   six different right edges stepping down the column. Same left edge, same
+   right edge, and the eye only has to travel down. */
 .chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: var(--s-3);
 }
 
@@ -599,11 +602,15 @@
   position: relative;
 }
 
+/* The glyph hangs out of the text column into the page gutter, which works
+   while the gutter is 96px wide. On a phone the gutter is 20px and a 35px hang
+   put two thirds of the mark off the left edge of the screen. It hangs by
+   whichever is smaller, the gutter or the mark. */
 .quoteGlyph {
   composes: display from '../styles/base.css';
   composes: ramped;
   position: absolute;
-  left: -0.65em;
+  left: calc(-1 * min(0.65em, var(--page-margin) - 0.5rem));
   top: -0.08em;
   font-size: 3.4rem;
   opacity: 0.4;
@@ -1104,20 +1111,31 @@
 /* The footer moved out of this station into components/SiteFooter.tsx, which
    sits after <main> on its own pane and carries the brand lockup with it. */
 
-/* The four answers before the click, in one row above the button. */
+/* The five answers before the click. This was a centred flex wrap, which sized
+   every cell to its own text and therefore put three answers on the first line
+   and two on the second, at five different widths, with none of the labels
+   above each other. The reader has to find each label before they can read its
+   answer, and a ragged staircase is the slowest possible way to present five
+   facts that are all the same kind of thing.
+   So: a ruled list, label column then answer, the same instrument the "what
+   you receive" facts use, centred as a block under a centred headline but read
+   left to right like everything else on the page. */
 .closeDetails {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--s-3) var(--s-7);
-  margin: 0 0 var(--s-7);
+  display: grid;
+  width: min(100%, 34rem);
+  margin: 0 auto var(--s-7);
+  text-align: left;
+  border-top: 1px solid var(--hairline);
 }
 
 .closeDetail {
   position: relative;
   display: grid;
-  gap: var(--s-1);
-  justify-items: center;
+  grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: var(--s-5);
+  padding-block: var(--s-3);
+  border-bottom: 1px solid var(--hairline);
 }
 
 .closeDetailLabel {
@@ -1128,7 +1146,15 @@
   margin: 0;
   font-size: var(--t-small);
   color: var(--bone);
-  max-width: 28ch;
+}
+
+/* Under the width where a label and its longest answer still share a line,
+   the answer goes under its label rather than into a two word column. */
+@media (max-width: 560px) {
+  .closeDetail {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-1);
+  }
 }
 
 /* ============================================================
@@ -1250,13 +1276,23 @@ dd .draftTag {
   gap: var(--s-6);
 }
 
+/* Three rows, and the middle one takes the slack: the pair, the result, then
+   the attribution. Packed to the start instead, a two line result and a three
+   line result put their two attributions at different heights, and a row of
+   cards whose captions do not share a line reads as a rendering accident
+   rather than as three clients. The slack goes above the caption, never into
+   the photographs. */
 .case {
   composes: surface;
   padding: var(--s-4);
   display: grid;
-  align-content: start;
+  grid-template-rows: auto 1fr auto;
   gap: var(--s-4);
   transform-style: preserve-3d;
+}
+
+.case > .caseResult {
+  align-self: start;
 }
 
 /* the pair, side by side and the same size, never animated between */
@@ -1383,6 +1419,23 @@ dd .draftTag {
   column-gap: var(--s-5);
 }
 
+/* The label column is minmax(0, ...), so when the value cannot fit beside it
+   the label's column collapses to nothing and the label runs out from under
+   itself into the value: "INVESTMENT" printed on top of "Shared at the
+   consultation" at 390px. Below the width where the longest pair still fits on
+   one line, the row becomes two lines instead, label over value, which is what
+   the rest of the page does with a label and its reading anyway. */
+@media (max-width: 560px) {
+  .facts .fact {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    row-gap: var(--s-1);
+  }
+  .facts .factValue {
+    text-align: left;
+  }
+}
+
 .fact {
   composes: surface;
   position: relative;
@@ -1437,9 +1490,15 @@ dd .draftTag {
    Station 5 · WHO IT IS FOR — three paths under the copy
    ============================================================ */
 
+/* As many columns as there are paths, not three. The couple path renders only
+   when couples are actually coached (offered: false today), and a fixed three
+   column track was holding its empty third of the row open underneath two
+   cards, which reads as a card that failed to load rather than as a path that
+   is not offered. */
 .paths {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: var(--s-6);
 }
 
@@ -1483,6 +1542,7 @@ dd .draftTag {
   .cases,
   .videos,
   .paths {
+    grid-auto-flow: row;
     grid-template-columns: 1fr 1fr;
   }
   .receiveList {
@@ -1518,8 +1578,5 @@ dd .draftTag {
   .video {
     flex: 0 0 84%;
     scroll-snap-align: center;
-  }
-  .closeDetails {
-    gap: var(--s-3) var(--s-5);
   }
 }
