@@ -365,6 +365,11 @@ export function Receive() {
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimLeft)} aria-hidden="true" />
+      {/* This is the one station whose right hand rail is bare type rather than
+          cards, so the left scrim alone left six inclusions reading off an
+          unveiled gym plate with faces in it. Both edges are anchored here; the
+          middle of the frame is still open film. */}
+      <div className={clsx(s.scrim, s.scrimRight)} aria-hidden="true" />
       <div className={s.grid} data-panel="">
         <div className={clsx(s.railLeft, over)}>
           <span className={s.index}>{c.index}</span>
