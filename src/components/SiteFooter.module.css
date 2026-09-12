@@ -159,29 +159,48 @@ a.credit:hover {
   text-decoration-color: var(--flare);
 }
 
+/* Below the width where all five blocks fit on one line, the footer wraps to
+   two rows and then three, and it was keeping the desktop's rhythm while it
+   did: 96px of opening padding and 64px between rows, spent twice over. That
+   made every narrow layout taller than the desktop one, and the narrowest
+   tallest of all. The air halves for the whole wrapped range, so the footer
+   gets shorter as the screen does, which is the direction it should go. */
 @media (max-width: 1100px) {
+  .footer {
+    padding: var(--s-7) var(--page-margin) var(--s-5);
+  }
+
   .grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s-6) var(--grid-gutter);
+    padding-top: var(--s-6);
   }
 
   .identity {
     grid-column: 1 / -1;
   }
+
+  .baseline {
+    margin-top: var(--s-6);
+    padding-top: var(--s-4);
+  }
 }
 
+/* A phone was getting 1.9 screens of footer, and just over two once the touch
+   targets below are counted: four labelled lists stacked in a single file,
+   each separated by 64px. Four short lists do not need four rows. They pair
+   up, and the identity block keeps the full width above them.
+   minmax(0, 1fr), not 1fr: a plain 1fr floors at the column's widest
+   unbreakable word, so the contact column took 181px of a 335px row and the
+   two columns stopped being halves. The email carries the break opportunity
+   that lets it give way (SiteFooter.tsx). */
 @media (max-width: 900px) {
   .grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .identity {
     grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 560px) {
-  .grid {
-    grid-template-columns: 1fr;
   }
 }
 
