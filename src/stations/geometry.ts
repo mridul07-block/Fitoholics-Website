@@ -37,9 +37,22 @@
  * receive" measures 115 vh of content and the paths 117, and a cut fixes
  * their combined room, so the whole page scales rather than one act rushing.
  *
- * The phone floors are the content heights measured at 390×844, so the DEV
- * pacing check stays quiet there; the film re-pins to the measured tops, and
- * a section that stretches further only slows the act under it.
+ * The narrow floors are the content heights measured at 880×900 and 390×844.
+ * They carry no film arithmetic: filmMap.ts re-pins progress to the measured
+ * section tops, so a section that stretches past its floor only slows the act
+ * under it. They are recorded so this file describes the page that exists, and
+ * so a shortened section is caught by a floor that no longer matches it.
+ *
+ * Re-measured 12 September 2026, after the phone type floor went from 15.2px
+ * to 16px (styles/tokens.css); every section grew, results and the method
+ * grew most. Measure again whenever copy or type sizes change, rather than
+ * guessing: read each [data-station-key] height at both widths and divide by
+ * the viewport height.
+ *
+ * The DEV pacing check in App.tsx compares against `h`, the desktop contract,
+ * at every width, so it speaks for the desktop layout only. It is silent at
+ * 1440×900 and expected to be noisy at phone and tablet widths, where the
+ * floors below deliberately do not hold the desktop proportions.
  */
 export type StationKey =
   | 'hero'
@@ -71,19 +84,21 @@ export interface StationGeometry {
 export const GEOMETRY: readonly StationGeometry[] = [
   // the entrance owns its own motion, so no z travel
   { key: 'hero', h: 134, hMd: 100, hSm: 100, wash: 0.78, zTravel: false },
-  { key: 'problem', h: 160, hMd: 120, hSm: 136, wash: 0.84, zTravel: true },
-  { key: 'credibility', h: 220, hMd: 125, hSm: 130, wash: 0.9, anchor: 'coach', zTravel: true },
-  { key: 'transformations', h: 240, hMd: 165, hSm: 158, wash: 0.9, anchor: 'results', zTravel: true },
-  // 185, not 220: the app block that made this the tallest section on a phone
-  // is gone, and the floor was leaving 41vh of empty room under the list
-  { key: 'receive', h: 118, hMd: 140, hSm: 185, wash: 0.86, anchor: 'receive', zTravel: true },
-  { key: 'pathways', h: 118, hMd: 140, hSm: 177, wash: 0.88, anchor: 'pathways', zTravel: true },
+  { key: 'problem', h: 160, hMd: 126, hSm: 142, wash: 0.84, zTravel: true },
+  { key: 'credibility', h: 220, hMd: 129, hSm: 131, wash: 0.9, anchor: 'coach', zTravel: true },
+  // The tallest section at every width below 1024px, and much the tallest at
+  // 880: three cases and three testimonials fall into two column grids there,
+  // so each set costs two rows with an orphan, where the phone gets a swipe
+  // rail and the desktop gets one row of three.
+  { key: 'transformations', h: 240, hMd: 338, hSm: 254, wash: 0.9, anchor: 'results', zTravel: true },
+  { key: 'receive', h: 118, hMd: 169, hSm: 204, wash: 0.86, anchor: 'receive', zTravel: true },
+  { key: 'pathways', h: 118, hMd: 158, hSm: 181, wash: 0.88, anchor: 'pathways', zTravel: true },
   // pinned, so the panel cannot also travel
-  { key: 'method', h: 294, hMd: 250, hSm: 240, wash: 0.8, anchor: 'method', zTravel: false },
+  { key: 'method', h: 294, hMd: 286, hSm: 355, wash: 0.8, anchor: 'method', zTravel: false },
   // The last two are where the page arrives. The footage ends on its one
   // daylit shot, and washing it back toward the ground was hiding the payoff
   // behind the same ink the story started in. The veil opens instead, which
   // is where the ending gets its light from (see film/daylight.ts).
-  { key: 'nutrition', h: 180, hMd: 135, hSm: 172, wash: 0.94, anchor: 'nutrition', zTravel: true },
+  { key: 'nutrition', h: 180, hMd: 143, hSm: 176, wash: 0.94, anchor: 'nutrition', zTravel: true },
   { key: 'close', h: 136, hMd: 115, hSm: 120, wash: 0.86, anchor: 'booking', zTravel: true },
 ]

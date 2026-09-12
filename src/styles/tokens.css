@@ -136,8 +136,17 @@
   --t-h2:    clamp(1.45rem, 2vw, 1.95rem);
   --t-h3:    clamp(1.1rem, 1.35vw, 1.3rem);
   --t-lead:  clamp(1.02rem, 1.15vw, 1.18rem);
-  --t-body:  clamp(.95rem, 1vw, 1.0625rem);
-  --t-small: .9375rem;
+  /* The floor of a fluid size is the phone's size, so the floor is what decides
+     whether this page is readable on the device most of it is read on. Both of
+     these used to bottom out under 16px (body at 15.2, small at a flat 15),
+     which is below the size running copy is set at on every phone anyone reads
+     on, and this copy is cream over moving footage rather than black on white.
+     Body still grows to 17px on a desktop; small stays flat, so on a phone the
+     two collapse into one reading size, which is the right number of reading
+     sizes for a 390px column. --t-meta below is the only smaller register, and
+     it is never running copy. */
+  --t-body:  clamp(1rem, 1vw, 1.0625rem);
+  --t-small: 1rem;
   /* 12px to 13px, up from a fixed 11: the audit's readers lost the small
      uppercase labels over detailed footage, and a label that is only ever
      eleven pixels was the floor of the whole type system */
