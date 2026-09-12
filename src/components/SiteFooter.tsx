@@ -1,10 +1,12 @@
 /**
- * The end of the page, and deliberately the end of the film.
+ * The end of the page. The film has already ended above, under the trust
+ * block (components/TrustBlock.tsx), which sits between the last station and
+ * this footer on solid ground.
  *
- * It sits after <main> on its own glass pane, so the footage stops here rather
- * than running under a wall of contact details. The condensed footer that used
- * to live inside station 8 has moved here, bringing the brand lockup with it;
- * the close station keeps only its call to action.
+ * It sits after <main> on its own glass pane, so the footage never runs under
+ * a wall of contact details. The condensed footer that used to live inside
+ * the close station has moved here, bringing the brand lockup with it; the
+ * close station keeps only its call to action.
  *
  * Outbound links carry rel="noopener" — a new tab must never get a handle on
  * this window — and are marked up as external so the anchor handler in
@@ -72,6 +74,15 @@ export function SiteFooter() {
               rel="noopener noreferrer"
             >
               {a.label}
+            </a>
+          ))}
+        </nav>
+
+        <nav className={s.column} aria-label={f.legalLabel} data-footer-col="">
+          <span className={s.label}>{f.legalLabel}</span>
+          {f.legal.map((l) => (
+            <a key={l.href} className={s.link} href={l.href}>
+              {l.label}
             </a>
           ))}
         </nav>

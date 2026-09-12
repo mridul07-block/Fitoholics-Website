@@ -29,6 +29,8 @@ export function initA11yNav(): void {
 
   // in-page anchors ride Lenis instead of teleporting against it
   document.addEventListener('click', (e) => {
+    // a modified click means "open elsewhere"; the browser owns that
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
     const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]')
     if (!a) return
     const target = document.querySelector<HTMLElement>(a.hash)
@@ -39,9 +41,15 @@ export function initA11yNav(): void {
       duration: reduced ? 0 : 1.1,
       easing: (t: number) => 1 - Math.pow(1 - t, 3), // power3.out
     })
-    // keep focus semantics: move focus to the target region
+    // the address bar follows, so the section can be linked to and the back
+    // button means something; replace rather than push, so a reader does not
+    // have to back out through every heading they clicked
+    history.replaceState(null, '', a.hash)
+    // keep focus semantics: move focus to the target region, and take the
+    // temporary tabindex away again once focus has left it
     target.setAttribute('tabindex', '-1')
     target.focus({ preventScroll: true })
+    target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true })
   })
 
   // focused elements must scroll into view with Lenis active (§12)

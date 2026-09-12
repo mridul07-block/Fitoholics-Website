@@ -1,0 +1,151 @@
+/* Solid ground, not glass: the film has stopped under this block, and the
+   ground here is --void at daylight 1, the warm brown the page has been
+   travelling toward. The lit top edge is the footer's, so the handoff from
+   film to ground reads as one line. */
+.trust {
+  position: relative;
+  z-index: var(--z-content);
+  background: var(--void);
+  border-top: 1px solid var(--glass-border);
+  padding: var(--s-10) var(--page-margin);
+}
+
+.trust::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-highlight) 30%, var(--glass-highlight) 70%, transparent);
+  pointer-events: none;
+}
+
+.inner {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--grid-gutter);
+  row-gap: var(--s-8);
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.head {
+  grid-column: 1 / 5;
+}
+
+.eyebrow {
+  composes: utility from '../styles/base.css';
+  margin-bottom: var(--s-5);
+}
+
+.title {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--tr-h2);
+  text-wrap: balance;
+}
+
+.faq {
+  grid-column: 5 / 13;
+  display: grid;
+  border-top: 1px solid var(--hairline);
+}
+
+.item {
+  position: relative;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+  padding: var(--s-5) 0;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--t-h3);
+  line-height: var(--lh-h2);
+  color: var(--bone);
+}
+
+.q::-webkit-details-marker {
+  display: none;
+}
+
+/* a plus that becomes a minus, drawn from two hairlines */
+.mark {
+  position: relative;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+}
+
+.mark::before,
+.mark::after {
+  content: '';
+  position: absolute;
+  background: var(--flare);
+  transition: transform var(--d-hover) var(--e-out);
+}
+
+.mark::before {
+  left: 0;
+  top: 6px;
+  width: 14px;
+  height: 2px;
+}
+
+.mark::after {
+  left: 6px;
+  top: 0;
+  width: 2px;
+  height: 14px;
+}
+
+.item[open] .mark::after {
+  transform: scaleY(0);
+}
+
+.a {
+  padding: 0 0 var(--s-6);
+  max-width: var(--measure);
+  color: var(--bone);
+  opacity: .88;
+}
+
+.item[data-placeholder] .a {
+  color: var(--stone);
+  opacity: 1;
+}
+
+.draftTag {
+  composes: utility from '../styles/base.css';
+  display: inline-block;
+  margin-left: var(--s-2);
+  padding: 2px var(--s-2);
+  font-size: .625rem;
+  letter-spacing: .14em;
+  color: var(--void);
+  background: var(--flare);
+  vertical-align: middle;
+}
+
+@media (max-width: 900px) {
+  .trust {
+    padding-block: var(--s-8);
+  }
+  .head,
+  .faq {
+    grid-column: 1 / 13;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark::before,
+  .mark::after {
+    transition: none;
+  }
+}

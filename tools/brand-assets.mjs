@@ -178,7 +178,56 @@ async function main() {
     .png({ compressionLevel: 9 })
     .toFile(path.join(PUBLIC, 'apple-touch-icon.png'))
 
-  // ---- report, so the preloader's byte budget is a measured number ----
+  // ---- web app manifest icons, opaque like the iOS one ----
+  for (const size of [192, 512]) {
+    const pad = Math.round(size * 0.14)
+    const figure = await sharp(MARK)
+      .resize(size - pad * 2, size - pad * 2, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .toBuffer()
+    await sharp({ create: { width: size, height: size, channels: 4, background: GROUND } })
+      .composite([{ input: figure, left: pad, top: pad }])
+      .png({ compressionLevel: 9 })
+      .toFile(path.join(PUBLIC, `icon-${size}.png`))
+  }
+
+  // ---- social cards ----
+  // What a share of this page shows in WhatsApp, Instagram DMs and search:
+  // the one daylit shot of the film (physical frame 276, THE PROOF), veiled
+  // toward the ground so the lockup sits on something quiet, and the relit
+  // lockup itself. No text: the title and description carry the words, and
+  // a card that repeats them in a face nobody can read at 300px is noise.
+  // Two shapes, because WhatsApp crops a landscape card to a square.
+  const PLATE = path.join(PUBLIC, 'film', '1920', 'f_276.webp')
+  const socialCard = async (out, w, h) => {
+    const plate = await sharp(PLATE)
+      .resize(w, h, { fit: 'cover', position: 'centre' })
+      .modulate({ brightness: 0.62, saturation: 0.9 })
+      .toBuffer()
+    const lockup = await lit(relitLockup.raw)
+      .resize({ width: Math.round(w * 0.42) })
+      .png()
+      .toBuffer()
+    const lm = await sharp(lockup).metadata()
+    const veil = Buffer.from(
+      `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">` +
+        `<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">` +
+        `<stop offset="0" stop-color="#08060A" stop-opacity="0.12"/>` +
+        `<stop offset="0.55" stop-color="#08060A" stop-opacity="0.35"/>` +
+        `<stop offset="1" stop-color="#08060A" stop-opacity="0.88"/>` +
+        `</linearGradient></defs><rect width="${w}" height="${h}" fill="url(#g)"/></svg>`,
+    )
+    await sharp(plate)
+      .composite([
+        { input: veil },
+        { input: lockup, left: Math.round(w * 0.06), top: h - lm.height - Math.round(h * 0.09) },
+      ])
+      .jpeg({ quality: 82, mozjpeg: true })
+      .toFile(path.join(PUBLIC, out))
+  }
+  await socialCard('og.jpg', 1200, 630)
+  await socialCard('og-square.jpg', 1080, 1080)
+
+  // ---- report, so every shipped size is a measured number ----
   const rows = []
   for (const f of [
     'brand/mark.webp',
@@ -188,6 +237,10 @@ async function main() {
     'favicon-32.png',
     'favicon-48.png',
     'apple-touch-icon.png',
+    'icon-192.png',
+    'icon-512.png',
+    'og.jpg',
+    'og-square.jpg',
   ]) {
     const st = await fs.stat(path.join(PUBLIC, f))
     const m = await sharp(path.join(PUBLIC, f)).metadata()

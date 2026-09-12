@@ -44,7 +44,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr));
   gap: var(--s-8) var(--grid-gutter);
   max-width: var(--content-max);
   margin: 0 auto;
@@ -90,9 +90,11 @@
   color: var(--stone);
 }
 
+/* .62, not .45: the lower alpha measured 4.05:1 on the void, under the 4.5
+   floor for text this small */
 .label {
   composes: util;
-  color: rgba(var(--bone-rgb), .45);
+  color: rgba(var(--bone-rgb), .62);
   margin-bottom: var(--s-2);
 }
 
@@ -180,5 +182,26 @@ a.credit:hover {
 @media (max-width: 560px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* On a finger, every one of these was a 26px tall target with a 12px dead gap
+   under it: eighteen links, all of them under the 44px a thumb needs, and the
+   legal column is exactly where somebody goes when they are already unsure.
+   The row pitch is the same as before; the gap is inside the target now
+   instead of beside it, so neighbouring links touch and there is nothing left
+   to miss. Pointer devices keep the tighter list. */
+@media (pointer: coarse) {
+  .column {
+    gap: 0;
+  }
+
+  .link {
+    padding-block: calc((44px - 1.7em) / 2);
+  }
+
+  .credit {
+    display: inline-block;
+    padding-block: var(--s-3);
   }
 }

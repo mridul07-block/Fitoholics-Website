@@ -4,26 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#08060A" />
+    <!-- Title and description mirror COPY.meta in src/content/copy.ts, which
+         tools/prerender.mjs writes over these at build time along with the
+         Open Graph tags, the canonical link and the structured data. -->
     <meta
       name="description"
-      content="Ikram Ansari. Transformation coach for busy professionals. The Total Transformation Protocol: lifelong habits, not temporary fixes."
+      content="The Total Transformation Protocol by Ikram Ansari: personalised nutrition, training and weekly coaching for busy professionals who are done with quick fixes. Ten plus years. Zero fad diets."
     />
-    <title>Ikram Ansari · Transformation Coach</title>
+    <title>Fitoholix | Personalised Transformation Coaching for Busy Professionals</title>
 
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- Fonts: the only two preloads besides frame zero (§4.2). -->
+    <!-- Fonts: the only two preloads besides frame zero and the masthead (§4.2). -->
     <link rel="preload" href="/fonts/inter-tight-var-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
 
-    <!-- The preloader's own logo, both halves. Preloaded because the preloader
-         is, by definition, the first thing painted, and discovering these after
-         the bundle parses would show an empty gate for a beat. Both are opaque
-         from the first frame, so both have to be there on it. -->
-    <link rel="preload" as="image" fetchpriority="high" href="/brand/mark.webp" />
-    <link rel="preload" as="image" fetchpriority="high" href="/brand/wordmark.webp" />
+    <!-- The masthead logo is on screen from the first paint now that there is
+         no preloader in front of it, so it is fetched during HTML parse rather
+         than discovered when the bundle renders. No priority hint: frame zero
+         and the fonts matter more, and this is 28 KB. -->
+    <link rel="preload" as="image" href="/brand/lockup.webp" />
 
     <!-- Frame zero starts fetching during HTML parse, before any JS executes (§7.3).
          as="image", matched by an Image() in FrameLoader.primeFirstFrame: image
@@ -32,6 +36,11 @@
          cannot consume a preload at all, since preloads are document scoped.
          media picks a single tier, mirroring the thresholds in selectTier(), so
          exactly one file is ever fetched.
+
+         Low priority, not high: the largest thing on the first screen is the
+         headline, and on a slow connection the fonts it is set in were losing
+         the line to a 43 KB frame that nobody sees until it crossfades in over
+         the blurred ground anyway. The frame still starts now; it just yields.
 
          The aspect split has to appear on every one of these: without it a
          phone matches (max-width: 999px), preloads the landscape crop, and then
@@ -45,28 +54,28 @@
     <link
       rel="preload"
       as="image"
-      fetchpriority="high"
+      fetchpriority="low"
       href="/film/810/f_000.webp"
       media="(max-aspect-ratio: 65/100)"
     />
     <link
       rel="preload"
       as="image"
-      fetchpriority="high"
+      fetchpriority="low"
       href="/film/854/f_000.webp"
       media="(min-aspect-ratio: 651/1000) and (max-width: 999px)"
     />
     <link
       rel="preload"
       as="image"
-      fetchpriority="high"
+      fetchpriority="low"
       href="/film/1280/f_000.webp"
       media="(min-aspect-ratio: 651/1000) and (min-width: 1000px) and (max-width: 1599px)"
     />
     <link
       rel="preload"
       as="image"
-      fetchpriority="high"
+      fetchpriority="low"
       href="/film/1920/f_000.webp"
       media="(min-aspect-ratio: 651/1000) and (min-width: 1600px)"
     />
@@ -79,342 +88,59 @@
       }
 
       /* ==========================================================
-         THE GATE — the preloader.
+         THE ENTRANCE, without JavaScript.
 
-         It lives here rather than in the bundle because a preloader that waits
-         for its own JavaScript has already failed at the one job it has. This
-         markup and these rules paint on the first frame, before main.tsx is
-         even parsed.
+         There is no preloader: the hero is the first paint, and the headline
+         is never hidden, because it is the largest thing on the screen and
+         the one a visitor came for. The elements around it (the eyebrow, the
+         lead, the buttons, the scroll cue) arrive a beat later so the page
+         reads as composed rather than dumped.
 
-         Colours are hardcoded rather than tokenised for the same reason:
-         tokens.css arrives with the bundle. They mirror tokens.css exactly —
-         ground #0a0710/#171016, ramp #6E2A0C/#FF5E1A/#FFA23A.
-
-         The mechanic: the runner starts unlit and fills with the ramp from the
-         feet up, in proportion to REAL load progress. The film reports actual
-         decoded bytes, so nothing here is a fake timer pretending to load.
+         This is the version that runs when the bundle has not arrived yet, or
+         never does: a CSS animation from the moment each element is painted,
+         held at nothing for 800ms and then in over 320ms. If the bundle is
+         running by then it sets data-entrance on <html>, which cancels this
+         and hands the same elements to the timed sequence in
+         motion/choreography.ts. If it arrives later than that, it leaves this
+         alone and the page simply is there. Under reduced motion nothing is
+         ever held back.
          ========================================================== */
-      /* The ground. It lives on two shutters rather than on #gate itself, so
-         the exit can part them and reveal the film behind rather than fading
-         a sheet out over it. Both halves carry the same gradient sized to the
-         whole viewport, so the seam between them is invisible. */
-      #gate {
-        position: fixed;
-        inset: 0;
-        z-index: 999;
-        display: grid;
-        place-items: center;
-        overflow: hidden;
-        /* Failsafe: if the bundle never runs, the gate still leaves. It is
-           overridden the moment JS takes control. */
-        animation: gateFailsafe 600ms linear 9s forwards;
+      [data-s1-eyebrow],
+      [data-s1-lead],
+      [data-s1-actions],
+      [data-s1-detail],
+      [data-scroll-cue] {
+        animation: s1Reveal 320ms cubic-bezier(0.22, 1, 0.36, 1) 800ms both;
       }
-      #gate[data-js] {
+      @keyframes s1Reveal {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      html[data-entrance] [data-s1-eyebrow],
+      html[data-entrance] [data-s1-lead],
+      html[data-entrance] [data-s1-actions],
+      html[data-entrance] [data-s1-detail],
+      html[data-entrance] [data-scroll-cue] {
         animation: none;
       }
-      @keyframes gateFailsafe {
-        to { opacity: 0; visibility: hidden; }
-      }
-
-      .gateShutter {
-        position: absolute;
-        left: 0;
-        width: 100%;
-        height: 50.2%;
-        background-image: linear-gradient(180deg, #0a0710 0%, #171016 100%);
-        background-size: 100% 200%;
-        will-change: transform;
-      }
-      .gsTop { top: 0; background-position: top; }
-      .gsBot { bottom: 0; background-position: bottom; }
-
-      /* The room's light behind the figure, brightening with real progress.
-         Two elements on purpose: the outer one is driven from JS (opacity and
-         scale track the loader), the inner one owns the CSS breathing loop. A
-         CSS animation and an inline transform cannot share an element — the
-         animation wins and the JS scale would never be seen. */
-      .gateGlow {
-        position: absolute;
-        width: min(78vw, 780px);
-        aspect-ratio: 1;
-        /* a low ember from the first paint; JS raises it with real progress */
-        opacity: 0.14;
-        transform: scale(0.72);
-        pointer-events: none;
-      }
-
-      .gatePulse {
-        display: block;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: radial-gradient(
-          circle at 50% 50%,
-          rgba(255, 94, 26, 0.22) 0%,
-          rgba(255, 94, 26, 0.09) 34%,
-          rgba(110, 42, 12, 0.04) 56%,
-          rgba(10, 7, 16, 0) 72%
-        );
-        animation: gatePulse 4.2s ease-in-out infinite alternate;
-      }
-      @keyframes gatePulse {
-        from { transform: scale(0.94); }
-        to   { transform: scale(1.06); }
-      }
-
-      /* corner-to-corner darkening, the same shape the film sits in */
-      .gateVignette {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        background: radial-gradient(
-          120% 100% at 50% 50%,
-          rgba(10, 7, 16, 0) 42%,
-          rgba(10, 7, 16, 0.55) 100%
-        );
-      }
-
-      .gateStage {
-        position: relative;
-        display: grid;
-        justify-items: center;
-        gap: 26px;
-        transform: translateZ(0);
-      }
-
-      .gateMark {
-        position: relative;
-        width: clamp(170px, 26vw, 320px);
-        aspect-ratio: 640 / 578;
-      }
-      /* The name, under the figure — the other half of the logo.
-         The gate used to show the runner and nothing else, which meant the one
-         screen every visitor sees in full never said who this was. The image is
-         the real wordmark, not the page's type standing in for it, and it is
-         the relit cut whose strapline is --bone rather than the master's #555
-         (tools/brand-assets.mjs).
-
-         Opaque from the first frame, like .gateDim and unlike the readout and
-         the bar: those two are reporting progress and have nothing to say until
-         there is progress to report, whereas a name that fades in late is a
-         name that was missing. The stage's own exit fades it with everything
-         else.
-
-         The negative margin pulls it up out of the stage's 26px row gap: that
-         gap is spacing between instruments, and these two are one lockup. */
-      .gateWordmark {
-        width: clamp(150px, 23vw, 278px);
-        height: auto;
-        margin-top: -10px;
-      }
-      .gateMark img {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
-      /* the unlit figure: present from the first frame so the gate is never a
-         blank rectangle waiting on a decode, and solid enough that the whole
-         silhouette reads while only part of it is lit */
-      .gateDim {
-        opacity: 0.2;
-      }
-      /* The lit figure, revealed from the feet up by --p (0..1).
-         A mask with a feathered stop rather than a hard clip: light rising
-         through the figure is the idea, and a straight edge travelling up a
-         runner reads as a loading bar drawn on top of a logo instead. */
-      .gateLit {
-        opacity: 0;
-        --p: 0;
-        -webkit-mask-image: linear-gradient(
-          to top,
-          #000 calc(var(--p) * 100%),
-          rgba(0, 0, 0, 0) calc(var(--p) * 100% + 11%)
-        );
-        mask-image: linear-gradient(
-          to top,
-          #000 calc(var(--p) * 100%),
-          rgba(0, 0, 0, 0) calc(var(--p) * 100% + 11%)
-        );
-      }
-      /* A band of light travelling up the figure while it waits. It is the
-         same image again under a narrow moving mask, so the shine can only
-         ever fall on the figure itself and never on the ground behind it. */
-      .gateShine {
-        opacity: 0.55;
-        -webkit-mask-image: linear-gradient(
-          to top,
-          rgba(0, 0, 0, 0) 38%,
-          #000 50%,
-          rgba(0, 0, 0, 0) 62%
-        );
-        mask-image: linear-gradient(
-          to top,
-          rgba(0, 0, 0, 0) 38%,
-          #000 50%,
-          rgba(0, 0, 0, 0) 62%
-        );
-        -webkit-mask-size: 100% 260%;
-        mask-size: 100% 260%;
-        animation: gateShine 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-      }
-      @keyframes gateShine {
-        from { -webkit-mask-position: 0 140%; mask-position: 0 140%; }
-        to   { -webkit-mask-position: 0 -160%; mask-position: 0 -160%; }
-      }
-
-      /* embers off the figure: six drifting motes, transform and opacity only */
-      .gateEmber {
-        position: absolute;
-        bottom: 4%;
-        width: 4px;
-        height: 4px;
-        border-radius: 50%;
-        background: #ffa23a;
-        box-shadow: 0 0 8px rgba(255, 162, 58, 0.75);
-        opacity: 0;
-        animation: gateEmber 5.2s ease-out infinite;
-      }
-      .ge1 { left: 14%; animation-delay: 0s; }
-      .ge2 { left: 32%; animation-delay: 0.9s; }
-      .ge3 { left: 48%; animation-delay: 1.9s; }
-      .ge4 { left: 63%; animation-delay: 0.4s; }
-      .ge5 { left: 79%; animation-delay: 2.6s; }
-      .ge6 { left: 91%; animation-delay: 1.4s; }
-      @keyframes gateEmber {
-        0%   { transform: translate3d(0, 0, 0) scale(0.5); opacity: 0; }
-        14%  { opacity: 1; }
-        72%  { opacity: 0.55; }
-        100% { transform: translate3d(14px, -230px, 0) scale(1); opacity: 0; }
-      }
-
-      /* the readout: real decoded progress, in figures */
-      .gateReadout {
-        display: flex;
-        align-items: baseline;
-        gap: 4px;
-        font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-        font-variant-numeric: tabular-nums;
-        color: #f7f1e9;
-        opacity: 0;
-      }
-      .gateNum {
-        font-size: clamp(30px, 4.2vw, 48px);
-        font-weight: 600;
-        letter-spacing: -0.03em;
-        line-height: 1;
-        text-shadow: 0 0 26px rgba(255, 94, 26, 0.45);
-      }
-      .gatePct {
-        font-size: 12px;
-        font-weight: 500;
-        letter-spacing: 0.1em;
-        color: #a79a90;
-      }
-
-      .gateBar {
-        position: relative;
-        width: clamp(150px, 22vw, 240px);
-        height: 1px;
-        background: rgba(247, 241, 233, 0.13);
-        overflow: hidden;
-      }
-      .gateFill {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(90deg, #ff5e1a 0%, #ff7a2a 55%, #ffa23a 100%);
-        transform: scaleX(0);
-        transform-origin: left center;
-      }
-      /* the leading edge of the fill carries a bloom, so progress reads as
-         light arriving rather than as a bar being coloured in */
-      .gateBar::after {
-        content: '';
-        position: absolute;
-        top: -3px;
-        bottom: -3px;
-        width: 60px;
-        left: calc(var(--p, 0) * 100%);
-        transform: translateX(-50%);
-        background: radial-gradient(closest-side, rgba(255, 162, 58, 0.75), rgba(255, 162, 58, 0));
-        opacity: 0;
-        pointer-events: none;
-      }
-      #gate[data-js] .gateBar::after {
-        opacity: 1;
-      }
-
-      /* Corner ticks: the same instrument frame the content surfaces use, so
-         the gate is already speaking the page's language before the page
-         arrives. */
-      .gateCorner {
-        position: fixed;
-        width: 22px;
-        height: 22px;
-        border: 0 solid rgba(255, 162, 58, 0.55);
-        opacity: 0;
-      }
-      .gc1 { top: 22px; left: 22px; border-top-width: 1px; border-left-width: 1px; }
-      .gc2 { top: 22px; right: 22px; border-top-width: 1px; border-right-width: 1px; }
-      .gc3 { bottom: 22px; left: 22px; border-bottom-width: 1px; border-left-width: 1px; }
-      .gc4 { bottom: 22px; right: 22px; border-bottom-width: 1px; border-right-width: 1px; }
-
       @media (prefers-reduced-motion: reduce) {
-        .gateDim { opacity: 0.9; }
-        .gateCorner { opacity: 1; }
-        .gateGlow { opacity: 0.5; transform: none; }
-        .gatePulse { animation: none; }
-        .gateShine,
-        .gateEmber { display: none; }
+        [data-s1-eyebrow],
+        [data-s1-lead],
+        [data-s1-actions],
+        [data-s1-detail],
+        [data-scroll-cue] {
+          animation: none;
+        }
       }
     </style>
-
-    <!-- With scripting off the gate would cover the page for ever. -->
-    <noscript>
-      <style>
-        #gate { display: none; }
-      </style>
-    </noscript>
   </head>
   <body>
-    <div id="gate" aria-hidden="true">
-      <span class="gateShutter gsTop"></span>
-      <span class="gateShutter gsBot"></span>
-      <span class="gateGlow"><span class="gatePulse"></span></span>
-      <span class="gateVignette"></span>
-      <span class="gateCorner gc1"></span>
-      <span class="gateCorner gc2"></span>
-      <span class="gateCorner gc3"></span>
-      <span class="gateCorner gc4"></span>
-      <div class="gateStage">
-        <div class="gateMark">
-          <img class="gateDim" src="/brand/mark.webp" alt="" decoding="async" fetchpriority="high" />
-          <img class="gateLit" src="/brand/mark.webp" alt="" decoding="async" />
-          <img class="gateShine" src="/brand/mark.webp" alt="" decoding="async" />
-          <span class="gateEmber ge1"></span>
-          <span class="gateEmber ge2"></span>
-          <span class="gateEmber ge3"></span>
-          <span class="gateEmber ge4"></span>
-          <span class="gateEmber ge5"></span>
-          <span class="gateEmber ge6"></span>
-        </div>
-        <img
-          class="gateWordmark"
-          src="/brand/wordmark.webp"
-          alt=""
-          width="560"
-          height="131"
-          decoding="async"
-          fetchpriority="high"
-        />
-        <div class="gateReadout">
-          <span class="gateNum">0</span><span class="gatePct">%</span>
-        </div>
-        <div class="gateBar"><span class="gateFill"></span></div>
-      </div>
-    </div>
-
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

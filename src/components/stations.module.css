@@ -273,16 +273,17 @@
   color: var(--stone);
 }
 
-/* Three cards inside a five column rail leaves each about 145px wide, and
-   TRANSFORMATIONS at the standard meta tracking is wider than that. The label
-   scales with the viewport and keeps a last resort break, so no label can ever
-   run out of its own card. */
+/* Tighter tracking than the utility register, because these labels are the
+   longest words on the page in the narrowest boxes. Never `overflow-wrap:
+   anywhere`: it broke TRANSFORMATIONS into TRANSFORMATIO / NS, which reads as
+   a bug rather than as a wrap. The grid above guarantees the width instead. */
 .statCardLabel {
   composes: utility from '../styles/base.css';
-  font-size: clamp(8px, .62vw, 11px);
-  letter-spacing: .06em;
+  font-size: clamp(11px, .72vw, 12px);
+  letter-spacing: .04em;
   line-height: 1.35;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  hyphens: none;
 }
 
 /* the bar under the value fills on reveal — the "reading" of the instrument */
@@ -327,9 +328,12 @@
 
 /* ---------- Station 6 · aspiration chips ---------- */
 
+/* One per row, at the column's width. These are sentences, not tags: every one
+   of them already took a line to itself, and sizing each to its own text left
+   six different right edges stepping down the column. Same left edge, same
+   right edge, and the eye only has to travel down. */
 .chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: var(--s-3);
 }
 
@@ -598,11 +602,15 @@
   position: relative;
 }
 
+/* The glyph hangs out of the text column into the page gutter, which works
+   while the gutter is 96px wide. On a phone the gutter is 20px and a 35px hang
+   put two thirds of the mark off the left edge of the screen. It hangs by
+   whichever is smaller, the gutter or the mark. */
 .quoteGlyph {
   composes: display from '../styles/base.css';
   composes: ramped;
   position: absolute;
-  left: -0.65em;
+  left: calc(-1 * min(0.65em, var(--page-margin) - 0.5rem));
   top: -0.08em;
   font-size: 3.4rem;
   opacity: 0.4;
@@ -624,9 +632,14 @@
 /* Three surfaces, equal columns. The old hairline dividers between bare
    numbers are gone: each stat now has its own edge, so a divider would be a
    second rule doing the same job. */
+/* Four facts, two by two. Fixed rather than auto-fit: the rail is five of
+   twelve columns, which is wide enough for three cards and not for four, so
+   auto-fit produced a row of three and an orphan. Two by two also gives
+   TRANSFORMATIONS, the longest label on the page, a box it fits in on one
+   line at every width. */
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--s-4);
   margin-bottom: var(--s-7);
 }
@@ -657,9 +670,10 @@
 /* Three short facts. Stacking them one per row on a phone turned a compact
    band into a third of a screen, so they stay side by side and shrink. */
 @media (max-width: 720px) {
+  /* two by two on a phone as well, for the same reason */
   .stats {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--s-4);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-3);
     margin-bottom: var(--s-6);
   }
   .statCard {
@@ -680,9 +694,8 @@
      wrapping guarantees that if a label ever does outgrow its card it breaks at
      a space instead of inventing a hyphenless split. */
   .statCardLabel {
-    font-size: clamp(8px, 2.3vw, 10px);
-    letter-spacing: .04em;
-    overflow-wrap: normal;
+    font-size: 11px;
+    letter-spacing: .03em;
   }
   .statCardBar {
     margin-top: var(--s-2);
@@ -1097,3 +1110,473 @@
 
 /* The footer moved out of this station into components/SiteFooter.tsx, which
    sits after <main> on its own pane and carries the brand lockup with it. */
+
+/* The five answers before the click. This was a centred flex wrap, which sized
+   every cell to its own text and therefore put three answers on the first line
+   and two on the second, at five different widths, with none of the labels
+   above each other. The reader has to find each label before they can read its
+   answer, and a ragged staircase is the slowest possible way to present five
+   facts that are all the same kind of thing.
+   So: a ruled list, label column then answer, the same instrument the "what
+   you receive" facts use, centred as a block under a centred headline but read
+   left to right like everything else on the page. */
+.closeDetails {
+  display: grid;
+  width: min(100%, 34rem);
+  margin: 0 auto var(--s-7);
+  text-align: left;
+  border-top: 1px solid var(--hairline);
+}
+
+.closeDetail {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: var(--s-5);
+  padding-block: var(--s-3);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.closeDetailLabel {
+  composes: utility from '../styles/base.css';
+}
+
+.closeDetailValue {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--bone);
+}
+
+/* Under the width where a label and its longest answer still share a line,
+   the answer goes under its label rather than into a two word column. */
+@media (max-width: 560px) {
+  .closeDetail {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-1);
+  }
+}
+
+/* ============================================================
+   Shared: drafted rows, the honest empty state, the disclaimer
+   ============================================================ */
+
+/* A drafted row on a build that shows drafts. Dimmed, so an invented client
+   never presents itself with the confidence of a real one, and tagged. */
+[data-placeholder] {
+  color: var(--stone);
+}
+
+.draftTag {
+  composes: utility from '../styles/base.css';
+  position: absolute;
+  top: var(--s-2);
+  right: var(--s-2);
+  padding: 2px var(--s-2);
+  font-size: .625rem;
+  letter-spacing: .14em;
+  color: var(--void);
+  background: var(--flare);
+  pointer-events: none;
+}
+
+/* text rows have no box for the tag to sit in, so it rides inline */
+p .draftTag,
+li .draftTag,
+dd .draftTag {
+  position: static;
+  display: inline-block;
+  margin-left: var(--s-2);
+  vertical-align: middle;
+}
+
+.emptyNote {
+  grid-column: 1 / 13;
+  max-width: var(--measure);
+  color: var(--stone);
+  font-size: var(--t-small);
+}
+
+.disclaimer {
+  composes: utility from '../styles/base.css';
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  max-width: var(--measure);
+  margin-top: var(--s-6);
+}
+
+/* the line under a primary call to action */
+.bookingDetail {
+  composes: utility from '../styles/base.css';
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--t-small);
+  color: var(--bone);
+  opacity: .82;
+}
+
+.heroDetail {
+  margin-top: var(--s-4);
+}
+
+.fullRow {
+  grid-column: 1 / 13;
+  display: grid;
+  row-gap: 0;
+}
+
+/* ============================================================
+   Station 3 · RESULTS — case studies, clips, then the words
+   ============================================================ */
+
+/* The proof policy, opposite the headline: the section's argument while the
+   consented material is still being collected, and its warrant afterwards. */
+.policy {
+  align-self: start;
+}
+
+.policyTitle {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h3);
+  line-height: var(--lh-h2);
+  margin-bottom: var(--s-4);
+  text-wrap: balance;
+}
+
+.policyPoints {
+  display: grid;
+  margin-top: var(--s-5);
+}
+
+.policyPoint {
+  position: relative;
+  padding-block: var(--s-4);
+  font-size: var(--t-small);
+  color: var(--bone);
+  opacity: .88;
+}
+
+.policyPoint::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(var(--ember-rgb), .7), rgba(var(--bone-rgb), .18) 60%, transparent);
+  transform: scaleX(var(--ruleScale, 1));
+  transform-origin: left;
+}
+
+.cases {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-6);
+}
+
+/* Three rows, and the middle one takes the slack: the pair, the result, then
+   the attribution. Packed to the start instead, a two line result and a three
+   line result put their two attributions at different heights, and a row of
+   cards whose captions do not share a line reads as a rendering accident
+   rather than as three clients. The slack goes above the caption, never into
+   the photographs. */
+.case {
+  composes: surface;
+  padding: var(--s-4);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--s-4);
+  transform-style: preserve-3d;
+}
+
+.case > .caseResult {
+  align-self: start;
+}
+
+/* the pair, side by side and the same size, never animated between */
+.casePair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+
+.caseShot {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  display: grid;
+  place-items: center;
+  background: rgba(var(--void-rgb), .45);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+}
+
+.caseShot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.caseShotLabel {
+  composes: utility from '../styles/base.css';
+}
+
+.caseResult {
+  composes: display from '../styles/base.css';
+  font-weight: 400;
+  font-size: var(--t-body);
+  line-height: var(--lh-h2);
+  color: var(--bone);
+}
+
+.case[data-placeholder] .caseResult {
+  color: var(--stone);
+}
+
+.caseMeta {
+  composes: utility from '../styles/base.css';
+}
+
+.videos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-6);
+}
+
+.video {
+  composes: surface;
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.videoPoster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.videoPlay {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid var(--flare);
+  background: rgba(var(--void-rgb), .55);
+}
+
+.videoPlay::after {
+  content: '';
+  position: absolute;
+  left: 22px;
+  top: 18px;
+  border-left: 16px solid var(--bone);
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+}
+
+.videoTitle {
+  composes: utility from '../styles/base.css';
+  position: absolute;
+  left: var(--s-4);
+  bottom: var(--s-4);
+  color: var(--bone);
+}
+
+.videoFrame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ============================================================
+   Station 4 · WHAT YOU RECEIVE
+   ============================================================ */
+
+/* One per row, not two: three of the five facts are the client's to confirm,
+   so this list is three long today and five later, and both of those leave an
+   orphan in a two column grid. A single column is right at every length. */
+.facts {
+  display: grid;
+  gap: var(--s-3);
+  margin: var(--s-6) 0 0;
+}
+
+.facts .fact {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: var(--s-5);
+}
+
+/* The label column is minmax(0, ...), so when the value cannot fit beside it
+   the label's column collapses to nothing and the label runs out from under
+   itself into the value: "INVESTMENT" printed on top of "Shared at the
+   consultation" at 390px. Below the width where the longest pair still fits on
+   one line, the row becomes two lines instead, label over value, which is what
+   the rest of the page does with a label and its reading anyway. */
+@media (max-width: 560px) {
+  .facts .fact {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    row-gap: var(--s-1);
+  }
+  .facts .factValue {
+    text-align: left;
+  }
+}
+
+.fact {
+  composes: surface;
+  position: relative;
+  padding: var(--s-4) var(--s-5);
+  display: grid;
+  gap: var(--s-1);
+}
+
+.factLabel {
+  composes: utility from '../styles/base.css';
+}
+
+.factValue {
+  composes: display from '../styles/base.css';
+  margin: 0;
+  font-size: var(--t-h3);
+  line-height: 1.2;
+  text-align: right;
+}
+
+.fact[data-placeholder] .factValue {
+  color: var(--stone);
+}
+
+/* six inclusions in two columns, so the list is a block beside the copy
+   rather than a column twice its height */
+.receiveList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--s-6);
+}
+
+.receiveRow {
+  display: grid;
+  gap: var(--s-1);
+  padding-block: var(--s-4);
+}
+
+.receiveLabel {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h3);
+  line-height: var(--lh-h2);
+}
+
+.receiveBody {
+  color: var(--bone);
+  opacity: .88;
+  max-width: var(--measure);
+}
+
+/* ============================================================
+   Station 5 · WHO IT IS FOR — three paths under the copy
+   ============================================================ */
+
+/* As many columns as there are paths, not three. The couple path renders only
+   when couples are actually coached (offered: false today), and a fixed three
+   column track was holding its empty third of the row open underneath two
+   cards, which reads as a card that failed to load rather than as a path that
+   is not offered. */
+.paths {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--s-6);
+}
+
+.path {
+  composes: surface;
+  position: relative;
+  padding: var(--s-6);
+  display: grid;
+  align-content: start;
+  gap: var(--s-3);
+}
+
+.pathTitle {
+  composes: display from '../styles/base.css';
+  font-size: var(--t-h3);
+  line-height: var(--lh-h2);
+}
+
+.pathWho {
+  color: var(--stone);
+  font-size: var(--t-small);
+}
+
+.pathLine {
+  color: var(--bone);
+  opacity: .88;
+}
+
+.pathGets {
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--hairline);
+}
+
+.path[data-placeholder] .pathTitle,
+.path[data-placeholder] .pathLine {
+  color: var(--stone);
+  opacity: 1;
+}
+
+@media (max-width: 1024px) {
+  .cases,
+  .videos,
+  .paths {
+    grid-auto-flow: row;
+    grid-template-columns: 1fr 1fr;
+  }
+  .receiveList {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* On a phone the case studies and the paths take the same snap carousel the
+   testimonial cards do (see .cards above), for the same reason: three stacked
+   cards outgrow the section and silently move everything after them. */
+@media (max-width: 720px) {
+  .cases,
+  .paths,
+  .videos {
+    display: flex;
+    max-width: none;
+    gap: var(--s-4);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-inline: calc(var(--page-margin) * -1);
+    padding-inline: var(--page-margin);
+    padding-bottom: var(--s-3);
+  }
+  .cases::-webkit-scrollbar,
+  .paths::-webkit-scrollbar,
+  .videos::-webkit-scrollbar {
+    display: none;
+  }
+  .case,
+  .path,
+  .video {
+    flex: 0 0 84%;
+    scroll-snap-align: center;
+  }
+}

@@ -9,6 +9,21 @@
   background-position: center;
 }
 
+/* The plate crossfades in over the LQIP ground on its first drawn frame
+   (FilmLayer.tsx sets data-film-ready on the host). The Canvas 2D path adds
+   a grain and vignette overlay beside its canvas; it fades with it, or it
+   would show as a veil over the blurred ground before the picture arrived. */
+.film > canvas,
+.film > [data-film-overlay] {
+  opacity: 0;
+  transition: opacity 260ms var(--e-out);
+}
+
+.film[data-film-ready] > canvas,
+.film[data-film-ready] > [data-film-overlay] {
+  opacity: 1;
+}
+
 /* 1px loading rule across the bottom of the viewport (§7.3).
    scaleX driven from loader phase; transform only, never width (CLS 0). */
 .loadingRule {
@@ -117,56 +132,32 @@
 }
 
 /* Station shells. Heights are the scroll geometry that anchors copy to the
-   film: they mirror SECTIONS in src/film/beats.ts, which asserts in DEV that
-   the film's hard cuts land on these boundaries. Changing one without the
-   other breaks the anchoring, so the assertion fails loudly.
-   100svh units so mobile address bar collapse causes no jump (§10). */
+   film. They are not written here: App.tsx sets --h, --h-md and --h-sm on
+   each section from src/stations/geometry.ts, the same table the film derives
+   its cut boundaries from, so the two cannot disagree. svh units so mobile
+   address bar collapse causes no jump (§10).
+
+   §10. Smaller screens are sized for reading, not by scaling the desktop
+   proportions down. This is only safe because cut anchoring no longer depends
+   on these numbers: filmMap.ts pins film progress to the measured top of each
+   section, so each section still covers exactly its designated stretch of the
+   film whatever height it ends up. The film simply moves through an act faster
+   or slower to match where the copy actually is.
+   The rule that matters is that no section may be shorter than the viewport.
+   A section shorter than a screen gives its content less than one screen of
+   dwell, and the copy flies past before it can be read — which is what was
+   happening to the proof section on a phone at 85svh. */
 
 .station {
   position: relative;
   width: 100%;
+  min-height: var(--h);
 }
 
-.s1 { min-height: 110svh; }
-.s2 { min-height: 110svh; }
-.s3 { min-height: 176svh; }
-.s4 { min-height: 284svh; }
-.s5 { min-height: 100svh; }
-.s6 { min-height: 180svh; }
-.s7 { min-height: 118svh; }
-.s8 { min-height: 122svh; }
-
-/* §10. Smaller screens are sized for reading, not by scaling the desktop
-   proportions down.
-   This is only safe because cut anchoring no longer depends on these numbers:
-   filmMap.ts pins film progress to the measured top of each section, so each
-   section still covers exactly its designated stretch of the film whatever
-   height it ends up. The film simply moves through an act faster or slower to
-   match where the copy actually is.
-   The rule that matters here is that no section may be shorter than the
-   viewport. A section shorter than a screen gives its content less than one
-   screen of dwell, and the copy flies past before it can be read — which is
-   what was happening to the proof section on a phone at 85svh.
-   Previously only <=480px was covered at all, leaving every 481-900px device
-   on the full desktop geometry. */
 @media (max-width: 900px) {
-  .s1 { min-height: 100svh; }
-  .s2 { min-height: 115svh; }
-  .s3 { min-height: 110svh; }
-  .s4 { min-height: 250svh; }
-  .s5 { min-height: 125svh; }
-  .s6 { min-height: 120svh; }
-  .s7 { min-height: 110svh; }
-  .s8 { min-height: 115svh; }
+  .station { min-height: var(--h-md); }
 }
 
 @media (max-width: 720px) {
-  .s1 { min-height: 100svh; }
-  .s2 { min-height: 125svh; }
-  .s3 { min-height: 110svh; }
-  .s4 { min-height: 240svh; }
-  .s5 { min-height: 135svh; }
-  .s6 { min-height: 125svh; }
-  .s7 { min-height: 110svh; }
-  .s8 { min-height: 120svh; }
+  .station { min-height: var(--h-sm); }
 }

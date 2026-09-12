@@ -140,13 +140,15 @@ interface Spine {
 let spine: Spine | null = null
 
 export const prefersReducedMotion = (): boolean =>
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-  (import.meta.env.DEV && new URLSearchParams(location.search).get('motion') === 'reduce')
+  typeof window !== 'undefined' &&
+  (window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+    (import.meta.env.DEV && new URLSearchParams(location.search).get('motion') === 'reduce'))
 
 /**
  * Idempotent bootstrap. Safe under StrictMode. Returns the singleton.
- * Under reduced motion Lenis is not created — native scroll drives the
- * master ScrollTrigger directly (§9 law 7).
+ * Under reduced motion Lenis is still created (it owns scrollTo for anchors
+ * and the focus assist) but with smoothing off, so the wheel is native and
+ * every programmatic scroll is instant (§9 law 7).
  */
 export function initSpine(): Spine {
   if (spine) return spine

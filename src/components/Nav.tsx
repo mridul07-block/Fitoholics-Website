@@ -13,7 +13,7 @@
  * Anchors ride Lenis via the global handler in motion/a11y.ts, so the links
  * here are plain hashes and need no scroll code of their own.
  */
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import gsap from 'gsap'
 import { COPY } from '../content/copy'
@@ -29,20 +29,17 @@ const RETREAT_DELTA = 6
 
 export function Nav() {
   const barRef = useRef<HTMLElement>(null)
+  const toggleRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   // read inside the scroll listener, which is installed once and must not be
   // torn down and rebuilt every time the menu toggles
   const openRef = useRef(false)
   openRef.current = open
 
-  // Hidden before the first paint, resolved by the entrance timeline in
-  // motion/choreography.ts. Doing this in CSS instead would leave the bar
-  // hidden for anyone on reduced motion, where the choreography never runs.
-  useLayoutEffect(() => {
-    if (prefersReducedMotion() || !barRef.current) return
-    gsap.set(barRef.current, { autoAlpha: 0, y: -14 })
-  }, [])
-
+  // Visible from the first paint. It used to be hidden until the entrance
+  // had played, but there is no preloader in front of the page any more and
+  // the masthead is part of what a visitor is meant to see immediately.
   useEffect(() => {
     const bar = barRef.current
     if (!bar) return
@@ -112,13 +109,44 @@ export function Nav() {
     return () => ro.disconnect()
   }, [])
 
+  /**
+   * The open menu owns the keyboard. Focus moves onto its first link when it
+   * opens, Tab cycles through the toggle and the panel's links without
+   * escaping into the page behind, Escape closes it, and focus returns to
+   * the toggle on close so a keyboard user is back where they started.
+   */
   useEffect(() => {
     if (!open) return
+    const toggle = toggleRef.current
+    const panel = panelRef.current
+    const focusables = (): HTMLElement[] => [
+      ...(toggle ? [toggle] : []),
+      ...Array.from(panel?.querySelectorAll<HTMLElement>('a[href], button') ?? []),
+    ]
+    focusables()[1]?.focus()
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') {
+        setOpen(false)
+        return
+      }
+      if (e.key !== 'Tab') return
+      const f = focusables()
+      const first = f[0]
+      const last = f[f.length - 1]
+      if (!first || !last) return
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      toggle?.focus()
+    }
   }, [open])
 
   const c = COPY.nav
@@ -131,9 +159,8 @@ export function Nav() {
           the figure with FITOHOLIX and its strapline, and it is the thing
           people recognise. Explicit dimensions so it reserves its box before it
           decodes; the pane measures its own height into --nav-h afterwards.
-          No priority hint: the gate holds the page for at least MIN_VISIBLE_MS
-          and usually far longer, and this is the same file the footer asks for,
-          so it is warm by the time the masthead is ever looked at. */}
+          Preloaded from index.html, since it is on screen from the first
+          paint; the footer reuses the same file. */}
       <a className={s.brand} href="#top">
         <img
           className={s.brandLockup}
@@ -165,6 +192,7 @@ export function Nav() {
       </a>
 
       <button
+        ref={toggleRef}
         type="button"
         className={s.toggle}
         aria-expanded={open}
@@ -176,7 +204,7 @@ export function Nav() {
         <span className={s.toggleBar} aria-hidden="true" />
       </button>
 
-      <div id="nav-panel" className={s.panel} hidden={!open}>
+      <div id="nav-panel" ref={panelRef} className={s.panel} hidden={!open}>
         {c.links.map((l) => (
           <a key={l.href} className={s.panelLink} href={l.href} onClick={() => setOpen(false)}>
             {l.label}

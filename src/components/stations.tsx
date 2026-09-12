@@ -1,14 +1,19 @@
 /**
- * The eight content stations (§8), static pass.
- * All copy comes from src/content/copy.ts — no string literals here (§5).
- * Anchor rotation: CENTRE, LEFT, RIGHT, CENTRE, LEFT, RIGHT, LEFT, CENTRE.
- * Motion, pinning and the film arrive in later phases.
+ * The nine content stations, in the order src/stations/geometry.ts gives them.
+ * All copy comes from src/content/copy.ts: no string literals here.
+ *
+ * Drafted rows (copy.ts, `draft: true`) pass through live() from
+ * content/drafts.ts, which omits them from production and lets previews show
+ * them tagged. Every component that renders a list of client facts reads its
+ * rows through it, so the rule cannot be forgotten one section at a time.
  */
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useIsoLayoutEffect } from '../lib/useIsoLayoutEffect'
 import clsx from 'clsx'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from '../content/copy'
+import { isDraft, live, liveOne } from '../content/drafts'
 import { initSpine, prefersReducedMotion } from '../film/useMasterProgress'
 import s from './stations.module.css'
 
@@ -18,6 +23,23 @@ const over = 'overFilm' // global class from base.css (§4.3 text shadow)
 
 /** must match .protoNumeral opacity in stations.module.css */
 const NUMERAL_REST_OPACITY = 0.16
+
+/** the visible tag a drafted row carries on builds that show drafts */
+function DraftTag() {
+  return <span className={s.draftTag}>{COPY.chrome.draft}</span>
+}
+
+/** the line under a primary call to action: what the click commits you to */
+function BookingDetail({ className, ...rest }: { className?: string; 'data-s1-detail'?: string }) {
+  const d = liveOne(COPY.booking.detail)
+  if (!d) return null
+  return (
+    <p className={clsx(s.bookingDetail, className)} data-placeholder={isDraft(d) ? '' : undefined} {...rest}>
+      {d.line}
+      {isDraft(d) && <DraftTag />}
+    </p>
+  )
+}
 
 export function Entrance() {
   const c = COPY.entrance
@@ -45,13 +67,15 @@ export function Entrance() {
               rel="noopener noreferrer"
               aria-label={COPY.booking.a11y}
               data-magnetic=""
+              data-cta="hero"
             >
               {c.cta1}
             </a>
-            <a className={s.ctaSecondary} href="#protocol">
+            <a className={s.ctaSecondary} href="#method">
               {c.cta2}
             </a>
           </div>
+          <BookingDetail className={s.heroDetail} data-s1-detail="" />
         </div>
       </div>
       <div className={s.scrollCue} aria-hidden="true" data-scroll-cue>
@@ -73,7 +97,7 @@ export function Problem() {
         <div className={clsx(s.railLeft, over)}>
           <span className={s.index}>{c.index}</span>
           <p className={s.eyebrow}>{c.eyebrow}</p>
-          <h2 className={s.h1}>
+          <h2 className={s.h1} data-headline="">
             {c.h1Lines.map((line) => (
               <span key={line}>{line}</span>
             ))}
@@ -96,8 +120,47 @@ export function Problem() {
   )
 }
 
-export function Positioning() {
-  const c = COPY.positioning
+/** the instrument cards: a value, its label, and a bar that fills on reveal */
+function StatCards({
+  stats,
+}: {
+  stats: readonly {
+    readonly value: string
+    readonly label: string
+    readonly countTo: number | null
+    readonly suffix: string
+    readonly draft?: boolean
+  }[]
+}) {
+  return (
+    <div className={s.stats}>
+      {live(stats).map((stat) => (
+        <div
+          key={stat.label}
+          className={s.statCard}
+          data-stat-card=""
+          data-tilt=""
+          data-placeholder={isDraft(stat) ? '' : undefined}
+        >
+          <div
+            className={s.statCardValue}
+            data-count-to={stat.countTo ?? undefined}
+            data-count-suffix={stat.countTo !== null ? stat.suffix : undefined}
+          >
+            {stat.value}
+          </div>
+          <div className={s.statCardLabel}>{stat.label}</div>
+          <div className={s.statCardBar} data-stat-bar="" aria-hidden="true" />
+          {isDraft(stat) && <DraftTag />}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function Credibility() {
+  const c = COPY.credibility
+  const credentials = live(c.credentials)
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimRight)} aria-hidden="true" />
@@ -109,25 +172,31 @@ export function Positioning() {
             <span className={s.quoteGlyph} aria-hidden="true">
               &ldquo;
             </span>
-            <blockquote className={s.quote}>{c.quote}</blockquote>
+            <blockquote className={s.quote} data-headline="">
+              {c.quote}
+            </blockquote>
           </figure>
-          <div className={s.stats}>
-            {c.stats.map((stat) => (
-              <div key={stat.label} className={s.statCard} data-stat-card="" data-tilt="">
-                <div
-                  className={s.statCardValue}
-                  data-placeholder={stat.countTo === null ? '' : undefined}
-                  data-count-to={stat.countTo ?? undefined}
-                  data-count-suffix={stat.countTo !== null ? stat.suffix : undefined}
-                >
-                  {stat.value}
-                </div>
-                <div className={s.statCardLabel}>{stat.label}</div>
-                <div className={s.statCardBar} data-stat-bar="" aria-hidden="true" />
-              </div>
-            ))}
-          </div>
+          <StatCards stats={c.stats} />
+          {credentials.length > 0 && (
+            <>
+              <span className={s.listLabel}>{c.credentialsLabel}</span>
+              <ul className={s.painList}>
+                {credentials.map((row) => (
+                  <li
+                    key={row.text}
+                    className={s.painRow}
+                    data-credential=""
+                    data-placeholder={isDraft(row) ? '' : undefined}
+                  >
+                    {row.text}
+                    {isDraft(row) && <DraftTag />}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
           <p className={s.foot}>{c.foot}</p>
+          <p className={s.disclaimer}>{COPY.trust.disclaimer}</p>
         </div>
       </div>
     </div>
@@ -135,16 +204,274 @@ export function Positioning() {
 }
 
 /**
- * Station 4 · The Total Transformation Protocol (§8 S4, Phase 7).
- * The 240svh section holds a 100svh sticky stage: an ember numeral
- * crossfading 01–08, the step text swapping through a bottom-to-top masked
- * wipe, and an honest rail whose segment heights are proportional to each
- * description's length. The film keeps advancing behind it — the sticky pin
- * never changes document geometry, so master progress stays exact.
+ * A client clip, loaded on tap. The poster is a still and the player is an
+ * iframe that exists only after the visitor asks for it, so a page with six
+ * clips costs nothing until one is played.
+ */
+function VideoFacade({ title, embed, poster }: { title: string; embed: string; poster: string }) {
+  const [playing, setPlaying] = useState(false)
+  if (playing) {
+    return (
+      <div className={s.video}>
+        <iframe
+          className={s.videoFrame}
+          src={`${embed}${embed.includes('?') ? '&' : '?'}autoplay=1`}
+          title={title}
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    )
+  }
+  return (
+    <button type="button" className={s.video} onClick={() => setPlaying(true)} data-video="">
+      <img className={s.videoPoster} src={poster} alt="" loading="lazy" decoding="async" />
+      <span className={s.videoPlay} aria-hidden="true" />
+      <span className={s.videoTitle}>
+        <span className="visuallyHidden">{COPY.transformations.playLabel}: </span>
+        {title}
+      </span>
+    </button>
+  )
+}
+
+export function Transformations() {
+  const c = COPY.transformations
+  const cases = live(c.cases)
+  const testimonials = live(c.testimonials)
+  const videos = live(c.videos)
+  return (
+    <div className={s.inner}>
+      <div className={clsx(s.scrim, s.scrimLeft)} aria-hidden="true" />
+      <div className={s.grid} data-panel="">
+        <div className={clsx(s.railLeft, over)}>
+          <span className={s.index}>{c.index}</span>
+          <p className={s.eyebrow}>{c.eyebrow}</p>
+          <h2 className={s.h1} data-headline="">
+            {c.h1Lines.map((line) => (
+              <span key={line}>{line}</span>
+            ))}
+          </h2>
+          <p className={s.body}>{c.lead}</p>
+        </div>
+
+        {/* The station's own argument, independent of whose photographs are
+            ready. It carries the section on its own while the consented case
+            studies are still being gathered, and stays afterwards as the
+            reason to believe the ones that are there. */}
+        <div className={clsx(s.railRight, s.policy, over)}>
+          <span className={s.listLabel}>{c.policy.label}</span>
+          <p className={s.policyTitle}>{c.policy.title}</p>
+          <p className={s.body}>{c.policy.body}</p>
+          <ul className={s.policyPoints}>
+            {c.policy.points.map((p) => (
+              <li key={p} className={s.policyPoint} data-pain-row="">
+                {p}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {cases.length > 0 ? (
+          <div className={clsx(s.fullRow, over)}>
+            <span className={s.listLabel}>{c.casesLabel}</span>
+            <div className={s.cases}>
+              {/* keyed by position: the list is static and drafted rows may share names */}
+              {cases.map((k, i) => (
+                <figure
+                  key={i}
+                  className={s.case}
+                  data-case=""
+                  data-tilt=""
+                  data-placeholder={isDraft(k) ? '' : undefined}
+                >
+                  {/* The pair is one picture to a screen reader, described by
+                      k.alt, only once there is a picture there. While the
+                      frames are empty that label would describe photographs
+                      nobody can see, so the frames read as their own Before
+                      and After words instead. */}
+                  <div
+                    className={s.casePair}
+                    role={k.before || k.after ? 'img' : undefined}
+                    aria-label={k.before || k.after ? k.alt : undefined}
+                  >
+                    <div className={s.caseShot}>
+                      {k.before ? (
+                        <img src={k.before} alt="" loading="lazy" decoding="async" />
+                      ) : (
+                        <span className={s.caseShotLabel}>{c.beforeLabel}</span>
+                      )}
+                    </div>
+                    <div className={s.caseShot}>
+                      {k.after ? (
+                        <img src={k.after} alt="" loading="lazy" decoding="async" />
+                      ) : (
+                        <span className={s.caseShotLabel}>{c.afterLabel}</span>
+                      )}
+                    </div>
+                  </div>
+                  <p className={s.caseResult}>{k.result}</p>
+                  <figcaption className={s.caseMeta}>
+                    {k.name}, {k.age}, {k.profession} · {k.timeframe}
+                  </figcaption>
+                  {isDraft(k) && <DraftTag />}
+                </figure>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className={clsx(s.emptyNote, over)}>{c.emptyNote}</p>
+        )}
+
+        {videos.length > 0 && (
+          <div className={clsx(s.fullRow, over)}>
+            <span className={s.listLabel}>{c.videosLabel}</span>
+            <div className={s.videos}>
+              {videos.map((v) => (
+                <VideoFacade key={v.embed} title={v.title} embed={v.embed} poster={v.poster} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {testimonials.length > 0 && (
+          <div className={clsx(s.fullRow, over)}>
+            <span className={s.listLabel}>{c.testimonialsLabel}</span>
+            <div className={s.cards}>
+              {testimonials.map((t, i) => (
+                <figure key={i} className={s.card} data-card="" data-tilt="">
+                  <blockquote className={s.cardQuote} data-placeholder={isDraft(t) ? '' : undefined}>
+                    {t.quote}
+                  </blockquote>
+                  <div className={s.cardRule} aria-hidden="true" />
+                  <figcaption className={s.cardAttribution}>
+                    &mdash; {t.name}, {t.profession}, {t.duration} {c.attributionSuffix}
+                  </figcaption>
+                  {isDraft(t) && <DraftTag />}
+                </figure>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className={clsx(s.disclaimer, s.fullRow, over)}>{COPY.trust.disclaimer}</p>
+      </div>
+    </div>
+  )
+}
+
+export function Receive() {
+  const c = COPY.receive
+  return (
+    <div className={s.inner}>
+      <div className={clsx(s.scrim, s.scrimLeft)} aria-hidden="true" />
+      {/* This is the one station whose right hand rail is bare type rather than
+          cards, so the left scrim alone left six inclusions reading off an
+          unveiled gym plate with faces in it. Both edges are anchored here; the
+          middle of the frame is still open film. */}
+      <div className={clsx(s.scrim, s.scrimRight)} aria-hidden="true" />
+      <div className={s.grid} data-panel="">
+        <div className={clsx(s.railLeft, over)}>
+          <span className={s.index}>{c.index}</span>
+          <p className={s.eyebrow}>{c.eyebrow}</p>
+          <h2 className={s.h1} data-headline="">
+            {c.h1Lines.map((line) => (
+              <span key={line}>{line}</span>
+            ))}
+          </h2>
+          <p className={s.body}>{c.lead}</p>
+          <dl className={s.facts}>
+            {live(c.facts).map((f) => (
+              <div
+                key={f.label}
+                className={s.fact}
+                data-stat-card=""
+                data-placeholder={isDraft(f) ? '' : undefined}
+              >
+                <dt className={s.factLabel}>{f.label}</dt>
+                <dd className={s.factValue}>{f.value}</dd>
+                {isDraft(f) && <DraftTag />}
+              </div>
+            ))}
+          </dl>
+        </div>
+        <div className={clsx(s.railWideRight, over)}>
+          <ul className={s.receiveList}>
+            {c.items.map((item) => (
+              <li key={item.label} className={clsx(s.painRow, s.receiveRow)} data-receive-row="">
+                <span className={s.receiveLabel}>{item.label}</span>
+                <span className={s.receiveBody}>{item.body}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function Pathways() {
+  const c = COPY.pathways
+  const paths = live(c.paths).filter((p) => p.offered)
+  return (
+    <div className={s.inner}>
+      <div className={clsx(s.scrim, s.scrimHeavy)} aria-hidden="true" />
+      <div className={s.grid} data-panel="">
+        <div className={clsx(s.railLeft, over)}>
+          <span className={s.index}>{c.index}</span>
+          <p className={s.eyebrow}>{c.eyebrow}</p>
+          <h2 className={s.h1} data-headline="">
+            {c.h1Lines.map((line) => (
+              <span key={line}>{line}</span>
+            ))}
+          </h2>
+          <p className={s.body}>{c.body}</p>
+        </div>
+        <div className={clsx(s.railListRight, over)}>
+          <span className={s.listLabel}>{c.aspirationsLabel}</span>
+          <ul className={s.chips}>
+            {c.aspirations.map((item) => (
+              <li key={item} className={s.chip} data-aspiration="">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+        {paths.length > 0 && (
+          <div className={clsx(s.fullRow, s.paths, over)}>
+            {paths.map((p) => (
+              <article
+                key={p.key}
+                className={s.path}
+                data-path=""
+                data-tilt=""
+                data-placeholder={isDraft(p) ? '' : undefined}
+              >
+                <h3 className={s.pathTitle}>{p.title}</h3>
+                <p className={s.pathWho}>{p.who}</p>
+                <p className={s.pathLine}>{p.connects}</p>
+                <p className={clsx(s.pathLine, s.pathGets)}>{p.gets}</p>
+                {isDraft(p) && <DraftTag />}
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The method (§8 S4, Phase 7).
+ * The section holds a 100svh sticky stage: an ember numeral crossfading
+ * 01–08, the step text swapping through a bottom-to-top masked wipe, and an
+ * honest rail whose segment heights are proportional to each description's
+ * length. The film keeps advancing behind it — the sticky pin never changes
+ * document geometry, so master progress stays exact.
  * Reduced motion renders the full static list instead.
  */
-export function Protocol() {
-  const c = COPY.protocol
+export function Method() {
+  const c = COPY.method
   const sectionRef = useRef<HTMLDivElement>(null)
   const numeralRef = useRef<HTMLDivElement>(null)
   const layerARef = useRef<HTMLDivElement>(null)
@@ -152,7 +479,13 @@ export function Protocol() {
   const railRef = useRef<HTMLDivElement>(null)
   /** the pin trigger, so the stepper reads the same mapping the pin uses */
   const triggerRef = useRef<ScrollTrigger | null>(null)
-  const reduced = prefersReducedMotion()
+  // State rather than a read in render: the tree is prerendered where there
+  // is no media query to ask, and the first client render has to match that
+  // markup. The static list swaps in before paint for anyone on reduced motion.
+  const [reduced, setReduced] = useState(false)
+  useIsoLayoutEffect(() => {
+    if (prefersReducedMotion()) setReduced(true)
+  }, [])
 
   useEffect(() => {
     if (reduced) return
@@ -215,11 +548,6 @@ export function Protocol() {
        * top of each other, both fully legible, for the whole 440ms: the smeared
        * double text that reads as the animation lagging. The wipe is a reveal of
        * the new copy against the footage, and it only works alone.
-       *
-       * Hiding it here also retires the onComplete that used to do it, which
-       * captured `outgoing` in a closure: fire a second swap before the first
-       * finished and that stale callback hid the layer that had since become the
-       * live one, blanking the step entirely.
        */
       gsap.set(outgoing, { zIndex: 1, autoAlpha: 0 })
       if (instant) {
@@ -272,16 +600,10 @@ export function Protocol() {
    * Travel to a step.
    *
    * The target is interpolated between the pin trigger's own `start` and `end`,
-   * not recomputed from the element. Deriving it independently is how this went
-   * wrong first time: the track sits inside a `position: relative` section, so
-   * its `offsetTop` is a few pixels rather than a document position, and
-   * clicking step 06 scrolled upward into step 01. Reading the trigger means
-   * the jump and the pin cannot disagree about where a step lives, whatever the
-   * offset parent or the section height turn out to be.
-   *
-   * Scrolled through Lenis rather than window.scrollTo: Lenis owns the scroll
-   * position, and moving it behind Lenis' back makes the two fight for a few
-   * frames, which shows as a stutter in the film.
+   * not recomputed from the element, so the jump and the pin cannot disagree
+   * about where a step lives. Scrolled through Lenis rather than
+   * window.scrollTo: Lenis owns the scroll position, and moving it behind
+   * Lenis' back makes the two fight for a few frames, which shows in the film.
    */
   const jumpToStep = (i: number) => {
     const st = triggerRef.current
@@ -298,7 +620,9 @@ export function Protocol() {
           <header className={clsx(s.protocolHead, over)}>
             <span className={s.index}>{c.index}</span>
             <p className={s.eyebrow}>{c.eyebrow}</p>
-            <h2 className={s.h1}>{c.h1}</h2>
+            <h2 className={s.h1} data-headline="">
+              {c.h1}
+            </h2>
             <p className={s.protocolLead}>{c.lead}</p>
           </header>
           <ol className={clsx(s.steps, over)}>
@@ -327,13 +651,15 @@ export function Protocol() {
           <header className={clsx(s.protoHead, over)}>
             <span className={s.index}>{c.index}</span>
             <p className={s.eyebrow}>{c.eyebrow}</p>
-            <h2 className={s.protoTitle}>{c.h1}</h2>
+            <h2 className={s.protoTitle} data-headline="">
+              {c.h1}
+            </h2>
             <p className={s.protocolLead}>{c.lead}</p>
           </header>
         </div>
         <div className={clsx(s.grid, s.protoBody)}>
           <div ref={numeralRef} className={s.protoNumeral} aria-hidden="true">
-            01
+            {c.steps[0]!.n}
           </div>
           <div className={clsx(s.protoStage, over)} aria-hidden="true">
             <div ref={layerARef} className={s.protoLayer}>
@@ -377,8 +703,8 @@ export function Protocol() {
   )
 }
 
-export function TableStation() {
-  const c = COPY.table
+export function Nutrition() {
+  const c = COPY.nutrition
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimLeft)} aria-hidden="true" />
@@ -386,7 +712,7 @@ export function TableStation() {
         <div className={clsx(s.railLeft, over)}>
           <span className={s.index}>{c.index}</span>
           <p className={s.eyebrow}>{c.eyebrow}</p>
-          <h2 className={s.h1}>
+          <h2 className={s.h1} data-headline="">
             {c.h1Lines.map((line) => (
               <span key={line}>{line}</span>
             ))}
@@ -416,87 +742,32 @@ export function TableStation() {
   )
 }
 
-export function Fit() {
-  const c = COPY.fit
-  return (
-    <div className={s.inner}>
-      <div className={clsx(s.scrim, s.scrimRight)} aria-hidden="true" />
-      <div className={s.grid} data-panel="">
-        <div className={clsx(s.railRight, over)}>
-          <span className={s.index}>{c.index}</span>
-          <p className={s.eyebrow}>{c.eyebrow}</p>
-          <h2 className={s.h1}>
-            {c.h1Lines.map((line) => (
-              <span key={line}>{line}</span>
-            ))}
-          </h2>
-          <p className={s.body}>{c.body}</p>
-          <span className={s.listLabel}>{c.aspirationsLabel}</span>
-          <ul className={s.chips}>
-            {c.aspirations.map((item) => (
-              <li key={item} className={s.chip} data-aspiration="">
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export function Proof() {
-  const c = COPY.proof
-  return (
-    <div className={s.inner}>
-      <div className={clsx(s.scrim, s.scrimLeft)} aria-hidden="true" />
-      <div className={s.grid} data-panel="">
-        <div className={clsx(s.railLeft, over)}>
-          <span className={s.index}>{c.index}</span>
-          <p className={s.eyebrow}>{c.eyebrow}</p>
-          <h2 className={s.h1}>
-            {c.h1Lines.map((line) => (
-              <span key={line}>{line}</span>
-            ))}
-          </h2>
-        </div>
-        <div className={s.cards}>
-          {/* keyed by position, not by name: the list is static and never
-              reordered, and keying on a content field breaks the moment two
-              entries share it, which the placeholder rows do by design */}
-          {c.testimonials.map((t, i) => (
-            <figure key={i} className={s.card} data-card="" data-tilt="">
-              {/* Dimmed while the row is still marked draft, so an invented
-                  quote never presents itself with the confidence of a real
-                  one. Drops away on its own when the flag is deleted. */}
-              <blockquote
-                className={s.cardQuote}
-                data-placeholder={'draft' in t && t.draft ? '' : undefined}
-              >
-                {t.quote}
-              </blockquote>
-              <div className={s.cardRule} aria-hidden="true" />
-              <figcaption className={s.cardAttribution}>
-                &mdash; {t.name}, {t.profession}, {t.duration} {c.attributionSuffix}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export function Close() {
   const c = COPY.close
+  const details = live(c.details)
   return (
     <div className={s.inner}>
       <div className={clsx(s.scrim, s.scrimHeavy)} aria-hidden="true" />
       <div className={s.grid} data-panel="">
         <div className={clsx(s.railCentre, over)}>
           <p className={s.eyebrow}>{c.eyebrow}</p>
-          <h2 className={clsx(s.hero, s.heroClose)}>{c.hero}</h2>
+          <h2 className={clsx(s.hero, s.heroClose)} data-headline="">
+            {c.hero}
+          </h2>
           <p className={s.lead}>{c.lead}</p>
+          {details.length > 0 && (
+            <dl className={s.closeDetails}>
+              {details.map((d) => (
+                <div key={d.label} className={s.closeDetail} data-placeholder={isDraft(d) ? '' : undefined}>
+                  <dt className={s.closeDetailLabel}>{d.label}</dt>
+                  <dd className={s.closeDetailValue}>
+                    {d.value}
+                    {isDraft(d) && <DraftTag />}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
           <a
             className={s.closeCta}
             href={COPY.booking.href}
@@ -505,6 +776,7 @@ export function Close() {
             aria-label={COPY.booking.a11y}
             id="booking-action"
             data-magnetic=""
+            data-cta="close"
           >
             {c.cta}
           </a>

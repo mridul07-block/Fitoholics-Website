@@ -8,3 +8,6 @@ Thumbs.db
 tsconfig.tsbuildinfo
 *.tsbuildinfo
 .vercel/
+.env
+.env.*
+!.env.example

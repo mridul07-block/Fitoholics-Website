@@ -37,17 +37,19 @@ const Q = 96
 const MIN_INTERVAL_MS = 64
 
 /* ---------- the curve ----------
-   Stops sit on the film's cuts, so the flat point of each smoothstep lands
-   where the flare already owns the eye. Light is earned through the method:
-   the protocol (frames 99–169) carries the steepest climb, and the cut into
-   THE PROOF at 240 is where the room is finally lit. */
+   Stops sit on the film's cuts (logical frames, see manifest.ts SHOT_ORDER),
+   so the flat point of each smoothstep lands where the flare already owns
+   the eye. Light is earned through the method: the protocol (frames 185–239,
+   over THE WORK) carries the steepest climb, and the cut into THE PROOF at
+   240 is where the room is finally lit. The plate's own brightness dips in
+   the middle of the page; the arc is the ground, and it only ever rises. */
 type Stop = readonly [frame: number, daylight: number]
 const STOPS: readonly Stop[] = [
   [0, 0],
-  [55, 0.06],
-  [99, 0.14],
-  [140, 0.28],
-  [195, 0.46],
+  [55, 0.08],
+  [96, 0.16],
+  [141, 0.24],
+  [185, 0.32],
   [240, 0.66],
   [268, 0.85],
   [FILM.count - 1, 1],
@@ -95,7 +97,10 @@ export function daylightAtFrame(f: number): number {
 const VOID = '#08060A'
 const GROUND = ['#08060A', '#5E4C40'] as const
 const SURFACE = ['#14100E', '#6E5A4C'] as const
-const STONE = ['#A79A90', '#D5C9BD'] as const
+// stone ends lighter than the ground's rise alone would put it: on the lit
+// card surface (#6E5A4C) the earlier #D5C9BD was 4.0:1, under the floor for
+// the small text that uses it, and #E2D8CD clears it at about 4.8:1
+const STONE = ['#A79A90', '#E2D8CD'] as const
 
 const hexToRgb = (hex: string): Vec3 => {
   const n = parseInt(hex.slice(1), 16)

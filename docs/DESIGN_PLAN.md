@@ -78,14 +78,19 @@ talking — the arrival and the standard — get the tallest sections, so the pa
 breathes with the footage instead of filling every screen with copy.
 
 ```
-S1 110vh  CENTRE hero                     act 01 mirror
-S2 110vh  LEFT copy   | pain list right    act 01 mirror        -> cut 55
-S3 176vh  quote RIGHT | stats              act 02 arrival       -> cut 99
-S4 284vh  PINNED protocol, 8 steps         act 03 -> 04         (cut 140 mid)
-S5 100vh  LEFT copy   | myth strikes       act 04 work          -> cut 195
-S6 180vh  RIGHT copy  | fit list           act 05 standard      -> cut 240
-S7 118vh  LEFT copy   | testimonial cards  act 06 proof
-S8 122vh  CENTRE close + CTA + footer      act 06 proof
+(audit release, 2026-09: nine stations, the shots re-sequenced to follow them;
+ src/stations/geometry.ts is the source and shows the cut arithmetic)
+
+S1 134vh  CENTRE hero                        THE MIRROR
+S2 160vh  LEFT copy   | pain list right       THE MIRROR        -> cut 55
+S3 220vh  quote RIGHT | stats, credentials    THE ASSESSMENT    -> cut 96
+S4 240vh  LEFT copy   | cases, clips, words   THE STANDARD      -> cut 141
+S5 118vh  LEFT copy   | inclusions, app       THE ARRIVAL
+S6 118vh  LEFT copy   | chips, three paths    THE ARRIVAL       -> cut 185
+S7 294vh  PINNED protocol, 8 steps            THE WORK          -> cut 240
+S8 180vh  LEFT copy   | myth strikes          THE PROOF
+S9 136vh  CENTRE close + details + CTA        THE PROOF
+   trust block (FAQ, legal) and footer, off the film at daylight 1
 ```
 
 ## Motion

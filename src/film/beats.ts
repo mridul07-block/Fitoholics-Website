@@ -2,17 +2,19 @@
  * The film, as data.
  *
  * The 2026-08-17 source is six shots joined by hard cuts, measured from the
- * plate (mean absolute thumbnail difference over 18) at frames 55, 99, 140,
- * 195 and 240. Every act below is one continuous camera setup, so the acts are
- * a fact about the footage, not a reading of it.
+ * plate (mean absolute thumbnail difference over 18). Every act below is one
+ * continuous camera setup, so the acts are a fact about the footage, not a
+ * reading of it. Their order on the page is manifest.ts's SHOT_ORDER, which
+ * is not the order they were shot in; the frame numbers here are logical.
  *
  * Station ranges are chosen so the film's cuts land on section boundaries: the
  * page changes subject at the same instant the camera does.
  */
-import { FILM } from './manifest'
+import { FILM, SHOTS, type ShotId } from './manifest'
+import { GEOMETRY } from '../stations/geometry'
 
 export interface Act {
-  readonly id: string
+  readonly id: ShotId
   readonly label: string
   /** short line shown under the act label in the chrome */
   readonly note: string
@@ -42,18 +44,18 @@ export interface Act {
 export const rgbHex = (c: readonly [number, number, number]): string =>
   '#' + c.map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('')
 
+type Look = Omit<Act, 'id' | 'n0' | 'n1' | 'heroFrame'>
+
 /**
- * The colour arc is the story arc: cold violet black at the mirror, tungsten
- * entering at the assessment, deep rust through the work, molten at the proof.
+ * What each shot is and how it is lit. Facts about the footage (the label,
+ * the ghost risk, the focal point, the air's hue) stay with the shot wherever
+ * it plays. The ember bloom does not: it is graded to rise in the order the
+ * shots are shown, so the light never steps backwards at a cut.
  */
-export const ACTS: readonly Act[] = [
-  {
-    id: 'mirror',
+const LOOK: Record<ShotId, Look> = {
+  mirror: {
     label: 'THE MIRROR',
     note: 'Before anything changes',
-    n0: 0,
-    n1: 54,
-    heroFrame: 22,
     ghostRisk: 0,
     // the coldest point in the arc, but never neutral: the lamp behind the
     // mirror is the one warm thing in the room, and the page starts there
@@ -62,74 +64,57 @@ export const ACTS: readonly Act[] = [
     glow: 0.1,
     focalX: 0.47,
   },
-  {
-    id: 'arrival',
-    label: 'THE ARRIVAL',
-    note: 'The first decision',
-    n0: 55,
-    n1: 98,
-    heroFrame: 72,
-    ghostRisk: 1,
-    atmTop: [0.039, 0.027, 0.055],
-    atmBottom: [0.102, 0.071, 0.055],
-    glow: 0.14,
-    focalX: 0.56,
-  },
-  {
-    id: 'assessment',
+  assessment: {
     label: 'THE ASSESSMENT',
     note: 'Measured, not guessed',
-    n0: 99,
-    n1: 139,
-    heroFrame: 118,
     ghostRisk: 0,
     atmTop: [0.047, 0.031, 0.024],
     atmBottom: [0.141, 0.078, 0.039],
-    glow: 0.3,
+    glow: 0.18,
     focalX: 0.62,
   },
-  {
-    id: 'work',
-    label: 'THE WORK',
-    note: 'Where it is actually earned',
-    n0: 140,
-    n1: 194,
-    heroFrame: 168,
-    ghostRisk: 2,
-    atmTop: [0.039, 0.024, 0.02],
-    atmBottom: [0.165, 0.071, 0.024],
-    glow: 0.36,
-    focalX: 0.42,
-  },
-  {
-    id: 'standard',
+  standard: {
     label: 'THE STANDARD',
     note: 'The same mirror, later',
-    n0: 195,
-    n1: 239,
-    heroFrame: 216,
     ghostRisk: 1,
     atmTop: [0.043, 0.024, 0.02],
     atmBottom: [0.188, 0.086, 0.024],
-    glow: 0.44,
+    glow: 0.26,
     focalX: 0.52,
   },
-  {
-    id: 'proof',
+  arrival: {
+    label: 'THE ARRIVAL',
+    note: 'The first decision',
+    ghostRisk: 1,
+    atmTop: [0.039, 0.027, 0.055],
+    atmBottom: [0.102, 0.071, 0.055],
+    glow: 0.32,
+    focalX: 0.56,
+  },
+  work: {
+    label: 'THE WORK',
+    note: 'Where it is actually earned',
+    ghostRisk: 2,
+    atmTop: [0.039, 0.024, 0.02],
+    atmBottom: [0.165, 0.071, 0.024],
+    glow: 0.4,
+    focalX: 0.42,
+  },
+  proof: {
     label: 'THE PROOF',
     note: 'What the work returns',
-    n0: 240,
-    n1: 299,
-    heroFrame: 276,
     ghostRisk: 0,
     atmTop: [0.063, 0.039, 0.024],
     atmBottom: [0.22, 0.125, 0.047],
     glow: 0.56,
     focalX: 0.53,
   },
-] as const
+}
 
-/** first frame of each new shot, straight from the encoder manifest */
+/** the acts in the order shown, ranges straight from the manifest's edit */
+export const ACTS: readonly Act[] = SHOTS.map((s) => ({ ...s, ...LOOK[s.id] }))
+
+/** first frame of each new shot, in logical frame space */
 export const CUTS: readonly number[] = FILM.cuts
 
 /** Act for a frame index. Linear scan; six entries, branch predicted. */
@@ -151,15 +136,12 @@ export function actIndexAtFrame(index: number): number {
 }
 
 /**
- * Section geometry. `h` is the scroll height in vh and is the single source of
- * truth: the CSS custom properties are generated from it, and the progress
- * ranges below are derived from the same numbers, so a height edit can never
- * drift out of sync with the beat anchoring.
+ * Section geometry. The heights live in src/stations/geometry.ts, which is
+ * also what App.tsx renders from, so the scroll geometry and the film
+ * arithmetic are the same numbers by construction and cannot drift apart.
  *
- * Heights are picked so each cut frame lands within one frame of a boundary:
- *   cut  55 -> positioning starts   cut  99 -> protocol starts
- *   cut 195 -> fit starts           cut 240 -> proof starts
- * (cut 140, assessment to work, deliberately lands mid protocol, under step 05)
+ * Heights are picked so every cut lands exactly on a section boundary; the
+ * table in geometry.ts shows the arithmetic.
  */
 export interface Section {
   readonly id: string
@@ -169,21 +151,7 @@ export interface Section {
   readonly wash: number
 }
 
-export const SECTIONS: readonly Section[] = [
-  { id: 'hero', h: 110, wash: 0.78 },
-  { id: 'problem', h: 110, wash: 0.84 },
-  { id: 'positioning', h: 176, wash: 0.9 },
-  { id: 'protocol', h: 284, wash: 0.8 },
-  { id: 'table', h: 100, wash: 0.86 },
-  { id: 'fit', h: 180, wash: 0.88 },
-  // The last two are where the page arrives. The footage ends on its one
-  // daylit shot, and washing it back toward the ground — proof was 0.80 and
-  // close 0.72, the most veiled section on the page — was hiding the payoff
-  // behind the same ink the story started in. The veil opens instead, which
-  // is where the ending gets its light from (see film/daylight.ts).
-  { id: 'proof', h: 118, wash: 0.94 },
-  { id: 'close', h: 122, wash: 0.86 },
-] as const
+export const SECTIONS: readonly Section[] = GEOMETRY.map(({ key, h, wash }) => ({ id: key, h, wash }))
 
 export const TOTAL_VH = SECTIONS.reduce((t, s) => t + s.h, 0)
 
@@ -236,10 +204,10 @@ export function assertFilmCoverage(): void {
     if (FILM.heroFrames[i] !== a.heroFrame)
       throw new Error(`acts: heroFrame mismatch at ${a.id} (${a.heroFrame} vs manifest ${FILM.heroFrames[i]})`)
   })
-  // every cut except the mid protocol one must sit on a section boundary
+  // every cut must sit exactly on a section boundary
   const boundaries = SECTION_RANGES.map(([, to]) => Math.round(to * (FILM.count - 1)))
-  for (const cut of [55, 99, 195, 240]) {
-    if (!boundaries.some((b) => Math.abs(b - cut) <= 1))
+  for (const cut of CUTS) {
+    if (!boundaries.includes(cut))
       throw new Error(`acts: cut ${cut} is not on a section boundary (boundaries ${boundaries.join(',')})`)
   }
 }

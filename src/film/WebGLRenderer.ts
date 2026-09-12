@@ -53,6 +53,9 @@ export class WebGLFilmRenderer {
     this.canvas.style.inset = '0'
     this.canvas.style.width = '100%'
     this.canvas.style.height = '100%'
+    // decorative: the host is already aria-hidden, and the canvas says so itself
+    this.canvas.setAttribute('aria-hidden', 'true')
+    this.canvas.setAttribute('role', 'presentation')
 
     // failIfMajorPerformanceCaveat is a blunt instrument: it also rejects
     // perfectly capable integrated GPUs on some drivers, and any browser in a

@@ -177,3 +177,14 @@ body {
 .btnQuiet:hover::after {
   transform: scaleX(1);
 }
+
+/* Under reduced motion the buttons still change colour on hover, but they
+   do not lift, press or crossfade: transitions are motion too. */
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+  .btn:active {
+    transform: none;
+  }
+}

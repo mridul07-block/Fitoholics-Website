@@ -197,7 +197,8 @@ export class FrameLoader implements FrameSource {
       img.src = framePath(this.tier, index)
       await img.decode()
       const bitmap = await createImageBitmap(img, {
-        imageOrientation: 'none',
+        imageOrientation: 'from-image', // see FrameLoader.worker.ts
+
         premultiplyAlpha: 'none',
         colorSpaceConversion: 'none',
       })

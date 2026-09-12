@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "node tools/check-placeholders.mjs && tsc -b && vite build",
+    "build": "node tools/check-placeholders.mjs && tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist/.ssr && node tools/prerender.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,50 +1,30 @@
-import { useEffect, type ReactNode } from 'react'
+import { Suspense, useEffect, type CSSProperties } from 'react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { COPY } from './content/copy'
-import { initChoreography } from './motion/choreography'
+import { initChoreography, initEntrance } from './motion/choreography'
 import { initA11yNav } from './motion/a11y'
 import { initStillness } from './motion/stillness'
-import { initGate } from './motion/gate'
 import { initSpine } from './film/useMasterProgress'
 import { initDaylight } from './film/daylight'
 import { SECTIONS, TOTAL_VH } from './film/beats'
 import { FilmLayer } from './film/FilmLayer'
 import { Nav } from './components/Nav'
 import { SiteFooter } from './components/SiteFooter'
-import { Entrance, Problem, Positioning, Protocol, TableStation, Fit, Proof, Close } from './components/stations'
+import { TrustBlock } from './components/TrustBlock'
+import { Notice } from './components/Notice'
+import { initAnalytics } from './analytics/track'
+import { STATIONS } from './stations/registry'
 import s from './App.module.css'
 
 /**
  * Layer scaffold (§2.1):
  *   L0 film (fixed canvas host) · L1 atmosphere (scrims) · L2 content · L3 chrome.
- * Phase 1 ships the shells at correct heights with aria-labels; stations fill in
- * Phase 2, the film engine in Phases 4 and 5.
+ *
+ * The stations come from src/stations/registry.ts in page order. Each renders
+ * with its ordinal (data-station, which filmMap.ts counts) and its key
+ * (data-station-key, which everything else selects by), and its heights as
+ * custom properties from the same geometry the film is anchored to.
  */
-
-const stationClasses = [s.s1, s.s2, s.s3, s.s4, s.s5, s.s6, s.s7, s.s8]
-
-const stationContent: readonly (() => ReactNode)[] = [
-  Entrance,
-  Problem,
-  Positioning,
-  Protocol,
-  TableStation,
-  Fit,
-  Proof,
-  Close,
-]
-
-/** ids the masthead and footer link to */
-const stationIds: readonly (string | undefined)[] = [
-  undefined,
-  undefined,
-  undefined,
-  'protocol',
-  'nutrition',
-  'fit',
-  'proof',
-  'booking',
-]
 
 /**
  * Pacing check, DEV only.
@@ -89,15 +69,18 @@ export function App() {
     // from the cut into the proof (see film/daylight.ts)
     initDaylight()
 
-    // The gate takes over its own markup immediately — it has been painting
-    // since the first frame and needs to start reporting real progress, not
-    // wait on fonts it does not use.
-    const gateLifted = initGate()
+    // The entrance runs now. It waits for nothing: the hero is the first
+    // paint, and whether the timed sequence plays or the page is simply there
+    // is decided inside by how long the visitor has already been looking.
+    initEntrance()
 
-    // The entrance waits for BOTH: the fonts, because it splits lines and a
-    // split before the face resolves would re-wrap; and the gate, because an
-    // entrance played behind a full screen overlay is an entrance nobody sees.
-    void Promise.all([document.fonts.ready, gateLifted]).then(() => {
+    // measurement, after load and in idle time, and only if configured
+    initAnalytics()
+
+    // The scroll choreography waits for the fonts, because it splits headlines
+    // into lines and a split before the face resolves would re-wrap. Nothing
+    // is hidden until it runs, so a font that never resolves costs no content.
+    void document.fonts.ready.then(() => {
       initChoreography()
       if (import.meta.env.DEV) assertSectionGeometry()
     })
@@ -105,7 +88,7 @@ export function App() {
 
   return (
     <>
-      <a href="#booking" className={s.skipLink}>
+      <a href="#top" className={s.skipLink}>
         {COPY.chrome.skipLink}
       </a>
 
@@ -124,23 +107,44 @@ export function App() {
 
       {/* L2 · CONTENT */}
       <main className={s.content} id="top">
-        {COPY.a11y.stations.map((label, i) => {
-          const Station = stationContent[i]!
-          return (
-            <section
-              key={label}
-              aria-label={label}
-              className={`${s.station} ${stationClasses[i]}`}
-              data-station={i + 1}
-              id={stationIds[i]}
-            >
-              <Station />
-            </section>
-          )
-        })}
+        {STATIONS.map((st, i) => (
+          <section
+            key={st.key}
+            aria-label={st.label}
+            className={s.station}
+            data-station={i + 1}
+            data-station-key={st.key}
+            id={st.anchor}
+            style={{ '--h': `${st.h}svh`, '--h-md': `${st.hMd}svh`, '--h-sm': `${st.hSm}svh` } as CSSProperties}
+          >
+            {/* Every station after the first hydrates inside its own Suspense
+                boundary. Nothing in them suspends; the boundary is there so
+                React 18 attaches to the prerendered markup one station at a
+                time, yielding between them, instead of in one long task at
+                the moment the page is trying to become interactive. The hero
+                stays outside so its buttons are live first. */}
+            {i === 0 ? (
+              <st.Component />
+            ) : (
+              <Suspense fallback={null}>
+                <st.Component />
+              </Suspense>
+            )}
+          </section>
+        ))}
+
+        {/* after the film: the questions and the small print, on solid ground */}
+        <Suspense fallback={null}>
+          <TrustBlock />
+        </Suspense>
       </main>
 
-      <SiteFooter />
+      <Suspense fallback={null}>
+        <SiteFooter />
+      </Suspense>
+
+      {/* the analytics line, only when analytics exist and until dismissed */}
+      <Notice />
     </>
   )
 }

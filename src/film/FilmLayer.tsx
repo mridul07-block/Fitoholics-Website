@@ -6,18 +6,18 @@
  * same seam in Phase 5. The LQIP ground stays as the host background so
  * there is never a blank viewport (CLS 0, §7.3).
  */
-import { useEffect, useRef, useState } from 'react'
-import { FILM, lqipFor, selectTier } from './manifest'
+import { useEffect, useRef } from 'react'
+import { useIsoLayoutEffect } from '../lib/useIsoLayoutEffect'
+import { FILM, lqipFor, selectTier, type TierSpec } from './manifest'
 import { washAtProgress } from './beats'
 import { Atmosphere, publishAct } from './atmosphere'
 import { daylightAtFrame } from './daylight'
-import { entranceDone, filmEntrance } from '../motion/choreography'
+import { entranceDone } from '../motion/choreography'
 import { FrameLoader, budgetForTier } from './FrameLoader'
 import { Canvas2DRenderer } from './Canvas2DRenderer'
 import { WebGLFilmRenderer } from './WebGLRenderer'
 import { initSpine, prefersReducedMotion } from './useMasterProgress'
 import { motionNorm } from './velocity'
-import { publishLoad } from './loadProgress'
 import s from '../App.module.css'
 
 type AnyRenderer = Canvas2DRenderer | WebGLFilmRenderer
@@ -67,15 +67,25 @@ declare global {
 export function FilmLayer() {
   const hostRef = useRef<HTMLDivElement>(null)
   const ruleRef = useRef<HTMLDivElement>(null)
-  // Resolved once, in render, because the LQIP ground below has to match the
-  // shape of the set that is about to cover it. Stable for the component's
-  // life, which is what lets the effect below keep its empty dependency list.
-  const [tier] = useState(selectTier)
-  const portrait = tier.orientation === 'portrait'
+  // Resolved once, before the first paint, never in render: selectTier reads
+  // the viewport and the connection, which do not exist where this tree is
+  // prerendered (entry-server.tsx). The LQIP ground has to match the shape of
+  // the set that is about to cover it, so it is written here too; on a
+  // prerendered page the same image is already in a <style> from the build,
+  // and this only confirms it. Stable for the component's life, which is what
+  // lets the effect below keep its empty dependency list.
+  const tierRef = useRef<TierSpec | null>(null)
+  useIsoLayoutEffect(() => {
+    const tier = selectTier()
+    tierRef.current = tier
+    if (hostRef.current) hostRef.current.style.backgroundImage = `url("${lqipFor(tier)[0]}")`
+  }, [])
 
   useEffect(() => {
     const host = hostRef.current
-    if (!host) return
+    const tier = tierRef.current
+    if (!host || !tier) return
+    const portrait = tier.orientation === 'portrait'
 
     const loader = new FrameLoader(tier, budgetForTier(tier))
     let renderer: AnyRenderer = pickRenderer(host, loader, tier)
@@ -95,6 +105,7 @@ export function FilmLayer() {
     const release = () => {
       if (released) return
       released = true
+      performance.mark('scroll:unlocked')
       spine.lenis.start()
       if (ruleRef.current) ruleRef.current.style.opacity = '0'
       window.removeEventListener('wheel', release)
@@ -116,15 +127,19 @@ export function FilmLayer() {
       window.addEventListener('keydown', release, { once: true })
     }
 
+    let readyMarked = false
     const offPhase = loader.onPhase((p) => {
-      if (ruleRef.current) {
-        ruleRef.current.style.transform = `scaleX(${p.stage === 'streaming' || p.stage === 'complete' ? 1 : p.blockingProgress})`
-      }
-      // The gate reads this. It is the loader's own decoded byte count, which
-      // is why the preloader can report a real figure instead of running a
-      // timer and hoping.
       const streaming = p.stage === 'streaming' || p.stage === 'complete'
-      publishLoad(streaming ? 1 : p.blockingProgress, streaming)
+      // The 1px rule is the page's only loading signal, and it reports the one
+      // thing that actually gates anything: the blocking batch behind the
+      // scroll lock. Real decoded bytes, not a timer.
+      if (ruleRef.current) {
+        ruleRef.current.style.transform = `scaleX(${streaming ? 1 : p.blockingProgress})`
+      }
+      if (streaming && !readyMarked) {
+        readyMarked = true
+        performance.mark('film:ready')
+      }
       if (import.meta.env.DEV) {
         window.__filmStats = {
           draws: renderer.draws,
@@ -157,6 +172,7 @@ export function FilmLayer() {
       daylight: 0,
     }
     const pinScratch: number[] = []
+    let revealed = false
 
     // ---- DEV diagnostics for the velocity driven effects ----
     // ?vel=<n> pins the velocity uniform so the high speed appearance can be
@@ -209,7 +225,7 @@ export function FilmLayer() {
         renderState.blend = c.blend
         renderState.velocity = c.velocity
         renderState.cut = atmos.state.cut
-        renderState.wash = washAtProgress(c.smoothed) * filmEntrance.wash
+        renderState.wash = washAtProgress(c.smoothed)
         // Motion softening.
         //
         // This began as ghosting mitigation for a sequence decimated two to one
@@ -235,6 +251,17 @@ export function FilmLayer() {
       }
       renderState.time += deltaMs / 1000
       renderer.render(renderState)
+      // The plate arrives as a crossfade over the LQIP ground (App.module.css
+      // .film[data-film-ready]), not as a wash ramp from ink: with nothing in
+      // front of the page any more, a canvas that started dark and brightened
+      // would read as the picture failing before it worked. `draws` counts
+      // real frame draws, so this fires on the first painted frame zero, and
+      // the attribute is on the host so it survives a WebGL to 2D swap.
+      if (!revealed && renderer.draws > 0) {
+        revealed = true
+        host.dataset.filmReady = ''
+        performance.mark('film:firstDraw')
+      }
       if (import.meta.env.DEV && window.__filmStats) window.__filmStats.draws = renderer.draws
     })
 
@@ -256,13 +283,7 @@ export function FilmLayer() {
   }, [])
 
   return (
-    <div
-      ref={hostRef}
-      className={s.film}
-      aria-hidden="true"
-      data-film-host
-      style={{ backgroundImage: `url("${lqipFor(tier)[0]}")` }}
-    >
+    <div ref={hostRef} className={s.film} aria-hidden="true" data-film-host>
       <div ref={ruleRef} className={s.loadingRule} />
     </div>
   )
