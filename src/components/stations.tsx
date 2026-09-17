@@ -285,35 +285,12 @@ export function Transformations() {
                   data-tilt=""
                   data-placeholder={isDraft(k) ? '' : undefined}
                 >
-                  {/* The pair is one picture to a screen reader, described by
-                      k.alt, only once there is a picture there. While the
-                      frames are empty that label would describe photographs
-                      nobody can see, so the frames read as their own Before
-                      and After words instead. */}
-                  <div
-                    className={s.casePair}
-                    role={k.before || k.after ? 'img' : undefined}
-                    aria-label={k.before || k.after ? k.alt : undefined}
-                  >
-                    <div className={s.caseShot}>
-                      {k.before ? (
-                        <img src={k.before} alt="" loading="lazy" decoding="async" />
-                      ) : (
-                        <span className={s.caseShotLabel}>{c.beforeLabel}</span>
-                      )}
-                    </div>
-                    <div className={s.caseShot}>
-                      {k.after ? (
-                        <img src={k.after} alt="" loading="lazy" decoding="async" />
-                      ) : (
-                        <span className={s.caseShotLabel}>{c.afterLabel}</span>
-                      )}
-                    </div>
+                  {/* Each supplied pair is already one photograph, with its
+                      own before and after halves, so the card is the picture
+                      and carries no caption of ours. */}
+                  <div className={s.caseShot}>
+                    <img src={k.src} alt={k.alt} loading="lazy" decoding="async" />
                   </div>
-                  <p className={s.caseResult}>{k.result}</p>
-                  <figcaption className={s.caseMeta}>
-                    {k.name}, {k.age}, {k.profession} · {k.timeframe}
-                  </figcaption>
                   {isDraft(k) && <DraftTag />}
                 </figure>
               ))}
@@ -473,6 +450,7 @@ export function Pathways() {
 export function Method() {
   const c = COPY.method
   const sectionRef = useRef<HTMLDivElement>(null)
+  const stickyRef = useRef<HTMLDivElement>(null)
   const numeralRef = useRef<HTMLDivElement>(null)
   const layerARef = useRef<HTMLDivElement>(null)
   const layerBRef = useRef<HTMLDivElement>(null)
@@ -490,82 +468,103 @@ export function Method() {
   useEffect(() => {
     if (reduced) return
     const root = sectionRef.current
+    const sticky = stickyRef.current
     const numeral = numeralRef.current
     const layers = [layerARef.current, layerBRef.current]
     const rail = railRef.current
-    if (!root || !numeral || !layers[0] || !layers[1] || !rail) return
+    if (!root || !sticky || !numeral || !layers[0] || !layers[1] || !rail) return
 
     const fills = Array.from(rail.querySelectorAll<HTMLElement>('[data-rail-fill]'))
-    let current = -1
-    let front = 0
-    /** the in flight wipe and numeral swap, so the next step can cancel them */
-    let wipe: gsap.core.Tween | null = null
-    let numeralTl: gsap.core.Timeline | null = null
+    const steps = c.steps
+    const last = steps.length - 1
 
-    const writeLayer = (el: HTMLElement, i: number) => {
-      const step = c.steps[i]!
-      el.querySelector('[data-step-title]')!.textContent = step.title
-      el.querySelector('[data-step-body]')!.textContent = step.body
+    /**
+     * The stage is scrubbed, not stepped.
+     *
+     * It used to swap on a threshold: floor(progress × 8), and a 0.44s wipe
+     * fired when the number changed. Between two thresholds nothing on the
+     * stage moved at all, and because the panel is pinned, nothing behind it
+     * moved either — a quarter of a screen of scrolling with the page frozen,
+     * eight times over. Every other station on this page answers the scroll on
+     * every frame, so this one read as the scroll having stopped working.
+     *
+     * Everything below is a pure function of scroll position instead. The copy
+     * drifts through its step, the rail fills as it goes, and the handover to
+     * the next step is the same masked wipe as before with the scroll driving
+     * it rather than a clock.
+     */
+
+    /** written every frame, so a setter each rather than a vars object each */
+    const setY = [gsap.quickSetter(layers[0], 'y', 'px'), gsap.quickSetter(layers[1], 'y', 'px')]
+    const setNumY = gsap.quickSetter(numeral, 'y', 'px')
+    const setNumA = gsap.quickSetter(numeral, 'opacity')
+
+    /** which step each layer holds, so the text is written only when it changes */
+    const held = [-1, -1]
+    let numeralHolds = -1
+
+    const write = (slot: number, i: number) => {
+      if (held[slot] === i) return
+      held[slot] = i
+      const el = layers[slot]!
+      const step = steps[i]
+      el.querySelector('[data-step-title]')!.textContent = step ? step.title : ''
+      el.querySelector('[data-step-body]')!.textContent = step ? step.body : ''
     }
 
-    const swap = (next: number, instant: boolean) => {
-      const step = c.steps[next]!
-      // Two steps can be requested inside one wipe on a fast scroll. Whatever is
-      // still running belongs to a step nobody is looking at any more.
-      wipe?.kill()
-      wipe = null
-      numeralTl?.kill()
-      numeralTl = null
-      // numeral crossfade: 0.35s opacity swap with a 22px Y drift (§8 S4)
-      if (instant) {
-        numeral.textContent = step.n
-        gsap.set(numeral, { opacity: NUMERAL_REST_OPACITY, y: 0 })
+    /** how far the copy travels across one step, px */
+    const DRIFT = 10
+    /** where in a step the handover to the next one begins */
+    const HANDOVER = 0.72
+
+    const render = (progress: number) => {
+      const p = Math.min(Math.max(progress, 0), 1) * steps.length
+      const i = Math.min(last, Math.floor(p))
+      const t = Math.min(1, p - i)
+      /** the handover: 0 for most of a step, 0 → 1 across its last stretch */
+      const u = i === last ? 0 : Math.max(0, (t - HANDOVER) / (1 - HANDOVER))
+
+      // Even steps take layer A, odd steps layer B, so an outgoing step and an
+      // incoming one are never asked to share one element.
+      const cur = i % 2
+      const nxt = 1 - cur
+      write(cur, i)
+      write(nxt, i + 1)
+      const curEl = layers[cur]!
+      const nxtEl = layers[nxt]!
+
+      /* The outgoing layer goes the moment the wipe starts, as it always has:
+         a layer has no background, so an incoming layer stacked over an
+         outgoing one occludes nothing and both would stay legible at once.
+         The wipe is a reveal of the new copy against the footage. */
+      if (u === 0) {
+        curEl.style.opacity = '1'
+        curEl.style.clipPath = 'none'
+        nxtEl.style.opacity = '0'
       } else {
-        // opacity, not autoAlpha: the numeral rests at the low opacity set in
-        // CSS, and autoAlpha would drive it to a solid 1 and never restore it
-        numeralTl = gsap
-          .timeline()
-          .to(numeral, { opacity: 0, y: -22, duration: 0.175, ease: 'power2.inOut' })
-          .add(() => {
-            numeral.textContent = step.n
-          })
-          .fromTo(
-            numeral,
-            { opacity: 0, y: 22 },
-            { opacity: NUMERAL_REST_OPACITY, y: 0, duration: 0.175, ease: 'power2.out' },
-          )
+        curEl.style.opacity = '0'
+        nxtEl.style.opacity = '1'
+        nxtEl.style.clipPath = `inset(${((1 - u) * 100).toFixed(2)}% 0% 0% 0%)`
       }
-      // masked wipe, clip travelling bottom to top over 0.44s (§8 S4)
-      const incoming = layers[1 - front]!
-      const outgoing = layers[front]!
-      writeLayer(incoming, next)
-      /**
-       * The outgoing layer goes NOW, not when the wipe finishes.
-       *
-       * A layer has no background — it is bare type over the film — so an
-       * incoming layer stacked above an outgoing one occludes nothing. Hiding
-       * the old copy on the wipe's onComplete meant both steps were rendered on
-       * top of each other, both fully legible, for the whole 440ms: the smeared
-       * double text that reads as the animation lagging. The wipe is a reveal of
-       * the new copy against the footage, and it only works alone.
-       */
-      gsap.set(outgoing, { zIndex: 1, autoAlpha: 0 })
-      if (instant) {
-        gsap.set(incoming, { clipPath: 'inset(0% 0% 0% 0%)', zIndex: 2 })
-      } else {
-        gsap.set(incoming, { clipPath: 'inset(100% 0% 0% 0%)', zIndex: 2 })
-        wipe = gsap.to(incoming, {
-          clipPath: 'inset(0% 0% 0% 0%)',
-          duration: 0.44,
-          ease: 'power2.inOut',
-        })
+
+      // The drift ends where the next step's drift begins, so the boundary has
+      // no jump in it: the copy is still travelling when the wipe takes over.
+      setY[cur]!(DRIFT - 2 * DRIFT * t)
+      setY[nxt]!(DRIFT)
+
+      // the numeral dips through zero and changes at the bottom of the dip
+      const showing = u < 0.5 ? i : i + 1
+      if (showing !== numeralHolds) {
+        numeralHolds = showing
+        numeral.textContent = steps[showing]!.n
       }
-      gsap.set(incoming, { autoAlpha: 1 })
-      front = 1 - front
-      // rail fills with ember as each step activates (CSS var: axis-agnostic,
-      // the rail is vertical on desktop and horizontal below 900px)
-      fills.forEach((f, i) => {
-        gsap.to(f, { '--fill': i <= next ? 1 : 0, duration: 0.3, ease: 'power2.out' } as gsap.TweenVars)
+      setNumA(NUMERAL_REST_OPACITY * Math.abs(1 - 2 * u))
+      setNumY(u < 0.5 ? -44 * u : 44 - 44 * u)
+
+      // The rail is the one part of the stage that moves on every frame, so it
+      // is what tells you the scroll is still being heard mid-step.
+      fills.forEach((f, j) => {
+        f.style.setProperty('--fill', j < i ? '1' : j === i ? t.toFixed(4) : '0')
       })
     }
 
@@ -573,22 +572,36 @@ export function Method() {
       trigger: root,
       start: 'top top',
       end: 'bottom bottom',
-      onUpdate: (self) => {
-        const step = Math.min(c.steps.length - 1, Math.floor(self.progress * c.steps.length))
-        if (step !== current) {
-          const instant = current < 0
-          current = step
-          swap(step, instant)
-        }
-      },
+      onUpdate: (self) => render(self.progress),
+      onRefresh: (self) => render(self.progress),
     })
     triggerRef.current = st
-    swap(0, true)
-    current = 0
+    render(st.progress)
+
+    /**
+     * The pin lets go with exactly one viewport still to scroll — that is the
+     * geometry of a sticky child, not a choice — and the panel is bare type
+     * over the film. Left alone it slides out across the whole of the next
+     * station's entrance, so the method's last step and the nutrition headline
+     * shared the screen, both legible, neither readable. It fades as it goes
+     * instead, and is gone before the next station has arrived.
+     */
+    const exit = gsap.to(sticky, {
+      autoAlpha: 0,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: root,
+        start: 'bottom bottom',
+        end: () => `+=${window.innerHeight * 0.3}`,
+        scrub: true,
+        invalidateOnRefresh: true,
+      },
+    })
+
     return () => {
       triggerRef.current = null
-      wipe?.kill()
-      numeralTl?.kill()
+      exit.scrollTrigger?.kill()
+      exit.kill()
       st.kill()
     }
   }, [reduced, c.steps])
@@ -646,7 +659,7 @@ export function Method() {
   return (
     <div ref={sectionRef} className={s.protoTrack}>
       <div className={clsx(s.scrim, s.scrimHeavy)} aria-hidden="true" />
-      <div className={s.protoSticky}>
+      <div ref={stickyRef} className={s.protoSticky}>
         <div className={s.grid}>
           <header className={clsx(s.protoHead, over)}>
             <span className={s.index}>{c.index}</span>

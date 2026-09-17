@@ -19,6 +19,7 @@ export function TrustBlock() {
   const faq = live(t.faq)
   return (
     <section className={s.trust} id="faq" aria-label={COPY.a11y.trust}>
+      <div className={s.scrim} aria-hidden="true" />
       <div className={s.inner}>
         <div className={s.head}>
           <p className={s.eyebrow}>{t.eyebrow}</p>

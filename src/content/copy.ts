@@ -167,56 +167,30 @@ export const COPY = {
         'References available at the consultation, from clients who offered',
       ],
     },
-    casesLabel: 'CASE STUDIES',
-    beforeLabel: 'Before',
-    afterLabel: 'After',
+    casesLabel: 'CLIENT TRANSFORMATIONS',
     /**
-     * Supplied by Ikram, 12 September 2026, and written here exactly as sent.
-     * Live on his instruction, photographs still to come.
+     * Supplied by Ikram as finished before-and-after pairs, each one already a
+     * single photograph. The files in public/cases are those pictures cropped
+     * to the photographs alone, with the story headings and caption bands
+     * taken off; the originals are public/transformation*.png. The seventh
+     * pair is not here: its faces are covered by cartoon stickers and it does
+     * not sit with the rest.
      *
-     * `before` and `after` are null until the pairs arrive, so each card shows
-     * a labelled empty frame rather than an image; the frame is not announced
-     * as a picture while it holds none (see stations.tsx). When a pair lands,
-     * point these at the derived WebP and the card completes itself.
+     * The pair carries itself, so a card is the picture and nothing else. `alt`
+     * is never seen; it is what a screen reader is told in place of the
+     * picture, and stays general because these clients are not named.
      *
      * `consent` records that the client has said in writing that this may be
      * published. It must be true on every row that reaches production, and the
      * record itself lives with Ikram.
      */
     cases: [
-      {
-        name: 'Neha Sharma',
-        age: 31,
-        profession: 'Product designer',
-        timeframe: '6 months',
-        result: 'Lost 8 kg, improved my energy, and finally built a routine I could follow without giving up weekends.',
-        before: null,
-        after: null,
-        alt: 'Neha Sharma before and after six months of coaching',
-        consent: true,
-      },
-      {
-        name: 'Arjun Mehta',
-        age: 38,
-        profession: 'Software engineer',
-        timeframe: '8 months',
-        result: 'Dropped 11 kg, got my blood pressure back in range, and stopped feeling exhausted halfway through the day.',
-        before: null,
-        after: null,
-        alt: 'Arjun Mehta before and after eight months of coaching',
-        consent: true,
-      },
-      {
-        name: 'Daniel Carter',
-        age: 42,
-        profession: 'Management consultant',
-        timeframe: '5 months',
-        result: 'Lost 7 kg, became stronger, and built a training routine that finally worked around constant business travel.',
-        before: null,
-        after: null,
-        alt: 'Daniel Carter before and after five months of coaching',
-        consent: true,
-      },
+      { src: '/cases/case-1.webp', alt: 'A client before and after coaching', consent: true },
+      { src: '/cases/case-2.webp', alt: 'A client before and after coaching', consent: true },
+      { src: '/cases/case-3.webp', alt: 'A client before and after coaching', consent: true },
+      { src: '/cases/case-4.webp', alt: 'A client before and after coaching', consent: true },
+      { src: '/cases/case-5.webp', alt: 'A client before and after coaching', consent: true },
+      { src: '/cases/case-6.webp', alt: 'A client before and after coaching', consent: true },
     ],
     /** production, while the consented case studies are still being gathered */
     emptyNote: 'The first consented case studies are being prepared now.',

@@ -1276,35 +1276,22 @@ dd .draftTag {
   gap: var(--s-6);
 }
 
-/* Three rows, and the middle one takes the slack: the pair, the result, then
-   the attribution. Packed to the start instead, a two line result and a three
-   line result put their two attributions at different heights, and a row of
-   cards whose captions do not share a line reads as a rendering accident
-   rather than as three clients. The slack goes above the caption, never into
-   the photographs. */
+/* The card is the photograph. Each supplied pair already holds its own before
+   and after halves, so there is nothing to lay out around it. */
 .case {
   composes: surface;
   padding: var(--s-4);
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: var(--s-4);
   transform-style: preserve-3d;
 }
 
-.case > .caseResult {
-  align-self: start;
-}
-
-/* the pair, side by side and the same size, never animated between */
-.casePair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s-2);
-}
-
+/* A square frame for every card, so a row of them shares one line top and
+   bottom. The pairs come in at slightly different shapes and are contained
+   rather than filled: cover would take the crop back off the edges of the
+   photographs, which is the one part of them worth keeping whole. */
 .caseShot {
   position: relative;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1 / 1;
   display: grid;
   place-items: center;
   background: rgba(var(--void-rgb), .45);
@@ -1315,27 +1302,7 @@ dd .draftTag {
 .caseShot img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-}
-
-.caseShotLabel {
-  composes: utility from '../styles/base.css';
-}
-
-.caseResult {
-  composes: display from '../styles/base.css';
-  font-weight: 400;
-  font-size: var(--t-body);
-  line-height: var(--lh-h2);
-  color: var(--bone);
-}
-
-.case[data-placeholder] .caseResult {
-  color: var(--stone);
-}
-
-.caseMeta {
-  composes: utility from '../styles/base.css';
+  object-fit: contain;
 }
 
 .videos {
