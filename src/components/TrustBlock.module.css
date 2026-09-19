@@ -1,13 +1,25 @@
-/* Solid ground, not glass: the film has stopped under this block, and the
-   ground here is --void at daylight 1, the warm brown the page has been
-   travelling toward. The lit top edge is the footer's, so the handoff from
-   film to ground reads as one line. */
+/* Glass, like every station above it. The film is fixed and never unmounts,
+   so it is still there under this block — filmMap.ts simply holds the final
+   daylit frame. This used to paint --void over it, which made the questions
+   the one place the page turned opaque. The scrim below carries the type
+   instead, the same way the stations do. */
 .trust {
   position: relative;
   z-index: var(--z-content);
-  background: var(--void);
   border-top: 1px solid var(--glass-border);
   padding: var(--s-10) var(--page-margin);
+}
+
+/* The stations' own scrim, so the questions sit on the footage the same way
+   the copy above them does rather than on a panel of their own.
+   The flat wash under it is this section's alone. --scrim-heavy thins out as
+   --daylight rises, and the final frame is the one daylit shot in the film, so
+   the answers' body copy measured 3.5:1 against the lit window behind them.
+   The wash takes that to 4.6:1, past AA, and leaves the footage plainly
+   visible. Measured, not guessed: lower it and the answers stop passing. */
+.scrim {
+  composes: scrim from './stations.module.css';
+  background: var(--scrim-heavy), rgba(var(--void-rgb), .46);
 }
 
 .trust::before {
@@ -19,7 +31,11 @@
   pointer-events: none;
 }
 
+/* over the scrim, and carrying the film text shadow the stations use: both are
+   needed now that there is footage rather than flat ground behind the type */
 .inner {
+  composes: overFilm from '../styles/base.css';
+  position: relative;
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   column-gap: var(--grid-gutter);
